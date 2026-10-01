@@ -34,13 +34,13 @@ test('gable elevation tails share the cutting-detail profile and mirror at the r
  }
 });
 
-test("garden-room defaults use 250 mm gable-end rafter overhangs", () => {
+test("garden-room defaults use 250 mm eaves to outer fascia and 228 mm to rafter tails", () => {
   const cfg = framing.configForWall(framing.defaultSettings(), "left");
   const rafters = framing.buildModel(cfg).filter((m) => m.type === "gable end rafter");
   assert.equal(cfg.gableOverhang, 250);
   assert.deepEqual(rafters.map((m) => m.bearingX), [cfg.upperStart, cfg.upperEnd]);
-  assert.deepEqual(rafters.map((m) => m.x1), [cfg.upperStart - 250, cfg.width / 2 + cfg.ridgeWidth / 2]);
-  assert.equal(rafters[1].x2, cfg.upperEnd + 250);
+  assert.deepEqual(rafters.map((m) => m.x1), [cfg.upperStart - 228, cfg.width / 2 + cfg.ridgeWidth / 2]);
+  assert.equal(rafters[1].x2, cfg.upperEnd + 228);
 });
 
 test("gable infill studs are set out symmetrically from the ridge", () => {
@@ -250,15 +250,15 @@ test('rafter pitch equals the setting for every ridge width and overhang',()=>{
 });
 
 test('gable outriggers remain wholly outside the wall and stop at the outer-rafter inner face',()=>{
- const s=framing.defaultSettings(),r=roofModel(s),half=s.studFace/2;
+ const s=framing.defaultSettings(),r=roofModel(s);
  assert.deepEqual(r.outriggerRuns,[
-  {side:'left',start:-r.gableOverhang+half,end:0},
-  {side:'right',start:r.length,end:r.length+r.gableOverhang-half},
+  {side:'left',start:-r.gableOverhang+22+s.studFace,end:0},
+  {side:'right',start:r.length,end:r.length+r.gableOverhang-22-s.studFace},
  ]);
  assert.equal(r.outriggerRuns[0].end,0);
  assert.equal(r.outriggerRuns[1].start,r.length);
- assert.equal(r.outriggerRuns[0].end-r.outriggerRuns[0].start,r.gableOverhang-half);
- assert.equal(r.outriggerRuns[1].end-r.outriggerRuns[1].start,r.gableOverhang-half);
+ assert.equal(r.outriggerRuns[0].end-r.outriggerRuns[0].start,r.gableOverhang-22-s.studFace);
+ assert.equal(r.outriggerRuns[1].end-r.outriggerRuns[1].start,r.gableOverhang-22-s.studFace);
 });
 test('short end bays report the actual irregular spacing to the first regular rafters',()=>{
  const r=roofModel(framing.defaultSettings());
@@ -320,8 +320,8 @@ test('fly rafters reach the centreline while common rafters stop at ridge faces'
   const rows=roofCutSchedule(settings),roof=roofModel(settings);
   const common=rows.find(r=>r.type==='Field common rafters'),fly=rows.find(r=>r.type==='Outer fly rafters');
   const cos=Math.cos(settings.roofPitch*Math.PI/180);
-  assert.ok(Math.abs(common.length*cos-((roof.span-ridgeWidth)/2+roof.overhang))<.05);
-  assert.ok(Math.abs(fly.length*cos-(roof.span/2+roof.overhang))<.05);
+  assert.ok(Math.abs(common.length*cos-((roof.span-ridgeWidth)/2+roof.eavesTailRun))<.05);
+  assert.ok(Math.abs(fly.length*cos-(roof.span/2+roof.eavesTailRun))<.05);
  }
 });
 test('noggins avoid low window sills, lintels and cripple studs',()=>{
@@ -381,4 +381,34 @@ test('rear and gable elevations place nested short dimension bars nearer the dra
   const brick=labels.find(p=>p.label===`${cfg.brickBody} brick run`),noggin=labels.find(p=>p.label.includes('noggin / clear bay'));
   assert.ok(noggin.y<brick.y,`${id}: short bottom dimension must be inside the overall brick dimension`);
  }
+});
+
+
+test('all four outside fascia faces meet the requested wall-frame projections',()=>{
+ for(const gableOverhang of [250,400,750])for(const roofGableOverhang of [100,250,600]){
+  const s={...framing.defaultSettings(),gableOverhang,roofGableOverhang};
+  const r=roofModel(s);
+  assert.deepEqual(r.errors,[]);
+  assert.equal(r.eavesTailRun+r.fasciaThickness,gableOverhang);
+  assert.equal(r.flyRafterProjection+s.studFace/2+r.fasciaThickness,roofGableOverhang);
+  assert.equal(r.outriggerRuns[0].start-s.studFace-r.fasciaThickness,-roofGableOverhang);
+  assert.equal(r.outriggerRuns[1].end+s.studFace+r.fasciaThickness,r.length+roofGableOverhang);
+  for(const id of ['left','right']){
+   const cfg=framing.configForWall(s,id),[a,b]=framing.buildModel(cfg).filter(m=>m.type==='gable end rafter');
+   assert.equal(cfg.upperStart-a.x1+r.fasciaThickness,gableOverhang);
+   assert.equal(b.x2-cfg.upperEnd+r.fasciaThickness,gableOverhang);
+  }
+ }
+ const s=framing.defaultSettings(),r=roofModel(s);
+ assert.equal(r.length+2*r.gableOverhang,5690);
+ assert.equal(r.span+2*r.overhang,3700);
+ assert.equal(r.eavesTailRun,228);
+ assert.equal(r.flyRafterProjection,205.5);
+});
+
+test('fascia allowances reject projections that leave no timber support',()=>{
+ const s=framing.defaultSettings();
+ for(const gableOverhang of [0,21])assert.ok(roofModel({...s,gableOverhang}).errors.length);
+ for(const roofGableOverhang of [1,22,45,67])assert.ok(roofModel({...s,roofGableOverhang}).errors.length);
+ assert.deepEqual(roofModel({...s,roofGableOverhang:0}).errors,[]);
 });

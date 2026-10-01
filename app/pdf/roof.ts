@@ -9,24 +9,33 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   c.text(`${r.count} ties, ${r.width} x ${r.depth} mm | every ${r.every} rafter bays (${r.every*r.centres} mm) | ${r.centres} mm common rafter centres`,12,17,8);
   c.text(`Outer timber frame ${r.length} x ${r.span} mm | ridge ${settings.ridgeWidth} x ${settings.ridgeDepth} mm | pitch ${settings.roofPitch} degrees`,12,22,7);
   if(r.rafters.length>=4)c.text(`End bays - gable end-rafter C/L to first regular rafter C/L: left ${f(r.rafters[1]-r.rafters[0])} mm; right ${f(r.rafters.at(-1)!-r.rafters.at(-2)!)} mm`,12,27,7);
-  const scale=Math.min(213/(r.length+2*r.gableOverhang+settings.studFace),106/(r.span+2*r.overhang));
-  const X=(v:number)=>38+(v+r.gableOverhang+settings.studFace/2)*scale,Y=(v:number)=>66+(v+r.overhang)*scale;
+  const scale=Math.min(213/(r.length+2*r.gableOverhang),106/(r.span+2*r.overhang));
+  const X=(v:number)=>38+(v+r.gableOverhang)*scale,Y=(v:number)=>66+(v+r.overhang)*scale;
   const ridgeFront=(r.span-settings.ridgeWidth)/2,ridgeRear=(r.span+settings.ridgeWidth)/2;
-  const tailFront=Y(-r.overhang),tailRear=Y(r.span+r.overhang);
+  const tailFront=Y(-r.eavesTailRun),tailRear=Y(r.span+r.eavesTailRun);
+  const fasciaFront=Y(-r.overhang),fasciaRear=Y(r.span+r.overhang);
   c.rect(X(0),Y(0),r.length*scale,r.span*scale,[250,250,250]);
   r.plates.forEach(p=>c.rect(X(p.x),Y(p.y),p.w*scale,p.h*scale,"plate",[0,0,0]));
   const pair=(x:number,fly=false)=>{
     const frontEnd=fly?r.span/2:ridgeFront,rearStart=fly?r.span/2:ridgeRear;
     // Separate plumb-ended members terminate at the two ridge faces.
-    c.rect(X(x-settings.studFace/2),tailFront,settings.studFace*scale,(frontEnd+r.overhang)*scale,"timber");
-    c.rect(X(x-settings.studFace/2),Y(rearStart),settings.studFace*scale,(r.span+r.overhang-rearStart)*scale,"timber");
+    c.rect(X(x-settings.studFace/2),tailFront,settings.studFace*scale,(frontEnd+r.eavesTailRun)*scale,"timber");
+    c.rect(X(x-settings.studFace/2),Y(rearStart),settings.studFace*scale,(r.span+r.eavesTailRun-rearStart)*scale,"timber");
   };
   r.rafters.forEach((x,i)=>{pair(x);c.text(String(i+1),X(x),tailFront-2,6,false,"center");});
   if(r.gableOverhang>0){
     r.outriggerRuns.forEach((run,i)=>{
       [0,r.span/4,3*r.span/4,r.span].forEach(y=>c.rect(X(run.start),Y(y-settings.studFace/2),(run.end-run.start)*scale,settings.studFace*scale,"outrigger"));
-      pair(i===0?-r.gableOverhang:r.length+r.gableOverhang,true);
+      pair(i===0?-r.flyRafterProjection:r.length+r.flyRafterProjection,true);
     });
+  }
+  // Fascia faces are the overall roof datums; timber sits inside them.
+  const fasciaLeft=X(-r.gableOverhang),fasciaRight=X(r.length+r.gableOverhang);
+  c.rect(fasciaLeft,fasciaFront,fasciaRight-fasciaLeft,r.fasciaThickness*scale,"timber");
+  c.rect(fasciaLeft,tailRear,fasciaRight-fasciaLeft,r.fasciaThickness*scale,"timber");
+  if(r.gableOverhang>0){
+    c.rect(fasciaLeft,tailFront,r.fasciaThickness*scale,tailRear-tailFront,"timber");
+    c.rect(fasciaRight-r.fasciaThickness*scale,tailFront,r.fasciaThickness*scale,tailRear-tailFront,"timber");
   }
   r.ties.forEach((x,i)=>{c.rect(X(x-r.width/2),Y(0),r.width*scale,r.span*scale,"tie");c.text(`T${i+1}: ${f(x)}`,X(x),tailRear+4,6,true,"center");});
   c.rect(X(0),Y(ridgeFront),r.length*scale,settings.ridgeWidth*scale,"ridge");
@@ -36,11 +45,11 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   // External centre marks avoid bisecting the centre tie along its full length.
   c.line(X(r.middle),tailFront-3,X(r.middle),tailFront-1,[0,0,0],.15,[1,1]);
   c.line(X(r.middle),tailRear+1,X(r.middle),tailRear+2,[0,0,0],.15,[1,1]);
-  hTechnical(c,X(-r.gableOverhang),X(r.length+r.gableOverhang),tailFront,36,`${f(r.length+2*r.gableOverhang)} outer-rafter C/L to C/L`,5.5);
+  hTechnical(c,X(-r.gableOverhang),X(r.length+r.gableOverhang),tailFront,36,`${f(r.length+2*r.gableOverhang)} outer fascia to outer fascia`,5.5);
   hTechnical(c,X(0),X(r.length),tailFront,42,`${f(r.length)} wall outer faces`,5.3);
   if(r.gableOverhang>0){
-    hTechnical(c,X(-r.gableOverhang),X(0),tailFront,48,`${f(r.gableOverhang)} projection`,4.4);
-    hTechnical(c,X(r.length),X(r.length+r.gableOverhang),tailFront,48,`${f(r.gableOverhang)} projection`,4.4);
+    hTechnical(c,X(-r.gableOverhang),X(0),tailFront,48,`${f(r.gableOverhang)} to fascia`,4.4);
+    hTechnical(c,X(r.length),X(r.length+r.gableOverhang),tailFront,48,`${f(r.gableOverhang)} to fascia`,4.4);
   }
   if(r.rafters.length>=4){
     hTechnical(c,X(r.rafters[0]),X(r.rafters[1]),tailFront,54,`${f(r.rafters[1]-r.rafters[0])} C/L`,4.8);
@@ -50,17 +59,17 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   }
   const common=r.rafters.findIndex((x,i)=>i>0&&Math.abs(x-r.rafters[i-1]-r.centres)<.01);
   if(common>0)hTechnical(c,X(r.rafters[common-1]),X(r.rafters[common]),tailFront,54,`${f(r.centres)} C/C`,4.7);
-  const edge=X(r.length+r.gableOverhang+settings.studFace/2);
-  vTechnical(c,tailFront,tailRear,edge,284,`${f(r.span+2*r.overhang)} roof depth`,5,"right");
+  const edge=fasciaRight;
+  vTechnical(c,fasciaFront,fasciaRear,edge,284,`${f(r.span+2*r.overhang)} fascia overall depth`,5,"right");
   vTechnical(c,Y(0),Y(r.span),edge,278,`${f(r.span)} wall outer / tie length`,4.8,"right");
   vTechnical(c,Y(settings.studDepth),Y(r.span-settings.studDepth),edge,272,`${f(r.span-2*settings.studDepth)} clear between plates`,4.8,"right");
   vTechnical(c,Y(0),Y(r.span/2),edge,266,`${f(r.span/2)} front face - ridge C/L`,4.6,"right");
   vTechnical(c,Y(0),Y(settings.studDepth),edge,260,`${f(settings.studDepth)} bearing`,4.4,"right");
   if(r.overhang>0){
-    vTechnical(c,tailFront,Y(0),edge,254,`${f(r.overhang)} eaves`,4.5,"right");
-    vTechnical(c,Y(r.span),tailRear,edge,254,`${f(r.overhang)} eaves`,4.5,"right");
+    vTechnical(c,fasciaFront,Y(0),edge,254,`${f(r.overhang)} to fascia`,4.5,"right");
+    vTechnical(c,Y(r.span),fasciaRear,edge,254,`${f(r.overhang)} to fascia`,4.5,"right");
   }
-  const outerX=X(-r.gableOverhang-settings.studFace/2);
+  const outerX=fasciaLeft;
   [0,r.span/4,3*r.span/4].forEach((y,i)=>{
     const end=[r.span/4,3*r.span/4,r.span][i];
     if(r.outriggerRuns.length)vTechnical(c,Y(y),Y(end),outerX,25,`${f(end-y)} outrigger C/C`,4.7,"left");
@@ -74,7 +83,7 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   // Short face dimensions have their own staggered rails beneath the roof.
   hTechnical(c,X(r.ties[0]-r.width/2),X(r.ties[0]+r.width/2),tailRear,tailRear+16,`${f(r.width)} tie width`,4.5);
   hTechnical(c,X(r.ties[0]),X(r.ties[0]+r.offset),tailRear,tailRear+22,`${f(r.offset)} tie/rafter C/L`,4.5);
-  c.text("C/L = centreline; C/C = centre to centre. Roof viewed from above; left/right correspond to the front elevation.",12,199,6);
+  c.text("Overhangs: horizontal, outside wall framing to outside fascia (22 mm thick). C/L = centreline; C/C = centre to centre.",12,199,6);
   c.text(`Garden room framing set | page ${page} of ${total} | verify structural sizing and as-built dimensions before cutting`,148.5,205,6.2,false,"center",[90,90,90]);
   return c.stream();
 }
@@ -107,7 +116,7 @@ export function drawCuts(settings:Settings,page:number,total:number){
   const cfg=configForWall(settings,'left'),members=buildModel(cfg),m=members.find(m=>m.type==="gable end rafter")!,d=rafterDimensions(m),c=canvas();
   c.text("Gable rafters - dimensions and cut angles",12,11,14,true);
   c.text("Applies to both gable ends; opposite slope is mirrored. All dimensions in mm; angles in degrees.",12,18,8);
-  c.text(`Roof pitch ${fmt(d.pitch)} deg | section ${cfg.studFace} x ${cfg.studDepth}`,12,24,8);
+  c.text(`Roof pitch ${fmt(d.pitch)} deg | section ${cfg.studFace} x ${cfg.studDepth} | ${fmt(cfg.gableOverhang)} wall to outer fascia = ${fmt(cfg.eavesTailRun)} to tail + 22 fascia`,12,24,8);
   const sc=Math.min(118/d.run,53/(d.rise+d.verticalDepth)),X=(x:number)=>22+(x-m.x1!)*sc,Y=(y:number)=>92-(y-m.y1!)*sc;
   c.polygon(d.cutPolygon.map(p=>[X(p[0]),Y(p[1])]),"timber");
   c.line(X(m.x1!),Y(m.y1!),X(m.x2!),Y(m.y1!),[90,110,115],.15,[2,1]);

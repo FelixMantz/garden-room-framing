@@ -1,3 +1,4 @@
+import { roofOverhangs, ROOF_FASCIA_THICKNESS } from './roof-overhangs';
 export type WallId = "front" | "rear" | "left" | "right";
 export type Opening = { type: "window" | "door"; x: number; width: number; height: number; level: number; note?: string };
 export type FloorLayer = { name: string; thickness: number };
@@ -15,7 +16,7 @@ export type WallConfig = Settings & Wall & {
   frameLength:number; frameDepth:number; brickLength:number; brickDepth:number;
   brickStart:number; brickEnd:number; brickBody:number; masonryHeight:number; frameBase:number; ffl:number;
   plates:number; parsedNogginRows:number[]; computedOpenings:(Opening & {id:number;sill:number;levelAboveFfl:number})[];
-  minX:number; maxX:number; maxY:number; ridgeBottom:number; ridgeTop:number; rafterVerticalDepth:number; rafterSeatLift:number;
+  minX:number; maxX:number; maxY:number; ridgeBottom:number; ridgeTop:number; rafterVerticalDepth:number; rafterSeatLift:number; eavesTailRun:number;
 };
 export type Member = {
   shape:"rect"|"slope"; type:string; x?:number; y?:number; w?:number; h?:number;
@@ -61,6 +62,7 @@ export function configForWall(settings:Settings,id:WallId):WallConfig {
   const ridgeWidth=Number(settings.ridgeWidth ?? 45);
   const ridgeDepth=Number(settings.ridgeDepth ?? 145);
   const gableOverhang=Number(settings.gableOverhang ?? 250);
+  const {eavesTailRun}=roofOverhangs(gableOverhang,settings.roofGableOverhang,settings.studFace);
   const width=isSide?frameDepth-2*settings.cornerLap:frameLength;
   // Gable grids are phased from the ridge centreline so a full-height common
   // stud sits directly below the ridge support, regardless of wall width.
@@ -85,7 +87,7 @@ export function configForWall(settings:Settings,id:WallId):WallConfig {
     return {...o,id:i+1,sill,levelAboveFfl:sill+frameBase-ffl};
   }).sort((a,b)=>a.x-b.x);
   return {...settings,...wall,id,isSide,width,upperStart,upperEnd,gableRise,frameLength,frameDepth,brickLength,brickDepth,gableOverhang,ridgeWidth,ridgeDepth,brickStart,brickEnd:brickStart+brickBody,
-    brickBody,masonryHeight,frameBase,ffl,plates,computedOpenings,ridgeBottom,ridgeTop,rafterVerticalDepth,rafterSeatLift,
+    brickBody,masonryHeight,frameBase,ffl,plates,computedOpenings,ridgeBottom,ridgeTop,rafterVerticalDepth,rafterSeatLift,eavesTailRun,
     parsedNogginRows:[1200],
     minX:Math.min(0,upperStart-(wall.gable?gableOverhang:0),brickStart),maxX:Math.max(width,upperEnd+(wall.gable?gableOverhang:0),brickStart+brickBody),maxY:wall.gable?Math.max(ridgeTop,settings.wallHeight+gableRise+rafterSeatLift+rafterVerticalDepth/2):settings.wallHeight};
 }
@@ -126,7 +128,7 @@ export function validate(cfg:WallConfig):string[] {
   if(cfg.width<600||cfg.wallHeight<600||cfg.studFace<25||cfg.studCentres<=cfg.studFace||cfg.studCentres>2000) errors.push(`${cfg.name}: check wall and stud dimensions.`);
   if(cfg.gable&&(cfg.ridgeWidth<=0||cfg.ridgeDepth<=0||cfg.ridgeWidth>=cfg.width/2||!Number.isFinite(cfg.ridgeDepth)||!Number.isFinite(cfg.ridgeWidth))) errors.push(`${cfg.name}: check ridge beam dimensions.`);
   if(cfg.gable&&cfg.ridgeWidth<cfg.studFace)errors.push(`${cfg.name}: ridge width must be at least ${cfg.studFace} mm to clear the square ridge support and apex studs.`);
-  if(cfg.gable&&(cfg.gableOverhang<0||cfg.gableOverhang>1500)) errors.push(`${cfg.name}: check the gable-end rafter overhang.`);
+  if(cfg.gable&&(cfg.gableOverhang<ROOF_FASCIA_THICKNESS||cfg.gableOverhang>1500)) errors.push(`${cfg.name}: eaves overhang to outer fascia must be at least 22 mm.`);
   if(cfg.isSide&&cfg.width<=cfg.studFace*4) errors.push(`${cfg.name}: corner laps leave no usable wall body.`);
   if(!cfg.isSide&&cfg.topPlates===2&&cfg.upperEnd<=cfg.upperStart) errors.push(`${cfg.name}: upper-plate cut-outs overlap.`);
   if(cfg.layers.some(l=>!Number.isFinite(l.thickness)||l.thickness<0)) errors.push(`${cfg.name}: check floor layers.`);
@@ -218,9 +220,9 @@ export function buildModel(cfg:WallConfig):Member[] {
     addRoofStud("gable apex stud",centralLeft,"left apex stud; angled top cut");
     add("ridge support stud",center-cfg.studFace/2,cfg.wallHeight,cfg.studFace,cfg.ridgeBottom-cfg.wallHeight,"square bearing beneath ridge beam; underside flush with rafter plumb ends");
     addRoofStud("gable apex stud",centralRight,"right apex stud; angled top cut");
-    const tailDrop=cfg.gableOverhang*Math.tan(pitchRadians);
-    slope("gable end rafter",cfg.upperStart-cfg.gableOverhang,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,pocketLeft,apex,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm overhang; 20 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperStart,cfg.wallHeight);
-    slope("gable end rafter",pocketRight,apex,cfg.upperEnd+cfg.gableOverhang,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm overhang; 20 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperEnd,cfg.wallHeight);
+    const tailDrop=cfg.eavesTailRun*Math.tan(pitchRadians);
+    slope("gable end rafter",cfg.upperStart-cfg.eavesTailRun,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,pocketLeft,apex,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm to outer fascia; ${cfg.eavesTailRun} mm to tail; 20 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperStart,cfg.wallHeight);
+    slope("gable end rafter",pocketRight,apex,cfg.upperEnd+cfg.eavesTailRun,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm to outer fascia; ${cfg.eavesTailRun} mm to tail; 20 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperEnd,cfg.wallHeight);
   }
   return m;
 }

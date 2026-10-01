@@ -1,3 +1,4 @@
+import { roofOverhangs } from '../roof-overhangs';
 import type { Settings } from '../framing';
 import { canvas, fmt, hTechnical, vTechnical, type Fill } from './layout';
 import { rafterTailCut } from '../rafter-dimensions';
@@ -5,7 +6,8 @@ import { rafterTailCut } from '../rafter-dimensions';
 /** Eaves junction: dimensions in mm; proprietary profiles remain schematic. */
 export function drawEaves(s:Settings,page:number,total:number){
   const c=canvas(), pitch=s.roofPitch*Math.PI/180, co=Math.cos(pitch), si=Math.sin(pitch);
-  const scale=.18, left=64, base=147, right=left+Math.min(118,(base-42-166*.18/co)/Math.tan(pitch));
+  const {fasciaThickness,eavesTailRun}=roofOverhangs(s.gableOverhang,s.roofGableOverhang,s.studFace);
+  const scale=Math.min(.18,80/(eavesTailRun+s.studDepth)), left=64, base=147, right=left+Math.min(118,(base-42-166*scale/co)/Math.tan(pitch));
   const y=(x:number,n:number)=>base-(x-left)*Math.tan(pitch)-n*scale/co;
   const osb=11,pir=100,counter=25,batten=25,top=osb+pir;
   const tailCut=rafterTailCut(s.studDepth,s.roofPitch),tailFlatX=left+tailCut.horizontalRun*scale;
@@ -23,10 +25,10 @@ export function drawEaves(s:Settings,page:number,total:number){
   };
   c.text('Eaves - roof build-up and gutter junction',12,11,14,true);
   c.text(`Section down the roof slope | pitch ${fmt(s.roofPitch)} degrees | dimensions in mm | do not scale`,12,18,8);
-  c.text('Plumb-cut insulation; breathable membrane directly on PIR; ventilation above membrane.',12,24,7.5);
+  c.text(`${fmt(s.gableOverhang)} mm horizontal: outer wall framing to outer fascia; ${fmt(eavesTailRun)} mm to rafter tail.`,12,24,7.5);
   // Lengthwise counter-batten shown beyond the section, with the air channel in front.
   // The wall follows the actual eaves projection. Fit longer projections to this sheet.
-  const wallX=left+Math.min(s.gableOverhang*scale,right-left-s.studDepth*scale-5);
+  const wallX=left+eavesTailRun*scale;
   const wallInner=wallX+s.studDepth*scale, plateY=y(wallInner,-s.studDepth);
   c.polygon([[left,tailTopY],[right,y(right,0)],[right,y(right,-s.studDepth)],
     [wallInner,plateY],[wallX,plateY],[wallX,y(wallX,-s.studDepth)],[tailFlatX,tailFlatY],[left,tailFlatY]],'timber',[0,0,0],.2);
@@ -60,7 +62,7 @@ export function drawEaves(s:Settings,page:number,total:number){
   tilePoints.slice(1).forEach((p,i)=>line(tilePoints[i],p,.65));
   // Vertical fascia fixed to rafter tails; tray passes over its top.
   const soffitThickness=9;
-  const fasciaTop=y(left,top)+2,fasciaBottom=tailFlatY+soffitThickness*scale,fasciaThickness=22,fasciaHeight=(fasciaBottom-fasciaTop)/scale;
+  const fasciaTop=y(left,top)+2,fasciaBottom=tailFlatY+soffitThickness*scale,fasciaHeight=(fasciaBottom-fasciaTop)/scale;
   c.rect(left-fasciaThickness*scale,fasciaTop,fasciaThickness*scale,fasciaBottom-fasciaTop,'timber',[0,0,0],.3);
   // Solid soffit closes the overhang; roof ventilation is above the membrane.
   const soffitY=tailFlatY;
@@ -107,10 +109,11 @@ export function drawEaves(s:Settings,page:number,total:number){
   leader(`${s.topPlates} top plates: ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,wallInner,plateY+s.studFace*scale,197,160);
   c.text('Wall below; maintain insulation continuity.',197,165,6.2);
   c.text('Join roof / wall air and vapour control layers.',197,170,6.2);
+  hTechnical(c,left-fasciaThickness*scale,wallX,fasciaBottom,181,`${fmt(s.gableOverhang)} wall to outer fascia`,5.5);
   c.text('FASCIA SECTION',15,35,8,true);
   const fx=40,fy=43,fs=.14,fw=fasciaThickness*fs,fh=fasciaHeight*fs;
   c.rect(fx,fy,fw,fh,'timber',[0,0,0],.25);
-  hTechnical(c,fx,fx+fw,fy,39,'22',6);
+  hTechnical(c,fx,fx+fw,fy,39,fmt(fasciaThickness),6);
   vTechnical(c,fy,fy+fh,fx+fw,55,`${fmt(fasciaHeight)} overall height`,6);
   c.text('22 mm timber thickness assumed.',65,46,6.5);
   c.text('Fascia bottom flush with 9 mm soffit underside;',65,51,6.5);

@@ -1,3 +1,4 @@
+import { roofOverhangs } from './roof-overhangs';
 import { configForWall, type Settings } from './framing';
 
 export function roofModel(settings: Settings) {
@@ -11,9 +12,10 @@ export function roofModel(settings: Settings) {
   const overhang = cfg.gableOverhang;
   const gableOverhang = settings.roofGableOverhang ?? 250;
   const outerRafterHalf = settings.studFace / 2;
-  const outriggerRuns = gableOverhang > outerRafterHalf ? [
-    {side:'left' as const,start:-gableOverhang+outerRafterHalf,end:0},
-    {side:'right' as const,start:length,end:length+gableOverhang-outerRafterHalf},
+  const {fasciaThickness,eavesTailRun,flyRafterProjection,outriggerRun}=roofOverhangs(overhang,gableOverhang,settings.studFace);
+  const outriggerRuns = gableOverhang > 0 && outriggerRun > 0 ? [
+    {side:'left' as const,start:-outriggerRun,end:0},
+    {side:'right' as const,start:length,end:length+outriggerRun},
   ] : [];
   const plates = [
     {name:'Front top plate',x:settings.cornerLap,y:0,w:length-2*settings.cornerLap,h:settings.studDepth},
@@ -23,13 +25,14 @@ export function roofModel(settings: Settings) {
   ];
   const errors: string[] = [];
   if(!Number.isFinite(gableOverhang)||gableOverhang<0||gableOverhang>1500) errors.push('Gable overhang must be between 0 and 1,500 mm.');
-  if(gableOverhang>0&&gableOverhang<=outerRafterHalf) errors.push('Gable overhang must exceed half the outer-rafter width so the outrigger has a positive length.');
+  if(gableOverhang>0&&outriggerRun<=0) errors.push('Gable overhang to outer fascia must exceed the fascia thickness plus the fly-rafter width.');
+  if(!Number.isFinite(eavesTailRun)||eavesTailRun<0) errors.push('Eaves overhang to outer fascia must be at least 22 mm.');
   if (!Number.isFinite(centres) || centres < settings.studFace || centres > 2000) errors.push('Rafter centres must be at least the rafter thickness and no more than 2,000 mm.');
   if (!Number.isInteger(count) || count < 1 || count > 21) errors.push('Choose 1–21 tie beams.');
   if (!Number.isInteger(every) || every < 1 || every > 20) errors.push('Tie spacing must be 1–20 rafter bays.');
   if (![width, depth].every(v => Number.isFinite(v) && v > 0 && v <= 500)) errors.push('Tie sections must be between 1 and 500 mm.');
   if (![length,span].every(v=>Number.isFinite(v)&&v>200&&v<50000)) errors.push('Check the building dimensions.');
-  if (errors.length) return { cfg, length, span, middle, centres, count, every, width, depth, offset, overhang, gableOverhang, outerRafterHalf, outriggerRuns, plates, rafters: [] as number[], ties: [] as number[], errors };
+  if (errors.length) return { cfg, length, span, middle, centres, count, every, width, depth, offset, overhang, gableOverhang, fasciaThickness, eavesTailRun, flyRafterProjection, outerRafterHalf, outriggerRuns, plates, rafters: [] as number[], ties: [] as number[], errors };
   const first = settings.studFace / 2, last = length - first;
   const ties = Array.from({length:count},(_,i)=>middle+(i-(count-1)/2)*every*centres);
   // Keep ties centred; all common rafter pairs sit on their right-hand faces.
@@ -43,17 +46,17 @@ export function roofModel(settings: Settings) {
   if (ties.some(x=>x-width/2<0 || x+width/2>length || !rafters.some(r=>Math.abs(r-x-offset)<.001))) errors.push('This tie count and spacing will not fit beside the rafter grid. Reduce the count or spacing.');
   if (ties.some(t=>rafters.some(r=>Math.abs(r-t)<offset-.001))) errors.push('A tie overlaps another rafter. Increase rafter centres or reduce tie width.');
   if (width>every*centres) errors.push('Tie beams overlap at this spacing.');
-  return { cfg, length, span, middle, centres, count, every, width, depth, offset, overhang, gableOverhang, outerRafterHalf, outriggerRuns, plates, rafters, ties, errors };
+  return { cfg, length, span, middle, centres, count, every, width, depth, offset, overhang, gableOverhang, fasciaThickness, eavesTailRun, flyRafterProjection, outerRafterHalf, outriggerRuns, plates, rafters, ties, errors };
 
 }
 
 /** Roof-only members; four gable rafters and all plates belong to wall schedules. */
 export function roofCutSchedule(settings:Settings){
- const r=roofModel(settings),length=Number((((r.span-settings.ridgeWidth)/2+r.overhang)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1));
+ const r=roofModel(settings),length=Number((((r.span-settings.ridgeWidth)/2+r.eavesTailRun)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1));
  const section=`${settings.studFace} x ${settings.studDepth}`;
  return [
   {type:'Field common rafters',qty:(r.rafters.length-2)*2,section,length,cut:'20 mm tail face + horizontal soffit cut; birdsmouth'},
-  ...(r.gableOverhang>0?[{type:'Outer fly rafters',qty:4,section,length:Number(((r.span/2+r.overhang)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1)),cut:'20 mm tail face + horizontal soffit cut; no seat'}]:[]),
+  ...(r.gableOverhang>0?[{type:'Outer fly rafters',qty:4,section,length:Number(((r.span/2+r.eavesTailRun)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1)),cut:'20 mm tail face + horizontal soffit cut; no seat'}]:[]),
   {type:'Tie beams',qty:r.count,section:`${r.width} x ${r.depth}`,length:r.span,cut:tieEndClearance(settings).projection>.01?'Chamfer both top corners; see detail':'Square ends; no chamfer required'},
   {type:'Ridge beam',qty:1,section:`${settings.ridgeWidth} x ${settings.ridgeDepth}`,length:r.length,cut:'Square ends; between gable outer faces'},
   ...(r.outriggerRuns.length?[{type:'Gable outriggers',qty:r.outriggerRuns.length*4,section,length:r.outriggerRuns[0].end-r.outriggerRuns[0].start,cut:'Square ends; clear run outside wall'}]:[]),

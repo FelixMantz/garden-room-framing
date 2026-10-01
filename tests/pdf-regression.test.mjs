@@ -44,13 +44,13 @@ test('front elevation sets upper brick courses out from both outside corners to 
 });
 test('birdsmouth detail labels the heel and seat cuts and true sloping tail set-out',async()=>{
  const standard=await (await route.GET()).text();
- assert.match(standard,/275\.8 along slope .*250 horiz/);
+ assert.match(standard,/251\.6 along slope .*228 horiz/);
  assert.match(standard,/Heel cut 44\.3 vertical; seat cut 95 horizontal/);
  assert.doesNotMatch(standard,/vertical from top to (outer|inner) seat corner/);
  const steeper=await post({...defaultSettings(),roofPitch:35,gableOverhang:500});
  assert.equal(steeper.status,200);
  const pdf=await steeper.text();
- assert.match(pdf,/610\.4 along slope .*500 horiz/);
+ assert.match(pdf,/583\.5 along slope .*478 horiz/);
  assert.match(pdf,/Heel cut 66\.5 vertical; seat cut 95 horizontal/);
 });
 
@@ -67,7 +67,7 @@ test('roof BOM excludes gable members already counted by walls',async()=>{
  const {roofCutSchedule}=await vite.ssrLoadModule('/app/roof.ts');
  const rows=roofCutSchedule(defaultSettings());
  assert.deepEqual(rows.map(r=>[r.type,r.qty]),[['Field common rafters',26],['Outer fly rafters',4],['Tie beams',3],['Ridge beam',1],['Gable outriggers',8]]);
- assert.equal(rows[4].length,227.5);
+ assert.equal(rows[4].length,183);
 });
 test('roof plan dimensions both shortened end bays to the first regular rafters',async()=>{
  const pdf=await (await route.GET()).text();
@@ -104,4 +104,15 @@ test('enlarged rafter tail dimensions the flat cut and final plan identifies but
  assert.match(last,/LEFT BODY 3010 - BUTTS BETWEEN FRONT \/ REAR/);
  assert.match(last,/RIGHT BODY 3010 - BUTTS BETWEEN FRONT \/ REAR/);
  assert.match(last,/side bodies stop 95 mm from each outer timber corner/);
+});
+
+
+test('roof plan and eaves section dimension outside fascia faces',async()=>{
+ const pdf=await (await route.GET()).text();
+ assert.match(pdf,/5690 outer fascia to outer fascia/);
+ assert.match(pdf,/3700 fascia overall depth/);
+ assert.equal((pdf.match(/250 to fascia/g)||[]).length,4);
+ assert.match(pdf,/250 wall to outer fascia = 228 to tail \+ 22 fascia/);
+ assert.match(pdf,/250 mm horizontal: outer wall framing to outer fascia; 228 mm to rafter tail/);
+ assert.doesNotMatch(pdf,/outer-rafter C\/L to C\/L/);
 });

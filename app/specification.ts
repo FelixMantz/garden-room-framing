@@ -1,8 +1,8 @@
 /** Supported adjustments. All other dimensions are the named garden-room specification. */
 export const adjustmentFields = [
  ['roofPitch','Roof pitch (degrees)',15,45,1],
- ['gableOverhang','Eaves overhang (mm)',0,750,1],
- ['roofGableOverhang','Gable overhang (mm)',0,750,1],
+ ['gableOverhang','Eaves to outer fascia (mm)',22,750,1],
+ ['roofGableOverhang','Gable to outer fascia (mm)',0,750,1],
  ['ridgeWidth','Ridge width (mm)',45,200,1],
  ['ridgeDepth','Ridge depth (mm)',95,400,1],
  ['rafterCentres','Rafter centres (mm)',200,600,1],
