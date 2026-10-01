@@ -4,12 +4,12 @@ import { canvas, fmt, hTechnical, vTechnical, type Fill } from './layout';
 import { rafterTailCut } from '../rafter-dimensions';
 
 /** Eaves junction: dimensions in mm; proprietary profiles remain schematic. */
-export function drawEaves(s:Settings,page:number,total:number){
-  const c=canvas(), pitch=s.roofPitch*Math.PI/180, co=Math.cos(pitch), si=Math.sin(pitch);
+export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
+  const pitch=s.roofPitch*Math.PI/180, co=Math.cos(pitch);
   const {fasciaThickness,eavesTailRun}=roofOverhangs(s.gableOverhang,s.roofGableOverhang,s.studFace);
-  const scale=Math.min(.18,80/(eavesTailRun+s.studDepth)), left=64, base=147, right=left+Math.min(118,(base-42-166*scale/co)/Math.tan(pitch));
+  const scale=Math.min(.18,80/(eavesTailRun+s.studDepth)), left=64, base=147, right=left+Math.min(118,(base-42-141*scale/co)/Math.tan(pitch));
   const y=(x:number,n:number)=>base-(x-left)*Math.tan(pitch)-n*scale/co;
-  const osb=11,pir=100,counter=25,batten=25,top=osb+pir;
+  const osb=11,pir=100,batten=25,top=osb+pir;
   const tailCut=rafterTailCut(s.studDepth,s.roofPitch),tailFlatX=left+tailCut.horizontalRun*scale;
   const tailTopY=y(left,0),tailFlatY=tailTopY+tailCut.plumbFace*scale;
   const line=(a:number[],b:number[],w=.2,dash:number[]|null=null)=>c.line(a[0],a[1],b[0],b[1],[0,0,0],w,dash);
@@ -26,7 +26,7 @@ export function drawEaves(s:Settings,page:number,total:number){
   c.text('Eaves - roof build-up and gutter junction',12,11,14,true);
   c.text(`Section down the roof slope | pitch ${fmt(s.roofPitch)} degrees | dimensions in mm | do not scale`,12,18,8);
   c.text(`${fmt(s.gableOverhang)} mm horizontal: outer wall framing to outer fascia; ${fmt(eavesTailRun)} mm to rafter tail.`,12,24,7.5);
-  // Lengthwise counter-batten shown beyond the section, with the air channel in front.
+  // Single eaves-to-ridge batten layer shown beyond the section; air channel in front.
   // The wall follows the actual eaves projection. Fit longer projections to this sheet.
   const wallX=left+eavesTailRun*scale;
   const wallInner=wallX+s.studDepth*scale, plateY=y(wallInner,-s.studDepth);
@@ -48,14 +48,9 @@ export function drawEaves(s:Settings,page:number,total:number){
   layer(osb,top,[255,255,255]);
   for(let x=left+7;x<right-3;x+=10)c.text('PIR',x,y(x,osb+pir/2)+1,6,false,'center');
   line([left,y(left,top)],[right,y(right,top)],.65);
-  for(const n of [top+2,top+counter])line([left,y(left,n)],[right,y(right,n)],.15,[2,1]);
-  // Cross battens are sections of timber running along the eaves.
-  for(let x=left+6;x<right-13;x+=250*scale*co){
-    const w=50*scale*co, a=top+counter,b=a+batten;
-    c.polygon([[x,y(x,a)],[x+w,y(x+w,a)],[x+w+batten*scale*si,y(x+w,a)-batten*scale*co],[x+batten*scale*si,y(x,a)-batten*scale*co]],'timber',[0,0,0],.2);
-  }
+  for(const n of [top+2,top+batten])line([left,y(left,n)],[right,y(right,n)],.15,[2,1]);
   // Thin stepped metal sheet; drawing thickness exaggerated for legibility.
-  const tileN=top+counter+batten+5;
+  const tileN=top+batten+5;
   const tilePoints:number[][]=[[left-15,y(left-15,tileN)]];
   for(let x=left+7;x<right;x+=250*scale*co){tilePoints.push([x,y(x,tileN)],[x+1,y(x+1,tileN)+1.2]);}
   tilePoints.push([right,y(right,tileN)]);
@@ -78,18 +73,19 @@ export function drawEaves(s:Settings,page:number,total:number){
   line([left-4,gy+7],[gx+gr,gy+7],.5);
   // Inlet is above tray; dots indicate insect grille, not solid blocking.
   const inletX=left-1;
-  for(let n=4;n<counter;n+=5)c.rect(inletX,y(inletX,top+n),.5,.5,[0,0,0],[0,0,0],.2);
+  for(let n=4;n<batten;n+=5)c.rect(inletX,y(inletX,top+n),.5,.5,[0,0,0],[0,0,0],.2);
   arrow([left-11,y(left-11,top+12)],[left+24,y(left+24,top+12)],[1.5,1]);
   arrow([left+32,y(left+32,top)+2],[left+5,y(left+5,top)+2]);
   // Starter cleat schematically hooks the first tile edge.
   line([left+8,y(left+8,tileN)-.8],[left-15,y(left-15,tileN)-.8],.3);
   line([left-15,y(left-15,tileN)-.8],[left-15,y(left-15,tileN)+1.5],.3);
   // Leaders stay short or outside the roof, avoiding longitudinal dimension lines.
-  leader('Lightweight metal roof tiles',right-27,y(right-27,tileN),197,39);
-  leader('Tile battens 25 x 50',left+10+Math.floor((right-left-19)/(250*scale*co))*250*scale*co,y(left+10+Math.floor((right-left-19)/(250*scale*co))*250*scale*co,top+counter+12),197,51);
-  leader('Counter-battens 25 deep',right-6,y(right-6,top+12),197,63);
-  c.text('Dashed: timber beyond section;',197,68,6.5);
-  c.text('air flows between counter-battens.',197,72,6.5);
+  leader('Extralight Shingle roof tiles',right-27,y(right-27,tileN),197,39);
+  leader('Single vertical battens 25 x 50',right-6,y(right-6,top+12),197,51);
+  c.text('Eaves to ridge; approx. 200 mm centres.',197,57,6.5);
+  c.text('Dashed: batten beyond section;',197,63,6.5);
+  c.text('25 mm ventilation between battens.',197,69,6.5);
+  c.text('No separate horizontal tile-batten layer.',197,75,6.5);
   leader('Breathable membrane',right,y(right,top),197,83);
   c.text('Directly on PIR; laps over tray.',197,88,6.5);
   leader('PIR insulation 100',right,y(right,osb+50),197,100);
