@@ -26,7 +26,7 @@ export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,tot
 export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,total:number,c=canvas()){
   const horizontal:Parameters<typeof drawH>[]=[],vertical:Parameters<typeof drawV>[]=[];
   const hTechnical=(...args:Parameters<typeof drawH>)=>{if(cfg.id==='front')drawH(...args);else horizontal.push(args);};
-  const vTechnical=(...args:Parameters<typeof drawV>)=>{if(cfg.id==='front')drawV(...args);else vertical.push(args);};
+  const vTechnical=(...args:Parameters<typeof drawV>)=>{vertical.push(args);};
   const W=297;
   c.text(`${cfg.name} - dimensioned elevation`,12,11,14,true);
   c.text(`Drawing T-${Math.floor((page+1)/2)} | dimensions in mm | elevation viewed from outside | do not scale`,12,18,7.5);
@@ -135,13 +135,13 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
         drawH(...args);
       }
     }
-    for(const side of ['left','right'] as const){
-      const candidates=vertical.filter(a=>(a[4]<area.x+area.w/2?'left':'right')===side);
-      for(const d of dimensionRails(candidates.map(a=>({start:a[1],end:a[2],labelExtent:textWidth(clean(a[5]),a[6]??5.7,true)*25.4/72,value:a})))){
-        const args=[...d.value] as Parameters<typeof drawV>;
-        args[4]=side==='left'?area.x-7-d.rail*4.2:area.x+area.w+7+d.rail*4.2;
-        drawV(...args);
-      }
+  }
+  for(const side of ['left','right'] as const){
+    const candidates=vertical.filter(a=>(a[4]<area.x+area.w/2?'left':'right')===side);
+    for(const d of dimensionRails(candidates.map(a=>({start:a[1],end:a[2],labelExtent:textWidth(clean(a[5]),a[6]??5.7,true)*25.4/72,value:a})))){
+      const args=[...d.value] as Parameters<typeof drawV>;
+      args[4]=side==='left'?area.x-7-d.rail*4.2:area.x+area.w+7+d.rail*4.2;
+      drawV(...args);
     }
   }
   const notesY=191;

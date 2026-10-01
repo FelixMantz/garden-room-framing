@@ -368,9 +368,9 @@ test('centred timber overhang is 2.5 mm on each inner face and masonry stays ind
  assert.equal(moved.brickLength,cfg.brickLength);assert.equal(moved.brickDepth,cfg.brickDepth);
 });
 
-test('rear and gable elevations place nested short dimension bars nearer the drawing',async()=>{
+test('all wall elevations place nested short dimension bars nearer the drawing',async()=>{
  const {drawWallTechnical}=await vite.ssrLoadModule('/app/pdf/walls.ts');
- for(const id of ['rear','left','right']){
+ for(const id of ['front','rear','left','right']){
   const cfg=framing.configForWall(framing.defaultSettings(),id),labels=[];
   const recording={rect(){},line(){},polygon(){},text(label,x,y){labels.push({label,x,y});},textVertical(label,x,y){labels.push({label,x,y});},stream(){return '';}};
   drawWallTechnical(cfg,framing.buildModel(cfg),framing.wallOrder.indexOf(id)*2+1,17,recording);
