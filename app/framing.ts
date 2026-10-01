@@ -69,7 +69,7 @@ export function configForWall(settings:Settings,id:WallId):WallConfig {
   if(wall.gable)wall.studOffset=modulo(width/2,settings.studCentres);
   const upperStart=isSide?-settings.cornerLap:settings.cornerLap;
   const upperEnd=isSide?width+settings.cornerLap:width-settings.cornerLap;
-  const brickBody=isSide?settings.brickInternalDepth:brickLength;
+  const brickBody=isSide?brickDepth:brickLength;
   const brickStart=(width-brickBody)/2;
   const pitchRadians=settings.roofPitch*Math.PI/180;
   // The rafter terminates at the ridge face, not its centreline.
