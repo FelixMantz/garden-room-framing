@@ -130,6 +130,11 @@ test("measured brickwork drives all wall geometry and floor-relative heights", (
     assert.equal(cfg.brickDepth, 3205);
     assert.equal(cfg.frameLength, 5190);
     assert.equal(cfg.frameDepth, 3200);
+    if (cfg.isSide) {
+      assert.equal(cfg.brickEnd - cfg.brickStart, 3205);
+      assert.equal(cfg.upperStart - cfg.brickStart, 2.5);
+      assert.equal(cfg.brickEnd - cfg.upperEnd, 2.5);
+    }
     assert.equal(cfg.masonryHeight, 280);
     assert.equal(cfg.frameBase + cfg.wallHeight - cfg.ffl, 2220);
     assert.deepEqual(framing.validate(cfg), []);
