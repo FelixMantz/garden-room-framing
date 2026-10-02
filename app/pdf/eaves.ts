@@ -39,6 +39,14 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   infill.forEach((p,i)=>line(p,infill[(i+1)%4],.22,[1,1]));
   c.text('PIR',(wallX+wallInner)/2,(y((wallX+wallInner)/2,0)+plateY)/2+1,7,true,'center');
   const wallBottom=Math.max(plateY+s.topPlates*s.studFace*scale+5,174);
+  const wallOsb=11, wallBatten=25, cladding=18, claddingGap=3;
+  // Unnotched sheathing ends 2/3 up the lower plate, below the rafter tails.
+  const sheathingDrop=(s.topPlates-1+1/3)*s.studFace;
+  const sheathingTop=plateY+sheathingDrop*scale;
+  const sheathingOuter=wallX-wallOsb*scale;
+  const battenOuter=sheathingOuter-wallBatten*scale;
+  const claddingOuter=battenOuter-cladding*scale;
+  const osbClearance=sheathingDrop-wallOsb*Math.tan(pitch);
   line([wallX,plateY+s.topPlates*s.studFace*scale],[wallX,wallBottom]);
   line([wallInner,plateY+s.topPlates*s.studFace*scale],[wallInner,wallBottom]);
   line([wallX,wallBottom],[wallX+4,wallBottom-1]);
@@ -61,7 +69,23 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.rect(left-fasciaThickness*scale,fasciaTop,fasciaThickness*scale,fasciaBottom-fasciaTop,'timber',[0,0,0],.3);
   // Solid soffit closes the overhang; roof ventilation is above the membrane.
   const soffitY=tailFlatY;
-  if(wallX>left)c.rect(left,soffitY,wallX-left,soffitThickness*scale,[255,255,255],[0,0,0],.25);
+  const soffitUnderside=soffitY+soffitThickness*scale;
+  // Wall sheathing and finishes: a cutaway between vertical cladding battens.
+  c.rect(sheathingOuter,sheathingTop,wallOsb*scale,wallBottom-sheathingTop,'floor',[0,0,0],.2);
+  // Breather membrane continues above the OSB over the plates, sealed at its head.
+  line([sheathingOuter,wallBottom],[sheathingOuter,sheathingTop],.45);
+  line([sheathingOuter,sheathingTop],[wallX,plateY],.45);
+  line([wallX,plateY],[wallX,plateY-1],.45);
+  // Battens beyond the section; mesh closes the ventilated cavity at its top.
+  for(const xx of [battenOuter,sheathingOuter])line([xx,soffitUnderside],[xx,wallBottom],.15,[2,1]);
+  for(let xx=battenOuter+.5;xx<sheathingOuter;xx+=.9)line([xx,soffitUnderside],[xx+.5,soffitUnderside+.5],.18);
+  const claddingTop=soffitUnderside+claddingGap*scale;
+  for(let yy=claddingTop;yy<wallBottom;yy+=125*scale){
+    const bottom=Math.min(yy+150*scale,wallBottom);
+    c.polygon([[battenOuter-5*scale,yy],[battenOuter,yy],[battenOuter,bottom],[claddingOuter,bottom]],'timber',[0,0,0],.2);
+  }
+  // Soffit stops at the cladding face, rather than passing through the wall layers.
+  if(claddingOuter>left)c.rect(left,soffitY,claddingOuter-left,soffitThickness*scale,[255,255,255],[0,0,0],.25);
   // Tray tucked under membrane and extending beyond fascia, with a drip into gutter.
   const trayEnd=[left-19,y(left,top)+8];
   line([left+24,y(left+24,top)+.8],[left,y(left,top)+.8],.35);
@@ -98,13 +122,19 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   leader('Vertical fascia',left-2,fasciaBottom-8,15,177);
   leader(`${fmt(tailCut.plumbFace)} mm plumb rafter face`,left,tailTopY+tailCut.plumbFace*scale/2,15,166);
   leader(`${fmt(tailCut.horizontalRun)} horizontal underside cut`,(left+tailFlatX)/2,tailFlatY,65,177);
-  if(wallX>left)leader('Solid soffit 9 mm - underside flush with fascia',(tailFlatX+wallX)/2,soffitY+soffitThickness*scale,65,185);
+  if(claddingOuter>left)leader('Solid soffit 9 - stops at cladding face',(tailFlatX+claddingOuter)/2,soffitUnderside,65,185);
+  vTechnical(c,plateY,sheathingTop,wallX,wallInner+7,fmt(sheathingDrop),6);
+  leader('Wall OSB 11; unnotched top edge',sheathingOuter,sheathingTop,135,174);
+  c.text(`${fmt(s.studFace*2/3)} up lower plate; ${fmt(osbClearance)} rafter clearance.`,135,179,6.2);
   leader('PIR blocking above wall plates',wallInner, (y(wallInner,0)+plateY)/2,197,139);
   c.text('Dashed cutaway: adjacent rafter bay.',197,144,6.5);
   c.text('Close to deck; seal edges to timber.',197,149,6.5);
   leader(`${s.topPlates} top plates: ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,wallInner,plateY+s.studFace*scale,197,160);
   c.text('Wall below; maintain insulation continuity.',197,165,6.2);
   c.text('Join roof / wall air and vapour control layers.',197,170,6.2);
+  c.text('Wall: 11 OSB + 25 cavity + 18 featheredge.',197,177,6.2);
+  c.text('Battens dashed; insect mesh at cavity head.',197,182,6.2);
+  c.text('Cladding top: 3 mm below soffit underside.',197,187,6.2);
   hTechnical(c,left-fasciaThickness*scale,wallX,fasciaBottom,181,`${fmt(s.gableOverhang)} wall to outer fascia`,5.5);
   c.text('FASCIA SECTION',15,35,8,true);
   const fx=40,fy=43,fs=.14,fw=fasciaThickness*fs,fh=fasciaHeight*fs;
@@ -118,7 +148,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
 
   c.line(12,190,285,190,[0,0,0],.2);
   c.text('Solid arrow: drainage. Dashed arrow: air inlet ABOVE membrane. Soffit closes the overhang; it does not ventilate the roof.',12,195,7);
-  c.text('Tray must fall into gutter without an upstand. Fascia, gutter, vent and tile profiles schematic; set out to chosen products.',12,200,6.5);
+  c.text('Wall membrane continues over plates; seal its head to timber. Confirm upper-plate restraint / fixings with reduced sheathing height.',12,200,6.5);
   c.text(`Garden room framing set | eaves cross section | page ${page} of ${total}`,148.5,207,6.4,false,'center');
   return c.stream();
 }
