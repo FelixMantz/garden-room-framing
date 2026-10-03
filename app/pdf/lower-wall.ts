@@ -78,7 +78,7 @@ export function drawLowerWall(s:Settings,page:number,total:number){
   leader('Breather membrane',osbOuter,top-255,12,72);
   leader('Insect mesh + drip',battenOuter-20,masonry-30,12,116);
   leader('DPC / DPM lap',1,140,12,145);
-  leader('VCL behind services',-cavity,bandBottom+35,112,92);
+  leader('Polythene VCL 250 micron',-cavity,bandBottom+35,112,92);
   // Height dimensions occupy the former component-callout columns.
   vTechnical(c,Y(0),Y(masonry),X(-s.brickThickness),57,`${fmt(masonry)}`,7,'left');
   vTechnical(c,Y(masonry),Y(masonry+s.studFace),X(-s.studDepth),57,`${fmt(s.studFace)}`,6,'left');
