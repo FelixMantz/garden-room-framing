@@ -52,8 +52,15 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   line([wallX,wallBottom],[wallX+4,wallBottom-1]);
   line([wallX+4,wallBottom-1],[wallInner-4,wallBottom+1]);
   line([wallInner-4,wallBottom+1],[wallInner,wallBottom]);
+  // Warm-side wall sheet seals to the plate face, separately from the roof sheet.
+  const wallVclX=wallInner-5*scale, wallPlateBottom=plateY+s.topPlates*s.studFace*scale;
+  line([wallVclX,wallBottom],[wallVclX,wallPlateBottom],.55,[2,.7]);
+  line([wallVclX,wallPlateBottom],[wallInner,wallPlateBottom],.55,[2,.7]);
+  line([wallInner,wallPlateBottom],[wallInner,plateY],.55,[2,.7]);
   layer(0,osb,'floor');
   layer(osb,top,[255,255,255]);
+  // Roof polythene VCL is on the deck, below PIR; it does not join the wall VCL.
+  line([left,y(left,osb)],[right,y(right,osb)],.55,[2,.7]);
   for(let x=left+7;x<right-3;x+=10)c.text('PIR',x,y(x,osb+pir/2)+1,6,false,'center');
   line([left,y(left,top)],[right,y(right,top)],.65);
   for(const n of [top+2,top+batten])line([left,y(left,n)],[right,y(right,n)],.15,[2,1]);
@@ -113,8 +120,10 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   leader('Breathable membrane',right,y(right,top),197,83);
   c.text('Directly on PIR; laps over tray.',197,88,6.5);
   leader('PIR insulation 100',right,y(right,osb+50),197,100);
-  leader('OSB roof deck 11',right,y(right,osb/2),197,113);
-  leader(`Rafter ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,right,y(right,-s.studDepth/2),197,126);
+  leader('Polythene VCL - 250 micron',right,y(right,osb),197,111);
+  c.text('On OSB, below PIR; tape laps / penetrations.',197,116,6.2);
+  leader('OSB roof deck 11',right-12,y(right-12,osb/2),197,122);
+  leader(`Rafter ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,right,y(right,-s.studDepth/2),197,132);
   leader('Starter cleat',left-14,y(left-14,tileN),15,88);
   leader('Vent inlet above tray',left-1,y(left-1,top+12),15,104);
   leader('Eaves protector tray',48,y(left,top)+7,15,116);
@@ -131,7 +140,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text('Close to deck; seal edges to timber.',197,149,6.5);
   leader(`${s.topPlates} top plates: ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,wallInner,plateY+s.studFace*scale,197,160);
   c.text('Wall below; maintain insulation continuity.',197,165,6.2);
-  c.text('Join roof / wall air and vapour control layers.',197,170,6.2);
+  c.text('Roof / wall VCLs separate; no direct join.',197,170,6.2);
   c.text('Wall: 11 OSB + 25 cavity + 18 featheredge.',197,177,6.2);
   c.text('Battens dashed; insect mesh at cavity head.',197,182,6.2);
   c.text('Cladding top: 3 mm below soffit underside.',197,187,6.2);
@@ -148,7 +157,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
 
   c.line(12,190,285,190,[0,0,0],.2);
   c.text('Solid arrow: drainage. Dashed arrow: air inlet ABOVE membrane. Soffit closes the overhang; it does not ventilate the roof.',12,195,7);
-  c.text('Wall membrane continues over plates; seal its head to timber. Confirm upper-plate restraint / fixings with reduced sheathing height.',12,200,6.5);
+  c.text('VCL: 250 micron polythene to roof and walls; no ceiling VCL. Separate terminations at wall head; discontinuity accepted.',12,200,6.5);
   c.text(`Garden room framing set | eaves cross section | page ${page} of ${total}`,148.5,207,6.4,false,'center');
   return c.stream();
 }
