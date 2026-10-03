@@ -40,13 +40,6 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   r.ties.forEach((x,i)=>{c.rect(X(x-r.width/2),Y(0),r.width*scale,r.span*scale,"tie");c.text(`T${i+1}: ${f(x)}`,X(x),tailRear+4,6,true,"center");});
   // Top-flush blocking follows the sheet seam on both slopes, including verge bays.
   n.blocks.forEach(b=>c.rect(X(b.x),Y(b.y-b.planWidth/2),b.length*scale,b.planWidth*scale,"outrigger",[0,0,0],.25));
-  if(n.blocks.length){
-    for(const y of [n.frontY,n.rearY]){
-      const label=`OSB seam noggins: ${f(n.fromRidgeSlope)} S from ridge FACE`;
-      c.rect(X(r.middle)-42,Y(y)-5.2,84,3.3,[255,255,255],[255,255,255],0);
-      c.text(label,X(r.middle),Y(y)-2.6,6,true,"center");
-    }
-  }
   c.rect(X(0),Y(ridgeFront),r.length*scale,settings.ridgeWidth*scale,"ridge");
 
   c.text("FRONT WALL",X(r.middle),Y(settings.studDepth)+4,6,true,"center");
