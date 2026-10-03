@@ -52,11 +52,12 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   line([wallX,wallBottom],[wallX+4,wallBottom-1]);
   line([wallX+4,wallBottom-1],[wallInner-4,wallBottom+1]);
   line([wallInner-4,wallBottom+1],[wallInner,wallBottom]);
-  // Warm-side wall sheet seals to the plate face, separately from the roof sheet.
+  // Wall sheet follows the plate and inner PIR face to the underside of the deck.
+  // The roof sheet remains separate on the upper face of the OSB.
   const wallVclX=wallInner-5*scale, wallPlateBottom=plateY+s.topPlates*s.studFace*scale;
   line([wallVclX,wallBottom],[wallVclX,wallPlateBottom],.55,[2,.7]);
   line([wallVclX,wallPlateBottom],[wallInner,wallPlateBottom],.55,[2,.7]);
-  line([wallInner,wallPlateBottom],[wallInner,plateY],.55,[2,.7]);
+  line([wallInner,wallPlateBottom],[wallInner,y(wallInner,0)],.55,[2,.7]);
   layer(0,osb,'floor');
   layer(osb,top,[255,255,255]);
   // Roof polythene VCL is on the deck, below PIR; it does not join the wall VCL.
@@ -137,7 +138,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text(`${fmt(s.studFace*2/3)} up lower plate; ${fmt(osbClearance)} rafter clearance.`,135,179,6.2);
   leader('PIR blocking above wall plates',wallInner, (y(wallInner,0)+plateY)/2,197,139);
   c.text('Dashed cutaway: adjacent rafter bay.',197,144,6.5);
-  c.text('Close to deck; seal edges to timber.',197,149,6.5);
+  c.text('Wall VCL up inner PIR face to OSB underside.',197,149,6.5);
   leader(`${s.topPlates} top plates: ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,wallInner,plateY+s.studFace*scale,197,160);
   c.text('Wall below; maintain insulation continuity.',197,165,6.2);
   c.text('Roof / wall VCLs separate; no direct join.',197,170,6.2);
