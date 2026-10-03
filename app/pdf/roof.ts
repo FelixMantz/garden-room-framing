@@ -1,10 +1,10 @@
 import { drawTieChamfer } from './ties';
-import { roofModel, roofCutSchedule, tieEndClearance } from "../roof";
+import { roofModel, roofCutSchedule, roofDeckNoggins, tieEndClearance } from "../roof";
 import { buildModel, configForWall, type Settings } from "../framing";
 import { rafterDimensions } from "../rafter-dimensions";
 import { canvas, fmt, dimension, hTechnical, vTechnical } from "./layout";
 export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
-  const r=roofModel(settings),f=(n:number)=>String(Number(n.toFixed(1)));
+  const r=roofModel(settings),n=roofDeckNoggins(settings),cos=Math.cos(settings.roofPitch*Math.PI/180),f=(n:number)=>String(Number(n.toFixed(1)));
   c.text("Roof framing - centred set-out",12,11,14,true);
   c.text(`${r.count} ties, ${r.width} x ${r.depth} mm | every ${r.every} rafter bays (${r.every*r.centres} mm) | ${r.centres} mm common rafter centres`,12,17,8);
   c.text(`Outer timber frame ${r.length} x ${r.span} mm | ridge ${settings.ridgeWidth} x ${settings.ridgeDepth} mm | pitch ${settings.roofPitch} degrees`,12,22,7);
@@ -38,6 +38,15 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
     c.rect(fasciaRight-r.fasciaThickness*scale,tailFront,r.fasciaThickness*scale,tailRear-tailFront,"timber");
   }
   r.ties.forEach((x,i)=>{c.rect(X(x-r.width/2),Y(0),r.width*scale,r.span*scale,"tie");c.text(`T${i+1}: ${f(x)}`,X(x),tailRear+4,6,true,"center");});
+  // Top-flush blocking follows the sheet seam on both slopes, including verge bays.
+  n.blocks.forEach(b=>c.rect(X(b.x),Y(b.y-b.planWidth/2),b.length*scale,b.planWidth*scale,"outrigger",[0,0,0],.25));
+  if(n.blocks.length){
+    for(const y of [n.frontY,n.rearY]){
+      const label=`OSB seam noggins: ${f(n.fromRidgeSlope)} S from ridge FACE`;
+      c.rect(X(r.middle)-42,Y(y)-5.2,84,3.3,[255,255,255],[255,255,255],0);
+      c.text(label,X(r.middle),Y(y)-2.6,6,true,"center");
+    }
+  }
   c.rect(X(0),Y(ridgeFront),r.length*scale,settings.ridgeWidth*scale,"ridge");
 
   c.text("FRONT WALL",X(r.middle),Y(settings.studDepth)+4,6,true,"center");
@@ -60,21 +69,29 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   const common=r.rafters.findIndex((x,i)=>i>0&&Math.abs(x-r.rafters[i-1]-r.centres)<.01);
   if(common>0)hTechnical(c,X(r.rafters[common-1]),X(r.rafters[common]),tailFront,54,`${f(r.centres)} C/C`,4.7);
   const edge=fasciaRight;
-  vTechnical(c,fasciaFront,fasciaRear,edge,284,`${f(r.span+2*r.overhang)} fascia overall depth`,5,"right");
-  vTechnical(c,Y(0),Y(r.span),edge,278,`${f(r.span)} wall outer / tie length`,4.8,"right");
-  vTechnical(c,Y(settings.studDepth),Y(r.span-settings.studDepth),edge,272,`${f(r.span-2*settings.studDepth)} clear between plates`,4.8,"right");
-  vTechnical(c,Y(0),Y(r.span/2),edge,266,`${f(r.span/2)} front face - ridge C/L`,4.6,"right");
-  vTechnical(c,Y(0),Y(settings.studDepth),edge,260,`${f(settings.studDepth)} bearing`,4.4,"right");
+  vTechnical(c,fasciaFront,fasciaRear,edge,284,`${f(r.span+2*r.overhang)} H fascia overall depth`,5,"right");
+  vTechnical(c,Y(0),Y(r.span),edge,278,`${f(r.span)} H wall outer / tie length`,4.8,"right");
+  vTechnical(c,Y(settings.studDepth),Y(r.span-settings.studDepth),edge,272,`${f(r.span-2*settings.studDepth)} H clear between plates`,4.8,"right");
+  vTechnical(c,Y(0),Y(ridgeFront),edge,266,`${f(ridgeFront)} H [${f(ridgeFront/cos)} S] wall - ridge face`,4.6,"right");
+  vTechnical(c,Y(0),Y(settings.studDepth),edge,260,`${f(settings.studDepth)} H bearing`,4.4,"right");
   if(r.overhang>0){
-    vTechnical(c,fasciaFront,Y(0),edge,254,`${f(r.overhang)} to fascia`,4.5,"right");
-    vTechnical(c,Y(r.span),fasciaRear,edge,254,`${f(r.overhang)} to fascia`,4.5,"right");
+    vTechnical(c,fasciaFront,Y(0),edge,254,`${f(r.overhang)} H to fascia`,4.5,"right");
+    vTechnical(c,Y(r.span),fasciaRear,edge,254,`${f(r.overhang)} H to fascia`,4.5,"right");
+  }
+  vTechnical(c,tailFront,Y(ridgeFront),edge,248,`${f(ridgeFront+r.eavesTailRun)} H [${f(n.deckSlope)} S] tail - ridge face`,4.5,"right");
+  if(n.blocks.length){
+    vTechnical(c,Y(n.frontY),Y(ridgeFront),edge,242,`${f(n.fromRidgeHorizontal)} H [${f(n.fromRidgeSlope)} S] noggin C/L - ridge face`,4.4,"right");
+    vTechnical(c,Y(ridgeRear),Y(n.rearY),edge,242,`${f(n.fromRidgeHorizontal)} H [${f(n.fromRidgeSlope)} S] ridge face - noggin C/L`,4.4,"right");
   }
   const outerX=fasciaLeft;
   [0,r.span/4,3*r.span/4].forEach((y,i)=>{
     const end=[r.span/4,3*r.span/4,r.span][i];
-    if(r.outriggerRuns.length)vTechnical(c,Y(y),Y(end),outerX,25,`${f(end-y)} outrigger C/C`,4.7,"left");
+    if(r.outriggerRuns.length){
+      const sameSlope=end<=r.span/2||y>=r.span/2;
+      vTechnical(c,Y(y),Y(end),outerX,25,`${f(end-y)} H${sameSlope?` [${f((end-y)/cos)} S]`:''} outrigger C/C`,4.7,"left");
+    }
   });
-  vTechnical(c,Y(ridgeFront),Y(ridgeRear),X(0),32,`${f(settings.ridgeWidth)} ridge`,4.4,"left");
+  vTechnical(c,Y(ridgeFront),Y(ridgeRear),X(0),32,`${f(settings.ridgeWidth)} H ridge`,4.4,"left");
   const leftRun=r.outriggerRuns[0];
   if(leftRun)hTechnical(c,X(leftRun.start),X(leftRun.end),Y(r.span/4),Y(r.span/4)-5,`${f(leftRun.end-leftRun.start)} clear`,4.5);
   hTechnical(c,X(0),X(r.ties[0]),tailRear,tailRear+10,`${f(r.ties[0])} first tie C/L`,4.7);
@@ -83,7 +100,8 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   // Short face dimensions have their own staggered rails beneath the roof.
   hTechnical(c,X(r.ties[0]-r.width/2),X(r.ties[0]+r.width/2),tailRear,tailRear+16,`${f(r.width)} tie width`,4.5);
   hTechnical(c,X(r.ties[0]),X(r.ties[0]+r.offset),tailRear,tailRear+22,`${f(r.offset)} tie/rafter C/L`,4.5);
-  c.text("Overhangs: horizontal, outside wall framing to outside fascia (22 mm thick). C/L = centreline; C/C = centre to centre.",12,199,6);
+  c.text(`${n.blocks.length} noggins ${settings.studFace} x ${settings.studDepth}: top faces flush with roof deck; 1,200 mm ridge row + 3 mm OSB joint. Cut lengths: page 10.`,12,196.5,6);
+  c.text(`H = horizontal plan distance; [S] = along one ${settings.roofPitch} deg roof slope. Across-ridge totals use H only. C/L = centreline; C/C = centres.`,12,200,6);
   c.text(`Garden room framing set | page ${page} of ${total} | verify structural sizing and as-built dimensions before cutting`,148.5,205,6.2,false,"center",[90,90,90]);
   return c.stream();
 }
@@ -96,16 +114,16 @@ export function drawRoofSchedule(settings:Settings,page:number,total:number){
  c.text("ROOF CUTTING SCHEDULE",12,34,10,true);
  const xs=[12,80,98,124,160];
  ["Component","Qty","Section","Length","Cut / allowance"].forEach((v,i)=>c.text(v,xs[i],43,8,true));
- rows.forEach((r,i)=>{const y=52+i*10;[r.type,String(r.qty),r.section,fmt(r.length),r.cut].forEach((v,j)=>c.text(v,xs[j],y,8));c.line(12,y+3,285,y+3);});
+ rows.forEach((r,i)=>{const y=52+i*7;[r.type,String(r.qty),r.section,fmt(r.length),r.cut].forEach((v,j)=>c.text(v,xs[j],y,7.3));c.line(12,y+2.5,285,y+2.5);});
  const clearance=tieEndClearance(settings);
  c.text(clearance.projection>.01
    ?`TIE CHAMFERS: both top corners, ${fmt(settings.roofPitch)} deg; ${fmt(clearance.projection)} vertical cut x ${fmt(clearance.run)} horizontal run.`
-   :'TIE ENDS: no chamfer required; square ends clear the rafter upper plane.',12,107,7,true);
- c.text(`Full ${fmt(settings.tieWidth)} mm width; end depth ${fmt(clearance.remainingDepth)}. Keep underside flat and overall length ${fmt(r.span)} unchanged.`,12,112,7);
- c.text("RAFTER PAIRS / SET-OUT",12,120,10,true);
- c.text("Pair / position / previous bay (mm)",12,126,8);
+   :'TIE ENDS: no chamfer required; square ends clear the rafter upper plane.',12,116,7,true);
+ c.text(`Full ${fmt(settings.tieWidth)} mm width; end depth ${fmt(clearance.remainingDepth)}. Keep underside flat and overall length ${fmt(r.span)} unchanged.`,12,121,7);
+ c.text("RAFTER PAIRS / SET-OUT",12,130,10,true);
+ c.text("Pair / position / previous bay (mm)",12,136,8);
  if(r.rafters.length>60)throw new Error("Roof schedule supports up to 60 rafter pairs.");
- r.rafters.forEach((x,i)=>{const col=Math.floor(i/15),row=i%15;c.text(`${i+1} / ${fmt(x)} / ${i?fmt(x-r.rafters[i-1]):"-"}`,12+col*55,132+row*4.1,7);});
+ r.rafters.forEach((x,i)=>{const col=Math.floor(i/15),row=i%15;c.text(`${i+1} / ${fmt(x)} / ${i?fmt(x-r.rafters[i-1]):"-"}`,12+col*55,142+row*3.3,7);});
  drawTieChamfer(settings,c,true);
  c.text(`Tie positions: ${r.ties.map(fmt).join(", ")} from left wall outer face`,12,198,7);
  c.text(`Garden room framing set | roof schedule | page ${page} of ${total}`,148.5,205,6.4,false,"center");

@@ -50,16 +50,37 @@ export function roofModel(settings: Settings) {
 
 }
 
+/** Square-edge OSB: 1,200 mm ridge row, then a 3 mm expansion joint. */
+export function roofDeckNoggins(settings:Settings){
+ const r=roofModel(settings),cos=Math.cos(settings.roofPitch*Math.PI/180);
+ const rowWidth=1200,jointGap=3,fromRidgeSlope=rowWidth+jointGap/2;
+ const ridgeFront=(r.span-settings.ridgeWidth)/2;
+ const frontY=ridgeFront-fromRidgeSlope*cos;
+ const deckSlope=(ridgeFront+r.eavesTailRun)/cos;
+ const centres=r.gableOverhang>0?[-r.flyRafterProjection,...r.rafters,r.length+r.flyRafterProjection]:r.rafters;
+ const blocks:{x:number;y:number;length:number;planWidth:number}[]=[];
+ if(!r.errors.length&&deckSlope>rowWidth+jointGap&&frontY>-r.eavesTailRun){
+  for(const y of [frontY,r.span-frontY])for(let i=1;i<centres.length;i++){
+   const x=centres[i-1]+settings.studFace/2,length=centres[i]-centres[i-1]-settings.studFace;
+   if(length>0)blocks.push({x,y,length,planWidth:settings.studFace*cos});
+  }
+ }
+ return {blocks,rowWidth,jointGap,fromRidgeSlope,fromRidgeHorizontal:fromRidgeSlope*cos,frontY,rearY:r.span-frontY,deckSlope};
+}
+
 /** Roof-only members; four gable rafters and all plates belong to wall schedules. */
 export function roofCutSchedule(settings:Settings){
  const r=roofModel(settings),length=Number((((r.span-settings.ridgeWidth)/2+r.eavesTailRun)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1));
  const section=`${settings.studFace} x ${settings.studDepth}`;
+ const nogginGroups=new Map<number,number>();
+ roofDeckNoggins(settings).blocks.forEach(b=>{const l=Number(b.length.toFixed(1));nogginGroups.set(l,(nogginGroups.get(l)||0)+1);});
  return [
   {type:'Field common rafters',qty:(r.rafters.length-2)*2,section,length,cut:'20 mm tail face + horizontal soffit cut; birdsmouth'},
   ...(r.gableOverhang>0?[{type:'Outer fly rafters',qty:4,section,length:Number(((r.span/2+r.eavesTailRun)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1)),cut:'20 mm tail face + horizontal soffit cut; no seat'}]:[]),
   {type:'Tie beams',qty:r.count,section:`${r.width} x ${r.depth}`,length:r.span,cut:tieEndClearance(settings).projection>.01?'Chamfer both top corners; see detail':'Square ends; no chamfer required'},
   {type:'Ridge beam',qty:1,section:`${settings.ridgeWidth} x ${settings.ridgeDepth}`,length:r.length,cut:'Square ends; between gable outer faces'},
   ...(r.outriggerRuns.length?[{type:'Gable outriggers',qty:r.outriggerRuns.length*4,section,length:r.outriggerRuns[0].end-r.outriggerRuns[0].start,cut:'Square ends; clear run outside wall'}]:[]),
+  ...[...nogginGroups].sort((a,b)=>b[0]-a[0]).map(([length,qty])=>({type:'OSB seam noggins',qty,section,length,cut:'Square ends; top flush with roof deck plane'})),
  ];
 }
 
