@@ -38,7 +38,7 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   c.text(`Timber ${cfg.studFace} x ${cfg.studDepth} | ${cfg.studCentres} C/C | ${cfg.topPlates} top plates | California corners`,12,23,7);
   c.text("Dot-dash: brick datum / witnesses. Solid: timber-frame witnesses and dimension bars. Opening chain uses timber-frame faces.",12,28,6);
   // Dimension rails use external projected datums: never extend centreline witnesses down the length of studs.
-  const area={x:50,y:cfg.gable?50:45,w:190,h:cfg.gable?111:116};
+  const area={x:50,y:cfg.gable?50:cfg.id==='front'?51:45,w:190,h:cfg.gable?111:cfg.id==='front'?110:116};
   const domainX=cfg.maxX-cfg.minX,domainY=cfg.maxY+cfg.frameBase;
   const scale=Math.min(area.w/domainX,area.h/domainY),usedW=domainX*scale,usedH=domainY*scale;
   const ox=area.x+(area.w-usedW)/2-cfg.minX*scale,top=area.y+(area.h-usedH)/2;
@@ -65,8 +65,15 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   // Their x coordinates still refer to the labelled faces or centrelines.
   const topWitness=Y(cfg.maxY)-1,bottomWitness=slab+1;
   // Overall and plate chain dimensions.
-  hTechnical(c,X(0),X(cfg.width),topWitness,area.y-9,`${fmt(cfg.width)} frame body`,6.1);
-  hTechnical(c,X(cfg.upperStart),X(cfg.upperEnd),topWitness,area.y-3,`${fmt(cfg.upperEnd-cfg.upperStart)} upper top plate`,5.6);
+  hTechnical(c,X(0),X(cfg.width),topWitness,area.y-15,`${fmt(cfg.width)} frame body`,6.1);
+  hTechnical(c,X(cfg.upperStart),X(cfg.upperEnd),topWitness,area.y-9,`${fmt(cfg.upperEnd-cfg.upperStart)} upper top plate`,5.6);
+  if(cfg.id==="front"){
+    const [leftWindow,door]=cfg.computedOpenings;
+    const leftWindowKingInner=leftWindow.x-cfg.studFace;
+    const doorKingInner=door.x-cfg.studFace;
+    hTechnical(c,X(0),X(doorKingInner),topWitness,area.y-3,`${fmt(doorKingInner)} D2 L king inner`,4.2);
+    hTechnical(c,X(0),X(leftWindowKingInner),topWitness,area.y+3,`${fmt(leftWindowKingInner)} W1 L king inner`,3.8);
+  }
   hTechnical(c,X(cfg.brickStart),X(cfg.brickEnd),slab,area.y+area.h+(cfg.id==='front'?28:10),`${fmt(cfg.brickBody)} brick run`,5.7,BRICK_DATUM_DASH);
   // Opening widths and horizontal set-out from wall origin.
   const openingDimY=area.y+area.h+(cfg.id==='front'?10:4);
@@ -124,8 +131,9 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   vTechnical(c,ffl,wallTop,X(cfg.width),nextRail("right"),`${fmt(cfg.frameBase+cfg.wallHeight-cfg.ffl)} FFL to wall top`,5.0,"right");
   // Assembly rails: dimensions refer to real member faces, outside the field.
   const leftLap=Math.abs(cfg.upperStart),rightLap=Math.abs(cfg.upperEnd-cfg.width);
-  hTechnical(c,X(Math.min(0,cfg.upperStart)),X(Math.max(0,cfg.upperStart)),topWitness,area.y+3,`${fmt(leftLap)} lap`,4.7);
-  hTechnical(c,X(Math.min(cfg.width,cfg.upperEnd)),X(Math.max(cfg.width,cfg.upperEnd)),topWitness,area.y+3,`${fmt(rightLap)} lap`,4.7);
+  const lapRail=area.y+(cfg.id==="front"?9:3);
+  hTechnical(c,X(Math.min(0,cfg.upperStart)),X(Math.max(0,cfg.upperStart)),topWitness,lapRail,`${fmt(leftLap)} lap`,4.7);
+  hTechnical(c,X(Math.min(cfg.width,cfg.upperEnd)),X(Math.max(cfg.width,cfg.upperEnd)),topWitness,lapRail,`${fmt(rightLap)} lap`,4.7);
   const noggin=members.find(m=>m.type==="noggin"),studTop=cfg.wallHeight-cfg.plates;
   if(noggin){
     hTechnical(c,X(noggin.x!),X(noggin.x!+noggin.w!),bottomWitness,area.y+area.h+(cfg.id==='front'?4:28),`${fmt(noggin.w!)} noggin / clear bay`,4.6);

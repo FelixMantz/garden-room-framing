@@ -386,6 +386,11 @@ test('all wall elevations place nested short dimension bars nearer the drawing',
   assert.ok(sole.x>stud.x&&stud.x>frame.x,`${id}: nested vertical bars must run shortest to longest outwards`);
   const body=labels.find(p=>p.label===`${cfg.width} frame body`),plate=labels.find(p=>p.label===`${cfg.upperEnd-cfg.upperStart} upper top plate`);
   assert.ok(cfg.gable?body.y>plate.y:plate.y>body.y,`${id}: larger top dimensions must be farther from the drawing`);
+  if(id==='front'){
+   const windowKing=labels.find(p=>p.label==='483 W1 L king inner');
+   const doorKing=labels.find(p=>p.label==='1918 D2 L king inner');
+   assert.ok(windowKing&&doorKing&&windowKing.y>doorKing.y&&doorKing.y>plate.y&&plate.y>body.y);
+  }
   const brick=labels.find(p=>p.label===`${cfg.brickBody} brick run`),noggin=labels.find(p=>p.label.includes('noggin / clear bay'));
   assert.ok(noggin.y<brick.y,`${id}: short bottom dimension must be inside the overall brick dimension`);
  }
