@@ -142,9 +142,12 @@ test("measured brickwork drives all wall geometry and floor-relative heights", (
   }
   const cfg = framing.configForWall(settings, "front");
   const door = cfg.computedOpenings.find(o => o.type === "door");
-  assert.equal(door.width, 1265);
+  assert.equal(door.width, 1264);
   assert.equal(door.height, 2080);
-  assert.equal(door.x + door.width / 2, cfg.width / 2 - 0.5);
+  const kings = framing.buildModel(cfg).filter(m => m.type === "king stud").map(m => [m.x,m.x+m.w]);
+  assert.deepEqual(kings, [[438,483],[1583,1628],[1873,1918],[3272,3317],[3562,3607],[4707,4752]]);
+  assert.deepEqual(kings.map(([a,b])=>[cfg.width-b,cfg.width-a]).reverse(),kings);
+  assert.equal(door.x + door.width / 2, cfg.width / 2);
   assert.equal(door.levelAboveFfl, -45);
   assert.equal(door.sill + cfg.frameBase, 92);
   assert.equal(cfg.courseHeight, 70);
@@ -366,7 +369,7 @@ test('centred timber overhang is 2.5 mm on each inner face and masonry stays ind
  assert.equal((cfg.brickLength-cfg.frameLength)/2,2.5);
  assert.equal((cfg.brickDepth-cfg.frameDepth)/2,2.5);
  const front=s.walls.front.openings,left=s.walls.left.openings;
- assert.deepEqual([front[1].x-front[0].x-front[0].width,front[2].x-front[1].x-front[1].width],[424,425]);
+ assert.deepEqual([front[1].x-front[0].x-front[0].width,front[2].x-front[1].x-front[1].width],[425,425]);
  assert.equal(left[1].x-left[0].x-left[0].width,534);
  s.internalLength+=50;s.internalDepth+=50;
  const moved=framing.configForWall(s,'front');

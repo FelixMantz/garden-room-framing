@@ -22,7 +22,7 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
     c.text(`Garden room framing set | door front elevation | page ${page} of ${total}`,148.5,205,6.4,false,"center");
     return c.stream();
   }
-  const {fit,lining,operating,closedPairWidth,leafHeight,leftLeafWidth,rightLeafWidth,meetingOverlap,leafThickness,
+  const {fit,sideFit,lining,operating,closedPairWidth,leafHeight,leftLeafWidth,rightLeafWidth,meetingOverlap,leafThickness,
     openingBase,openingTop,frameBottom,cillTop,leafBottom,frameTop,headBottom,leafTop}=assembly;
   const slab=0,ffl=cfg.ffl;
   const thresholdTop=cfg.courseHeight,thresholdSetout=openingBase-thresholdTop;
@@ -94,12 +94,12 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
   });
 
   splitRect(rough.x,openingBase,rough.w,openingTop,[255,255,255],[0,0,0],.24);
-  splitRect(X(fit),frameBottom,X(fit+lining)-X(fit),frameTop,"timber",[0,0,0],.15);
-  splitRect(X(door.width-fit-lining),frameBottom,X(door.width-fit)-X(door.width-fit-lining),frameTop,"timber",[0,0,0],.15);
-  c.rect(X(fit),Y(frameTop),X(door.width-fit)-X(fit),Y(headBottom)-Y(frameTop),"timber",[0,0,0],.15);
-  c.rect(X(fit),Y(cillTop),X(door.width-fit)-X(fit),Y(frameBottom)-Y(cillTop),"timber",[0,0,0],.15);
+  splitRect(X(sideFit),frameBottom,X(sideFit+lining)-X(sideFit),frameTop,"timber",[0,0,0],.15);
+  splitRect(X(door.width-sideFit-lining),frameBottom,X(door.width-sideFit)-X(door.width-sideFit-lining),frameTop,"timber",[0,0,0],.15);
+  c.rect(X(sideFit),Y(frameTop),X(door.width-sideFit)-X(sideFit),Y(headBottom)-Y(frameTop),"timber",[0,0,0],.15);
+  c.rect(X(sideFit),Y(cillTop),X(door.width-sideFit)-X(sideFit),Y(frameBottom)-Y(cillTop),"timber",[0,0,0],.15);
 
-  const leafStart=fit+lining+operating,leftLeafEnd=leafStart+leftLeafWidth,rightLeafStart=leftLeafEnd-meetingOverlap,rightLeafEnd=rightLeafStart+rightLeafWidth;
+  const leafStart=sideFit+lining+operating,leftLeafEnd=leafStart+leftLeafWidth,rightLeafStart=leftLeafEnd-meetingOverlap,rightLeafEnd=rightLeafStart+rightLeafWidth;
   splitRect(X(leafStart),leafBottom,X(leftLeafEnd)-X(leafStart),leafTop,[255,255,255],[0,0,0],.18);
   splitRect(X(rightLeafStart),leafBottom,X(rightLeafEnd)-X(rightLeafStart),leafTop,[255,255,255],[0,0,0],.18);
   splitVLine(X(leftLeafEnd),leafBottom,leafTop,.12,[1,1]);
@@ -138,7 +138,7 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
   leader("5 FRAME-FIT GAP",70,Y((openingBase+frameBottom)/2),76,133,"left",false,4.4);
   leader("5 OPERATING GAP",70,Y((cillTop+leafBottom)/2),76,138,"left",false,4.4);
   leader(`${fmt(thresholdSetout)} BRICK TOP TO OPENING BASE`,rough.x+rough.w*.76,Y((thresholdTop+openingBase)/2),112,146,"left",true,4.2);
-  leader("5 FIT | 40 HARDWOOD JAMB | 5 OPERATING",X(fit+lining/2),Y(1980),57,91,"left",true,4.4);
+  leader("4.5 FIT | 40 HARDWOOD JAMB | 5 OPERATING",X(sideFit+lining/2),Y(1980),57,91,"left",true,4.4);
   leader(`LEAF TOP +${fmt(leafTop)}`,X(door.width*.56),Y(leafTop),112,76,"left",true,4.5);
   leader("5 OPERATING GAP",X(door.width*.56),Y((leafTop+headBottom)/2),112,81,"left",false,4.4);
   leader("5 FRAME-FIT GAP",X(door.width*.56),Y((frameTop+openingTop)/2),112,86,"left",false,4.4);
@@ -158,7 +158,7 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
   vTechnical(c,Y(ffl),Y(openingTop),rightEdge,231,`${fmt(openingTop-ffl)} FFL - lintel U/S`,5,"right");
   vTechnical(c,Y(slab),Y(wallTop),rightEdge,241,`${fmt(wallTop)} slab - wall top`,5,"right");
   vTechnical(c,Y(slab),Y(tieTop),rightEdge,251,`${fmt(tieTop)} slab - tie top`,5,"right");
-  hTechnical(c,X(fit),X(door.width-fit),Y(-85)+1,197,`${fmt(door.width-2*fit)} frame outside width`,5.1);
+  hTechnical(c,X(sideFit),X(door.width-sideFit),Y(-85)+1,197,`${fmt(door.width-2*sideFit)} frame outside width`,5.1);
   hTechnical(c,rough.x-studW,rough.x+rough.w+studW,Y(tieTop)-1,24,`${fmt(door.width+2*cfg.studFace)} lintel cut`,5.1);
   c.text(`Garden room framing set | door front elevation | page ${page} of ${total}`,148.5,205,6.4,false,"center");
   return c.stream();
@@ -204,7 +204,7 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
 
   const notesY=floorBottom+8;c.text("DOOR ASSEMBLY",188,notesY,7.5,true);
   const notes=[
-    `Width: ${door.width} = ${fit} fit + ${lining} jamb + ${operating} op + ${closedPairWidth} leaves + ${operating} op + ${lining} jamb + ${fit} fit.`,
+    `Width: ${door.width} = ${sideFit} fit + ${lining} jamb + ${operating} op + ${closedPairWidth} leaves + ${operating} op + ${lining} jamb + ${sideFit} fit.`,
     `Height: ${door.height} = ${fit} fit + ${lining} cill + ${operating} op + ${leafHeight} leaf + ${operating} op + ${lining} head + ${fit} fit.`,
     `Left: ${leftLeafWidth} full / 577 rebate; heights 1979 hinge / 1976 meeting.`,
     `Right: ${rightLeafWidth} full / 576 rebate; heights 1975 hinge / 1980 meeting.`,

@@ -39,7 +39,7 @@ export function defaultSettings():Settings {
     walls:{
       front:{name:"Front wall",gable:false,studOffset:45,openings:[
         {type:"window",x:528,width:1010,height:1040,level:757},
-        {type:"door",x:1962,width:1265,height:2080,level:-45,note:"Measured French-door pair approximately 1165 × 1980 mm; 40 mm hardwood lining and cill; cill top flush with FFL; 5 mm operating and frame-fitting margins; one 70 mm brick threshold course is laid across the doorway, leaving 22 mm to the structural opening base at +92 mm above slab; final structural opening 1265 × 2080 mm."},
+        {type:"door",x:1963,width:1264,height:2080,level:-45,note:"Measured French-door pair approximately 1165 × 1980 mm; 40 mm hardwood lining and cill; cill top flush with FFL; 5 mm operating margins; 4.5 mm side frame-fitting gaps and 5 mm top/bottom frame-fitting gaps; one 70 mm brick threshold course is laid across the doorway, leaving 22 mm to the structural opening base at +92 mm above slab; final structural opening 1264 × 2080 mm."},
         {type:"window",x:3652,width:1010,height:1040,level:757},
       ]},
       rear:{name:"Rear wall",gable:false,studOffset:45,openings:[]},

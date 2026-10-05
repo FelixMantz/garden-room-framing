@@ -65,8 +65,15 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   hTechnical(c,X(cfg.brickStart),X(cfg.brickEnd),slab,area.y+area.h+(cfg.id==='front'?28:10),`${fmt(cfg.brickBody)} brick run`,5.7,BRICK_DATUM_DASH);
   // Opening widths and horizontal set-out from wall origin.
   const openingDimY=area.y+area.h+(cfg.id==='front'?10:4);
-  cfg.computedOpenings.forEach(o=>hTechnical(c,X(o.x),X(o.x+o.width),bottomWitness,openingDimY,`${fmt(o.width)} clear`,5.2));
-  const points=[0,...cfg.computedOpenings.flatMap(o=>[o.x,o.x+o.width]),cfg.width].sort((a,b)=>a-b);
+  if(cfg.id!=="front")cfg.computedOpenings.forEach(o=>hTechnical(c,X(o.x),X(o.x+o.width),bottomWitness,openingDimY,`${fmt(o.width)} clear`,5.2));
+  // King outside faces are the faces away from the opening; each king is
+  // one studFace thick towards its opening. These datums precede jack fitting.
+  const kingFaces=cfg.computedOpenings.flatMap(o=>[o.x-2*cfg.studFace,o.x+o.width+2*cfg.studFace]);
+  const points=[0,...(cfg.id==="front"?kingFaces:cfg.computedOpenings.flatMap(o=>[o.x,o.x+o.width])),cfg.width].sort((a,b)=>a-b);
+  if(cfg.id==="front"){
+    kingFaces.forEach((x,i)=>c.text(`K${i+1}`,X(x),openingDimY,4.5,true,"center"));
+    c.text("King outside-face chain (45 mm towards opening)",X(cfg.width/2),openingDimY-3,5,true,"center");
+  }
   for(let i=0;i<points.length-1;i++)if(points[i+1]-points[i]>1)hTechnical(c,X(points[i]),X(points[i+1]),bottomWitness,area.y+area.h+16,fmt(points[i+1]-points[i]),4.5);
   // The front-wall brick returns above the threshold are set out from the
   // outside masonry corners, rather than from the timber-frame origin.
@@ -149,7 +156,9 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   c.text("SETTING-OUT NOTES",12,notesY,8,true);
   const grid=studGridCentres(cfg.width,cfg.studCentres,cfg.studOffset,cfg.studFace);
   const gridNote=cfg.gable?`Ridge-centred grid: first C/L ${fmt(grid[0]||0)} from left and ${fmt(cfg.width-(grid.at(-1)||cfg.width))} from right.`:`Stud grid phase ${fmt(cfg.studOffset)}; opening trimmers replace intersecting grid studs.`;
-  c.text(`${gridNote} Witness lines start outside the frame; levels use sole underside unless labelled.`,12,196,6);
+  c.text(cfg.id==="front"
+    ? `King outside faces from LEFT frame end: ${kingFaces.map((x,i)=>`K${i+1} ${fmt(x)}`).join(" | ")}. Each king extends 45 mm towards its opening.`
+    : `${gridNote} Witness lines start outside the frame; levels use sole underside unless labelled.`,12,196,6);
   const door=cfg.computedOpenings.find(o=>o.type==="door"&&o.sill<0);
   c.text(door?`Door threshold is one brick course: top +${fmt(cfg.courseHeight)} slab; structural opening base +${fmt(door.sill+cfg.frameBase)} slab.`:`Square frame body: both diagonals ${fmt(Math.hypot(cfg.width,cfg.wallHeight))}; check before bracing. Brick courses ${cfg.brickCourses} x ${fmt(cfg.courseHeight)}.`,12,200,6);
   c.text(`Garden room framing set | technical elevation ${Math.floor((page+1)/2)} of 4 | page ${page} of ${total}`,W/2,205,6.4,false,"center");

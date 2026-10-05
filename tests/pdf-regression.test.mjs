@@ -38,7 +38,10 @@ test('gable elevations dimension the ridge-centred stud grid from both edges',as
 });
 test('front elevation sets upper brick courses out from both outside corners to the door opening',async()=>{
  const pdf=await (await route.GET()).text();
- assert.match(pdf,/1964\.5 L brick return/);
+ assert.match(pdf,/1965\.5 L brick return/);
+ assert.match(pdf,/K1 438.*K2 1628.*K3 1873.*K4 3317.*K5 3562.*K6 4752/);
+ assert.match(pdf,/4.5 FIT/);
+ assert.match(pdf,/1264 structural opening/);
  assert.match(pdf,/1965\.5 R brick return/);
  assert.match(pdf,/courses 2-4/);
 });
