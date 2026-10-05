@@ -117,8 +117,9 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   const noggin=members.find(m=>m.type==="noggin"),studTop=cfg.wallHeight-cfg.plates;
   if(noggin){
     hTechnical(c,X(noggin.x!),X(noggin.x!+noggin.w!),bottomWitness,area.y+area.h+(cfg.id==='front'?4:28),`${fmt(noggin.w!)} noggin / clear bay`,4.6);
-    vTechnical(c,Y(cfg.studFace),Y(noggin.y!+cfg.studFace/2),X(0),nextRail("left"),`${fmt(noggin.y!+cfg.studFace/2-cfg.studFace)} sole top - noggin C/L`,4.5,"left");
-    vTechnical(c,Y(noggin.y!+cfg.studFace/2),Y(studTop),X(cfg.width),nextRail("right"),`${fmt(studTop-noggin.y!-cfg.studFace/2)} noggin C/L - plate U/S`,4.5,"right");
+    vTechnical(c,sole,Y(noggin.y!+cfg.studFace/2),X(0),nextRail("left"),`${fmt(noggin.y!+cfg.studFace/2)} sole U/S - noggin C/L`,4.5,"left");
+    vTechnical(c,Y(noggin.y!+noggin.h!),Y(studTop),X(cfg.width),nextRail("right"),`${fmt(studTop-noggin.y!-noggin.h!)} clear PIR / noggin top - plate U/S`,4.5,"right");
+    c.text("Full-height bays: 1200 mm-high x bay-width 90 mm PIR above aligned noggins; foam fitting gaps. Openings interrupt the row.",12,33,6);
   }
   vTechnical(c,Y(cfg.studFace),Y(studTop),X(0),nextRail("left"),`${fmt(studTop-cfg.studFace)} stud cut`,4.9,"left");
   vTechnical(c,sole,Y(cfg.studFace),X(0),nextRail("left"),`${fmt(cfg.studFace)} sole`,4.3,"left");
