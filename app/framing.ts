@@ -223,16 +223,23 @@ export function buildModel(cfg:WallConfig):Member[] {
     add("ridge support stud",center-cfg.studFace/2,cfg.wallHeight,cfg.studFace,cfg.ridgeBottom-cfg.wallHeight,"square bearing beneath ridge beam; underside flush with rafter plumb ends");
     addRoofStud("gable apex stud",centralRight,"right apex stud; angled top cut");
     const tailDrop=cfg.eavesTailRun*Math.tan(pitchRadians);
-    slope("gable end rafter",cfg.upperStart-cfg.eavesTailRun,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,pocketLeft,apex,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm to outer fascia; ${cfg.eavesTailRun} mm to tail; 20 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperStart,cfg.wallHeight);
-    slope("gable end rafter",pocketRight,apex,cfg.upperEnd+cfg.eavesTailRun,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm to outer fascia; ${cfg.eavesTailRun} mm to tail; 20 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperEnd,cfg.wallHeight);
+    slope("gable end rafter",cfg.upperStart-cfg.eavesTailRun,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,pocketLeft,apex,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm to outer fascia; ${cfg.eavesTailRun} mm to tail; 50 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperStart,cfg.wallHeight);
+    slope("gable end rafter",pocketRight,apex,cfg.upperEnd+cfg.eavesTailRun,cfg.wallHeight-tailDrop+cfg.rafterSeatLift,cfg.studDepth,`${cfg.roofPitch} degree; ${cfg.gableOverhang} mm to outer fascia; ${cfg.eavesTailRun} mm to tail; 50 mm plumb tail face then horizontal soffit cut; birdsmouth on gable plate; plumb ridge cut`,true,undefined,seatRun,cfg.upperEnd,cfg.wallHeight);
   }
   return m;
+}
+
+export const RAFTER_TAIL_PLUMB_FACE = 50;
+
+/** Stock length from the ridge upper point to the tail lower point, along the board. */
+export function rafterBoardLength(longEdge:number,pitchDegrees:number,plumbFace=RAFTER_TAIL_PLUMB_FACE){
+  return longEdge+plumbFace*Math.sin(pitchDegrees*Math.PI/180);
 }
 
 export function makeSchedule(cfg:WallConfig,members:Member[]) {
   const groups=new Map<string,{length:number;shortLength?:number;qty:number;section:string;cut:string;uses:Set<string>;notes:Set<string>}>();
   members.forEach(m=>{
-    const length=Number((m.shape==="slope"?(m.length||0):/stud/.test(m.type)?(m.h||0):(m.w||0)).toFixed(1));
+    const length=Number((m.shape==="slope"?rafterBoardLength(m.length||0,cfg.roofPitch):/stud/.test(m.type)?(m.h||0):(m.w||0)).toFixed(1));
     const section=m.type.includes("lintel")?`${cfg.studFace} × ${cfg.headerDepth}`:`${cfg.studFace} × ${cfg.studDepth}`;
     const cut=m.shape==="slope"?"rafter":m.topLeft!==undefined?"angled stud":"square";
     const shortLength=m.topLeft!==undefined&&m.topRight!==undefined?Number(Math.min(m.topLeft,m.topRight).toFixed(1)):undefined;
@@ -241,7 +248,7 @@ export function makeSchedule(cfg:WallConfig,members:Member[]) {
     const group=groups.get(key)!;group.qty+=m.qty||1;group.uses.add(m.type);if(m.note)group.notes.add(m.note);
   });
   return [...groups.values()].sort((a,b)=>a.section.localeCompare(b.section)||b.length-a.length).map(g=>({
-    type:[...g.uses].join(", "),length:g.length,shortLength:g.shortLength,lengthLabel:g.shortLength===undefined?String(g.length):`${g.length} (${g.shortLength})`,qty:g.qty,cut:g.cut,
+    type:[...g.uses].join(", "),length:g.length,shortLength:g.shortLength,lengthLabel:g.cut==="rafter"?`${g.length} (see p. 13)`:g.shortLength===undefined?String(g.length):`${g.length} (${g.shortLength})`,qty:g.qty,cut:g.cut,
     section:g.section+(g.notes.size?`; ${[...g.notes].join("; ")}`:"")
   }));
 }

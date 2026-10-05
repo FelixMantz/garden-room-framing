@@ -20,9 +20,9 @@ test("serves one nineteen-page monochrome technical PDF with a door-level sheet"
   assert.match(pdf, /Brick top to opening base/);
   assert.match(pdf, /Brick threshold top \+70 slab; structural opening base \+92; 22 between/);
   assert.match(pdf, /Door threshold is one brick course: top \+70 slab; structural opening base \+92 slab/);
-  assert.match(pdf, /20 mm plumb fascia face/);
+  assert.match(pdf, /50 mm plumb fascia face/);
   assert.match(pdf, /horizontal soffit cut/);
-  assert.match(pdf, /181\.9 horizontal underside cut/);
+  assert.match(pdf, /117\.6 horizontal underside cut/);
   assert.doesNotMatch(pdf, /Concrete threshold kicker/);
   assert.ok(pdf.indexOf("Tie beam") < pdf.indexOf("Brick threshold course"), "component schedule should run from top to bottom");
   const floorSchedule = pdf.slice(pdf.indexOf("FLOOR COMPONENTS - TOP DOWN"), pdf.indexOf("DOOR ASSEMBLY"));

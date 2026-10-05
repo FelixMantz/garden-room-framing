@@ -23,7 +23,7 @@ export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,tot
   }
   y+=8;
   }
-  c.text(cfg.gable?(part==="Gable"?"Angled cuts: long side (short side), in mm. Gable sole plate is the upper top plate; rafters excluded from roof list.":"Upper top plate is included in the separate gable cutting list as the gable sole plate."):"Quantities include both lintel plies where applicable.",12,199,7);
+  c.text(cfg.gable?(part==="Gable"?"Rafters: overall board length (detail p. 13). Other angled cuts: long side (short side). Gable sole plate = upper top plate.":"Upper top plate is included in the separate gable cutting list as the gable sole plate."):"Quantities include both lintel plies where applicable.",12,199,7);
   c.text(`Garden room framing set | cutting schedule | page ${page} of ${total}`,148.5,205,6.4,false,"center");
   return c.stream();
 }

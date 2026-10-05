@@ -102,7 +102,7 @@ test('last sheet shows the centred timber bearing and measured masonry datums',a
 test('enlarged rafter tail dimensions the flat cut and final plan identifies butt joints',async()=>{
  const pdf=await (await route.GET()).text();
  const cuts=pdf.slice(pdf.indexOf('Gable rafters - dimensions'),pdf.indexOf('French-door front'));
- assert.equal((cuts.match(/181\.9 horizontal soffit cut/g)||[]).length,2);
+ assert.equal((cuts.match(/117\.6 horizontal soffit cut/g)||[]).length,2);
  const last=pdf.slice(pdf.indexOf('Timber frame positioning on the dwarf wall'));
  assert.match(last,/FULL LENGTH - FRONT BODY 5190/);assert.match(last,/FULL LENGTH - REAR BODY 5190/);
  assert.match(last,/LEFT BODY 3010 - BUTTS BETWEEN FRONT \/ REAR/);

@@ -1,5 +1,5 @@
 import { roofOverhangs } from './roof-overhangs';
-import { configForWall, type Settings } from './framing';
+import { configForWall, rafterBoardLength, type Settings } from './framing';
 
 export function roofModel(settings: Settings) {
   const cfg = configForWall(settings, 'front');
@@ -70,13 +70,13 @@ export function roofDeckNoggins(settings:Settings){
 
 /** Roof-only members; four gable rafters and all plates belong to wall schedules. */
 export function roofCutSchedule(settings:Settings){
- const r=roofModel(settings),length=Number((((r.span-settings.ridgeWidth)/2+r.eavesTailRun)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1));
+ const r=roofModel(settings),boardLength=(run:number)=>Number(rafterBoardLength(run/Math.cos(settings.roofPitch*Math.PI/180),settings.roofPitch).toFixed(1)),length=boardLength((r.span-settings.ridgeWidth)/2+r.eavesTailRun);
  const section=`${settings.studFace} x ${settings.studDepth}`;
  const nogginGroups=new Map<number,number>();
  roofDeckNoggins(settings).blocks.forEach(b=>{const l=Number(b.length.toFixed(1));nogginGroups.set(l,(nogginGroups.get(l)||0)+1);});
  return [
-  {type:'Field common rafters',qty:(r.rafters.length-2)*2,section,length,cut:'20 mm tail face + horizontal soffit cut; birdsmouth'},
-  ...(r.gableOverhang>0?[{type:'Outer fly rafters',qty:4,section,length:Number(((r.span/2+r.eavesTailRun)/Math.cos(settings.roofPitch*Math.PI/180)).toFixed(1)),cut:'20 mm tail face + horizontal soffit cut; no seat'}]:[]),
+  {type:'Field common rafters',qty:(r.rafters.length-2)*2,section,length,cut:'50 mm tail face; soffit cut; birdsmouth'},
+  ...(r.gableOverhang>0?[{type:'Outer fly rafters',qty:4,section,length:boardLength(r.span/2+r.eavesTailRun),cut:'50 mm tail face; soffit cut; no seat'}]:[]),
   {type:'Tie beams',qty:r.count,section:`${r.width} x ${r.depth}`,length:r.span,cut:tieEndClearance(settings).projection>.01?'Chamfer both top corners; see detail':'Square ends; no chamfer required'},
   {type:'Ridge beam',qty:1,section:`${settings.ridgeWidth} x ${settings.ridgeDepth}`,length:r.length,cut:'Square ends; between gable outer faces'},
   ...(r.outriggerRuns.length?[{type:'Gable outriggers',qty:r.outriggerRuns.length*4,section,length:r.outriggerRuns[0].end-r.outriggerRuns[0].start,cut:'Square ends; clear run outside wall'}]:[]),

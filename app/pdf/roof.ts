@@ -107,7 +107,7 @@ export function drawRoofSchedule(settings:Settings,page:number,total:number){
  c.text("ROOF CUTTING SCHEDULE",12,34,10,true);
  const xs=[12,80,98,124,160];
  ["Component","Qty","Section","Length","Cut / allowance"].forEach((v,i)=>c.text(v,xs[i],43,8,true));
- rows.forEach((r,i)=>{const y=52+i*7;[r.type,String(r.qty),r.section,fmt(r.length),r.cut].forEach((v,j)=>c.text(v,xs[j],y,7.3));c.line(12,y+2.5,285,y+2.5);});
+ rows.forEach((r,i)=>{const y=52+i*7;[r.type,String(r.qty),r.section,r.type.includes("rafters")?`${fmt(r.length)} (see p. 13)`:fmt(r.length),r.cut].forEach((v,j)=>c.text(v,xs[j],y,7.3));c.line(12,y+2.5,285,y+2.5);});
  const clearance=tieEndClearance(settings);
  c.text(clearance.projection>.01
    ?`TIE CHAMFERS: both top corners, ${fmt(settings.roofPitch)} deg; ${fmt(clearance.projection)} vertical cut x ${fmt(clearance.run)} horizontal run.`
@@ -133,6 +133,7 @@ export function drawCuts(settings:Settings,page:number,total:number){
   c.line(X(m.x1!),Y(m.y1!),X(m.x2!),Y(m.y1!),[90,110,115],.15,[2,1]);
   dimension(c,[X(m.x1!),103],[X(m.x2!),103],`${fmt(d.run)} horizontal tail-to-ridge-face run`);
   dimension(c,[X(m.x2!)+6,Y(m.y1!)],[X(m.x2!)+6,Y(m.y2!)],`${fmt(d.rise)} rise`,true);
+  c.text(`Overall board ${fmt(d.boardLength)} along stock`,X((m.x1!+m.x2!)/2),39,8,true,"center");
   c.text(`Long edge ${fmt(d.length)} between plumb cuts`,X((m.x1!+m.x2!)/2),45,8,true,"center");
   const arc=(cx:number,cy:number,radius:number,start:number,end:number)=>{
     for(let i=0;i<16;i++){
@@ -226,7 +227,7 @@ export function drawCuts(settings:Settings,page:number,total:number){
   c.text("Seat and heel cuts meet at 90 deg.",118,174,7.4);
   c.text(`Tail to seat toe: ${fmt(bx+d.seat-l)} horizontal / ${fmt((bx+d.seat-l)/cos)} along edge`,118,181,7.0);
   c.text(`Heel to ridge face: ${fmt((m.x2!-bx)/cos)} along edge`,118,187,7.0);
-  c.text("Tail underside cut is horizontal and 90 degrees to the 20 mm plumb fascia face.",12,193,7.5);
+  c.text("Tail underside cut is horizontal and 90 degrees to the 50 mm plumb fascia face.",12,193,7.5);
   c.text("Horizontal rafter run ends at the ridge face; ridge width is excluded from the run.",12,198,7);
   c.text(`Garden room framing set | page ${page} of ${total} | dimensioned model, not a verified cutting template`,148.5,205,6.2,false,"center",[90,90,90]);
   return c.stream();

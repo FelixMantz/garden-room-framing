@@ -23,10 +23,15 @@ test('gable elevation tails share the cutting-detail profile and mirror at the r
   const [left,right]=members.filter(m=>m.type==='gable end rafter');
   const a=rafterDimensions(left),b=rafterDimensions(right);
   assert.equal(a.cutPolygon.length,8);assert.equal(b.cutPolygon.length,8);
+  for(const d of [a,b]){
+   const direction=d===a?1:-1,angle=d.pitch*Math.PI/180;
+   const projections=d.cutPolygon.map(([x,y])=>direction*x*Math.cos(angle)+y*Math.sin(angle));
+   assert.ok(Math.abs(Math.max(...projections)-Math.min(...projections)-d.boardLength)<1e-8);
+  }
   const mirrored=a.cutPolygon.map(([x,y])=>[cfg.width-x,y]);
   for(const [x,y] of mirrored)assert.ok(b.cutPolygon.some(([rx,ry])=>Math.abs(x-rx)<1e-8&&Math.abs(y-ry)<1e-8));
-  assert.ok(Math.abs(a.cutPolygon[0][1]-a.cutPolygon.at(-1)[1]-20)<1e-8);
-  assert.ok(Math.abs(b.cutPolygon[1][1]-b.cutPolygon[2][1]-20)<1e-8);
+  assert.ok(Math.abs(a.cutPolygon[0][1]-a.cutPolygon.at(-1)[1]-50)<1e-8);
+  assert.ok(Math.abs(b.cutPolygon[1][1]-b.cutPolygon[2][1]-50)<1e-8);
   const polygons=[];
   const recording={rect(){},line(){},text(){},textVertical(){},polygon(points){polygons.push(points);},stream(){return '';}};
   drawWallTechnical(cfg,members,5,16,recording);
@@ -328,8 +333,8 @@ test('fly rafters reach the centreline while common rafters stop at ridge faces'
   const rows=roofCutSchedule(settings),roof=roofModel(settings);
   const common=rows.find(r=>r.type==='Field common rafters'),fly=rows.find(r=>r.type==='Outer fly rafters');
   const cos=Math.cos(settings.roofPitch*Math.PI/180);
-  assert.ok(Math.abs(common.length*cos-((roof.span-ridgeWidth)/2+roof.eavesTailRun))<.05);
-  assert.ok(Math.abs(fly.length*cos-(roof.span/2+roof.eavesTailRun))<.05);
+  assert.ok(Math.abs((common.length-50*Math.sin(settings.roofPitch*Math.PI/180))*cos-((roof.span-ridgeWidth)/2+roof.eavesTailRun))<.05);
+  assert.ok(Math.abs((fly.length-50*Math.sin(settings.roofPitch*Math.PI/180))*cos-(roof.span/2+roof.eavesTailRun))<.05);
  }
 });
 test('noggins avoid low window sills, lintels and cripple studs',()=>{

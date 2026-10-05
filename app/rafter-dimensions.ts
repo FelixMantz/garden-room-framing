@@ -1,6 +1,6 @@
-import { slopePolygon, type Member } from './framing';
+import { slopePolygon, rafterBoardLength, RAFTER_TAIL_PLUMB_FACE, type Member } from './framing';
 
-export const RAFTER_TAIL_PLUMB_FACE = 20;
+export { RAFTER_TAIL_PLUMB_FACE } from "./framing";
 
 export function rafterTailCut(depth:number,pitchDegrees:number,plumbFace=RAFTER_TAIL_PLUMB_FACE){
   const pitch=pitchDegrees*Math.PI/180;
@@ -25,6 +25,6 @@ export function rafterDimensions(m:Member){
     cutPolygon=[...polygon.slice(0,2),[m.x2!,flatY],[m.x2!-tail.horizontalRun,flatY],...polygon.slice(3)];
   }
   return {run,rise,pitch,plumb:90-pitch,verticalDepth,heel,seat:m.seatRun||0,
-    notchNormal:heel*Math.cos(pitch*Math.PI/180),length:Math.hypot(run,rise),polygon,cutPolygon,
+    notchNormal:heel*Math.cos(pitch*Math.PI/180),length:Math.hypot(run,rise),boardLength:rafterBoardLength(Math.hypot(run,rise),pitch),polygon,cutPolygon,
     tailPlumbFace:tail.plumbFace,tailFlatRun:tail.horizontalRun};
 }
