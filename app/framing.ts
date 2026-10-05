@@ -244,3 +244,12 @@ export function makeSchedule(cfg:WallConfig,members:Member[]) {
     section:g.section+(g.notes.size?`; ${[...g.notes].join("; ")}`:"")
   }));
 }
+
+export function scheduleGroups(cfg:WallConfig,members:Member[]) {
+  if(!cfg.gable)return [{name:"Wall",members}];
+  const isGable=(m:Member)=>m.type==="upper top plate"||m.type.startsWith("gable ")||m.type==="ridge support stud";
+  return [
+    {name:"Wall",members:members.filter(m=>!isGable(m))},
+    {name:"Gable",members:members.filter(isGable).map(m=>m.type==="upper top plate"?{...m,type:"gable sole plate (upper top plate)"}:m)},
+  ];
+}

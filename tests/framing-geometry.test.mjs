@@ -420,3 +420,17 @@ test('fascia allowances reject projections that leave no timber support',()=>{
  for(const roofGableOverhang of [1,22,45,67])assert.ok(roofModel({...s,roofGableOverhang}).errors.length);
  assert.deepEqual(roofModel({...s,roofGableOverhang:0}).errors,[]);
 });
+
+test('gable cutting lists partition every member and assign upper plate to gable',()=>{
+ for(const id of ['left','right']){
+  const cfg=framing.configForWall(framing.defaultSettings(),id),members=framing.buildModel(cfg);
+  const [wall,gable]=framing.scheduleGroups(cfg,members);
+  assert.equal(wall.members.length+gable.members.length,members.length);
+  assert.ok(wall.members.some(m=>m.type==='lower top plate'));
+  assert.ok(!wall.members.some(m=>m.type==='upper top plate'||m.type.startsWith('gable ')));
+  const sole=gable.members.find(m=>m.type==='gable sole plate (upper top plate)');
+  assert.equal(sole.w,cfg.frameDepth);
+  assert.ok(gable.members.some(m=>m.type==='ridge support stud'));
+  assert.equal(gable.members.filter(m=>m.type==='gable end rafter').length,2);
+ }
+});

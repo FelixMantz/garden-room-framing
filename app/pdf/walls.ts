@@ -1,14 +1,17 @@
-import { buildModel, doorLintelToLowerTopPlate, makeSchedule, studGridCentres, type Member, type WallConfig } from "../framing";
+import { buildModel, doorLintelToLowerTopPlate, makeSchedule, scheduleGroups, studGridCentres, wallOrder, type Member, type WallConfig } from "../framing";
 import { rafterDimensions } from "../rafter-dimensions";
 import { canvas, clean, fmt, wrapText, hTechnical as drawH, vTechnical as drawV, BRICK_DATUM_DASH, type Fill } from "./layout";
 import { textWidth } from '../pdf-font-widths';
 import { dimensionRails } from './dimension-rails';
-export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,total:number){
-  const c=canvas(),rows=makeSchedule(cfg,members);
-  c.text(`${cfg.name} - cutting schedule`,12,14,16,true);
-  c.text("For the preceding technical elevation | dimensions in mm | quantities include lintel plies",12,23,8);
+export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,total:number,part:"Wall"|"Gable"="Wall"){
+  const c=canvas();
+  c.text(`${cfg.name} - cutting schedule${cfg.gable?` - ${part.toLowerCase()}`:""}`,12,14,16,true);
+  c.text(`For technical elevation T-${wallOrder.indexOf(cfg.id)+1} | dimensions in mm | quantities include lintel plies`,12,23,8);
   const cols=[90,15,26,42,100],tx=12; let y=33;
   const xs=cols.map((_,i)=>tx+cols.slice(0,i).reduce((a,b)=>a+b,0));
+  for(const group of scheduleGroups(cfg,members).filter(group=>group.name===part)){
+  if(cfg.gable){c.text(`${group.name.toUpperCase()} CUTTING LIST`,tx,y+5,9,true);y+=10;}
+  const rows=makeSchedule(cfg,group.members);
   c.rect(tx,y,273,8); ["Component / use","Qty","Cut length","Section / cut","Notes"].forEach((v,i)=>c.text(v,xs[i]+2,y+5.3,7,true)); y+=8;
   for(const row of rows){
     const values=[row.type,String(row.qty),String(row.length),row.section.split(";")[0]+(row.cut==="rafter"?"; plumb + seat":row.cut==="angled stud"?"; angled top":"; square"),row.section.split(";").slice(1).join(";")];
@@ -18,7 +21,9 @@ export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,tot
     lines.forEach((ls,i)=>ls.forEach((v,j)=>c.text(v,xs[i]+2,y+4+j*3,6.5,i===1||i===2)));
     y+=height;c.line(tx,y,285,y);
   }
-  c.text("Gable rafters appear here only; the roof schedule excludes these members to avoid double counting.",12,199,7);
+  y+=8;
+  }
+  c.text(cfg.gable?(part==="Gable"?"Gable sole plate is the upper top plate. Gable rafters are excluded from the roof schedule.":"Upper top plate is included in the separate gable cutting list as the gable sole plate."):"Quantities include both lintel plies where applicable.",12,199,7);
   c.text(`Garden room framing set | cutting schedule | page ${page} of ${total}`,148.5,205,6.4,false,"center");
   return c.stream();
 }
@@ -29,7 +34,7 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   const vTechnical=(...args:Parameters<typeof drawV>)=>{vertical.push(args);};
   const W=297;
   c.text(`${cfg.name} - dimensioned elevation`,12,11,14,true);
-  c.text(`Drawing T-${Math.floor((page+1)/2)} | dimensions in mm | elevation viewed from outside | do not scale`,12,18,7.5);
+  c.text(`Drawing T-${wallOrder.indexOf(cfg.id)+1} | dimensions in mm | elevation viewed from outside | do not scale`,12,18,7.5);
   c.text(`Timber ${cfg.studFace} x ${cfg.studDepth} | ${cfg.studCentres} C/C | ${cfg.topPlates} top plates | California corners`,12,23,7);
   c.text("Dot-dash: brick datum / witnesses. Solid: timber-frame witnesses and dimension bars. Opening chain uses timber-frame faces.",12,28,6);
   // Dimension rails use external projected datums: never extend centreline witnesses down the length of studs.
@@ -161,6 +166,6 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
     : `${gridNote} Witness lines start outside the frame; levels use sole underside unless labelled.`,12,196,6);
   const door=cfg.computedOpenings.find(o=>o.type==="door"&&o.sill<0);
   c.text(door?`Door threshold is one brick course: top +${fmt(cfg.courseHeight)} slab; structural opening base +${fmt(door.sill+cfg.frameBase)} slab.`:`Square frame body: both diagonals ${fmt(Math.hypot(cfg.width,cfg.wallHeight))}; check before bracing. Brick courses ${cfg.brickCourses} x ${fmt(cfg.courseHeight)}.`,12,200,6);
-  c.text(`Garden room framing set | technical elevation ${Math.floor((page+1)/2)} of 4 | page ${page} of ${total}`,W/2,205,6.4,false,"center");
+  c.text(`Garden room framing set | technical elevation ${wallOrder.indexOf(cfg.id)+1} of 4 | page ${page} of ${total}`,W/2,205,6.4,false,"center");
   return c.stream();
 }
