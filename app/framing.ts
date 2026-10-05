@@ -230,17 +230,18 @@ export function buildModel(cfg:WallConfig):Member[] {
 }
 
 export function makeSchedule(cfg:WallConfig,members:Member[]) {
-  const groups=new Map<string,{length:number;qty:number;section:string;cut:string;uses:Set<string>;notes:Set<string>}>();
+  const groups=new Map<string,{length:number;shortLength?:number;qty:number;section:string;cut:string;uses:Set<string>;notes:Set<string>}>();
   members.forEach(m=>{
     const length=Number((m.shape==="slope"?(m.length||0):/stud/.test(m.type)?(m.h||0):(m.w||0)).toFixed(1));
     const section=m.type.includes("lintel")?`${cfg.studFace} × ${cfg.headerDepth}`:`${cfg.studFace} × ${cfg.studDepth}`;
     const cut=m.shape==="slope"?"rafter":m.topLeft!==undefined?"angled stud":"square";
-    const key=section+"|"+length+"|"+cut;
-    if(!groups.has(key))groups.set(key,{length,qty:0,section,cut,uses:new Set(),notes:new Set()});
+    const shortLength=m.topLeft!==undefined&&m.topRight!==undefined?Number(Math.min(m.topLeft,m.topRight).toFixed(1)):undefined;
+    const key=section+"|"+length+"|"+cut+"|"+(shortLength??"");
+    if(!groups.has(key))groups.set(key,{length,shortLength,qty:0,section,cut,uses:new Set(),notes:new Set()});
     const group=groups.get(key)!;group.qty+=m.qty||1;group.uses.add(m.type);if(m.note)group.notes.add(m.note);
   });
   return [...groups.values()].sort((a,b)=>a.section.localeCompare(b.section)||b.length-a.length).map(g=>({
-    type:[...g.uses].join(", "),length:g.length,qty:g.qty,cut:g.cut,
+    type:[...g.uses].join(", "),length:g.length,shortLength:g.shortLength,lengthLabel:g.shortLength===undefined?String(g.length):`${g.length} (${g.shortLength})`,qty:g.qty,cut:g.cut,
     section:g.section+(g.notes.size?`; ${[...g.notes].join("; ")}`:"")
   }));
 }

@@ -14,7 +14,7 @@ export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,tot
   const rows=makeSchedule(cfg,group.members);
   c.rect(tx,y,273,8); ["Component / use","Qty","Cut length","Section / cut","Notes"].forEach((v,i)=>c.text(v,xs[i]+2,y+5.3,7,true)); y+=8;
   for(const row of rows){
-    const values=[row.type,String(row.qty),String(row.length),row.section.split(";")[0]+(row.cut==="rafter"?"; plumb + seat":row.cut==="angled stud"?"; angled top":"; square"),row.section.split(";").slice(1).join(";")];
+    const values=[row.type,String(row.qty),row.lengthLabel,row.section.split(";")[0]+(row.cut==="rafter"?"; plumb + seat":row.cut==="angled stud"?"; angled top":"; square"),row.section.split(";").slice(1).join(";")];
     const lines=values.map((v,i)=>wrapText(v,cols[i]-4,6.5));
     const height=Math.max(7,Math.max(...lines.map(v=>v.length))*3+2);
     if(y+height>193)throw new Error("Wall cutting schedule exceeds page capacity.");
@@ -23,7 +23,7 @@ export function drawWallSchedule(cfg:WallConfig,members:Member[],page:number,tot
   }
   y+=8;
   }
-  c.text(cfg.gable?(part==="Gable"?"Gable sole plate is the upper top plate. Gable rafters are excluded from the roof schedule.":"Upper top plate is included in the separate gable cutting list as the gable sole plate."):"Quantities include both lintel plies where applicable.",12,199,7);
+  c.text(cfg.gable?(part==="Gable"?"Angled cuts: long side (short side), in mm. Gable sole plate is the upper top plate; rafters excluded from roof list.":"Upper top plate is included in the separate gable cutting list as the gable sole plate."):"Quantities include both lintel plies where applicable.",12,199,7);
   c.text(`Garden room framing set | cutting schedule | page ${page} of ${total}`,148.5,205,6.4,false,"center");
   return c.stream();
 }
