@@ -15,7 +15,7 @@ test('default GET and form POST generate identical PDFs; download preserves cont
  assert.match(download.headers.get('Content-Disposition'),/^attachment/);
  const bytes=await get.text();assert.equal(await posted.text(),bytes);assert.equal(await download.text(),bytes);
  assert.doesNotMatch(bytes,/NaN|Infinity/);
- assert.equal((bytes.match(/\/Type \/Page\b/g)||[]).length,19);
+ assert.equal((bytes.match(/\/Type \/Page\b/g)||[]).length,22);
 });
 test('malformed and unsafe settings return 400 before geometry is generated',async()=>{
  for(const patch of [null,{}, {...defaultSettings(),studCentres:0},{...defaultSettings(),topPlates:3},{...defaultSettings(),brickCourses:1.5},{...defaultSettings(),layers:[{name:'bad',thickness:-10}]}])assert.equal((await post(patch)).status,400);
@@ -96,7 +96,7 @@ test('last sheet shows the centred timber bearing and measured masonry datums',a
  assert.match(last,/5005 x 3015/);assert.match(last,/5000 x 3010/);
  assert.match(last,/2\.5 mm internal timber overhang/);
  assert.match(last,/92\.5 mm timber bearing on brick/);
- assert.match(last,/page 19 of 19/);
+ assert.match(last,/page 19 of 22/);
 });
 
 test('enlarged rafter tail dimensions the flat cut and final plan identifies butt joints',async()=>{

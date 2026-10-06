@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("serves one nineteen-page monochrome technical PDF with a door-level sheet", async () => {
+test("serves one twenty-two-page monochrome technical PDF with a door-level sheet", async () => {
   const pdf = (await readFile(new URL('../dist/garden-room-framing-set.pdf', import.meta.url))).toString('latin1');
-  assert.equal((pdf.match(/\/Type \/Page\b/g) ?? []).length, 19);
+  assert.equal((pdf.match(/\/Type \/Page\b/g) ?? []).length, 22);
   assert.match(pdf, /French-door front elevation and vertical build-up/);
   assert.match(pdf, /1400 LEAF HEIGHT OMITTED/);
   assert.match(pdf, /HARDWOOD CILL 40/);
@@ -28,7 +28,7 @@ test("serves one nineteen-page monochrome technical PDF with a door-level sheet"
   const floorSchedule = pdf.slice(pdf.indexOf("FLOOR COMPONENTS - TOP DOWN"), pdf.indexOf("DOOR ASSEMBLY"));
   assert.match(floorSchedule, /parquet/i);
   assert.doesNotMatch(floorSchedule, /Tie beam|Door lintel|Brick threshold course/);
-  assert.match(pdf, /door front elevation \| page 14 of 19/);
+  assert.match(pdf, /door front elevation \| page 14 of 22/);
   assert.doesNotMatch(pdf, /colour PDF/);
 });
 

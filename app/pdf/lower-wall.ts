@@ -1,4 +1,5 @@
 import type { Settings } from '../framing';
+import { OSB_STOCK } from '../sheathing';
 import { canvas, fmt, hTechnical, vTechnical, type Fill } from './layout';
 
 /** Nominal junction proposal. Structural / floor datums come from the shared model. */
@@ -44,8 +45,8 @@ export function drawLowerWall(s:Settings,page:number,total:number){
   rect(board-box,socket-36,box,72);rect(board,socket-43,7,86,'floor');
   for(const z of [socket-8,socket+8])poly(Array.from({length:12},(_,i)=>[-12+3*Math.cos(i*Math.PI/6),z+3*Math.sin(i*Math.PI/6)]));
   // Sheathing, water-resistive membrane, cavity batten beyond section and weatherboards.
-  const osbOuter=-s.studDepth-11, battenOuter=osbOuter-25;
-  rect(osbOuter,masonry-15,11,top-masonry+15,'floor');
+  const osbOuter=-s.studDepth-OSB_STOCK.thickness, battenOuter=osbOuter-25, osbBottom=masonry+OSB_STOCK.bottom;
+  rect(osbOuter,osbBottom,OSB_STOCK.thickness,top-osbBottom,'floor');
   line(osbOuter,masonry-23,osbOuter,top,.55);
   for(const x of [battenOuter,osbOuter])line(x,masonry-10,x,top,.17,[2,1]);
   for(let z=masonry-25;z<top;z+=125){const zt=Math.min(z+150,top);poly([[battenOuter-18,z],[battenOuter,z],[battenOuter,zt],[battenOuter-5,zt]],'timber');}
@@ -76,6 +77,7 @@ export function drawLowerWall(s:Settings,page:number,total:number){
   // Only concealed or small details retain leader annotations.
   leader('Vertical battens (dashed)',battenOuter+12,top-155,12,50);
   leader('Breather membrane',osbOuter,top-255,12,72);
+  leader(`OSB base +${fmt(osbBottom)} slab / ${OSB_STOCK.bottom} above DPC`,osbOuter+OSB_STOCK.thickness/2,osbBottom,12,97);
   leader('Insect mesh + drip',battenOuter-20,masonry-30,12,116);
   leader('DPC / DPM lap',1,140,12,145);
   leader('Polythene VCL 250 micron',-cavity,bandBottom+35,112,92);

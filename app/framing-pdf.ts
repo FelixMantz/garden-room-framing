@@ -8,7 +8,8 @@ import { drawPatternKey } from "./pdf/key";
 import { drawEaves } from "./pdf/eaves";
 import { drawLowerWall } from "./pdf/lower-wall";
 import { drawFramePosition } from "./pdf/frame-position";
-export const FRAMING_PDF_PAGE_COUNT=19;
+import { drawSheathing, drawSheathingCuts, drawSheathingDetails } from "./pdf/sheathing";
+export const FRAMING_PDF_PAGE_COUNT=22;
 export function generateFramingPdf(settings:Settings){
   const configs=wallOrder.map(id=>configForWall(settings,id));
   const errors=[...configs.flatMap(validate),...roofModel(settings).errors];
@@ -16,6 +17,6 @@ export function generateFramingPdf(settings:Settings){
   const pages:((page:number,total:number)=>string)[]=[];
   configs.forEach(cfg=>{const members=buildModel(cfg);pages.push((p,t)=>drawWallTechnical(cfg,members,p,t),(p,t)=>drawWallSchedule(cfg,members,p,t));if(cfg.gable)pages.push((p,t)=>drawWallSchedule(cfg,members,p,t,"Gable"));});
   pages.push((p,t)=>drawRoof(settings,p,t),(p,t)=>drawRoofSchedule(settings,p,t),(p,t)=>drawCuts(settings,p,t),
-    (p,t)=>drawDoorVertical(settings,p,t),(p,t)=>drawDoorVertical(settings,p,t,true),(p,t)=>drawEaves(settings,p,t),(p,t)=>drawLowerWall(settings,p,t),drawPatternKey,(p,t)=>drawFramePosition(settings,p,t));
+    (p,t)=>drawDoorVertical(settings,p,t),(p,t)=>drawDoorVertical(settings,p,t,true),(p,t)=>drawEaves(settings,p,t),(p,t)=>drawLowerWall(settings,p,t),drawPatternKey,(p,t)=>drawFramePosition(settings,p,t),(p,t)=>drawSheathing(settings,p,t),(p,t)=>drawSheathingCuts(settings,p,t),(p,t)=>drawSheathingDetails(settings,p,t));
   return buildPdf(pages.map((draw,i)=>draw(i+1,pages.length)));
 }
