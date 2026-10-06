@@ -105,6 +105,14 @@ export function studGridCentres(width:number,centres:number,offset:number,edgeCl
   return positions;
 }
 
+export function wallStudCentres(cfg:WallConfig){
+  const grid=studGridCentres(cfg.width,cfg.studCentres,cfg.studOffset,cfg.studFace);
+  if(cfg.id!=="front")return grid;
+  // Retain the left-hand set-out and mirror it across the front wall centre.
+  const left=grid.filter(x=>x<=cfg.width/2);
+  return [...new Set([...left,...left.map(x=>cfg.width-x)])].sort((a,b)=>a-b);
+}
+
 export function slopePolygon(m:Member):number[][] {
   const dx=m.x2!-m.x1!,dy=m.y2!-m.y1!,len=Math.hypot(dx,dy),half=(m.thickness||0)/2;
   const verticalHalf=half*len/Math.max(.001,Math.abs(dx));
@@ -169,7 +177,7 @@ export function buildModel(cfg:WallConfig):Member[] {
     add("California return stud",cfg.width-cfg.studFace-cfg.studDepth,cfg.studFace,cfg.studDepth,studH,"turned flatwise for internal lining backing",1,true);
   }
   const inOpening=(x:number)=>cfg.computedOpenings.some(o=>x>o.x-cfg.studFace*2-cfg.studFace/2&&x<o.x+o.width+cfg.studFace*2+cfg.studFace/2);
-  const gridCentres=studGridCentres(cfg.width,cfg.studCentres,cfg.studOffset,cfg.studFace);
+  const gridCentres=wallStudCentres(cfg);
   const cornerMembers=m.filter(v=>v.corner||v.type==="end stud");
   gridCentres.forEach(x=>{if(!inOpening(x)&&!cornerMembers.some(v=>x+cfg.studFace/2>v.x!&&x-cfg.studFace/2<v.x!+v.w!))add("common stud",x-cfg.studFace/2,cfg.studFace,cfg.studFace,studH);});
   cfg.computedOpenings.forEach(o=>{

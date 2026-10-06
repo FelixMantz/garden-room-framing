@@ -444,3 +444,19 @@ test('gable cutting lists partition every member and assign upper plate to gable
   assert.equal(gable.members.filter(m=>m.type==='gable end rafter').length,2);
  }
 });
+
+test('front right common studs and upper / lower window cripples mirror the retained left set-out',()=>{
+ const cfg=framing.configForWall(framing.defaultSettings(),'front');
+ const members=framing.buildModel(cfg);
+ for(const type of ['common stud','cripple stud']){
+  const group=members.filter(m=>m.type===type);
+  const left=group.filter(m=>m.x+m.w/2<cfg.width/2);
+  const right=group.filter(m=>m.x+m.w/2>cfg.width/2);
+  assert.equal(right.length,left.length);
+  for(const m of left)assert.ok(right.some(r=>r.x===cfg.width-m.x-m.w&&r.y===m.y&&r.h===m.h));
+ }
+ const cripples=members.filter(m=>m.type==='cripple stud');
+ assert.deepEqual(cripples.filter(m=>m.x<cfg.width/2&&m.y===45).map(m=>m.x),[822.5,1222.5]);
+ assert.equal(cripples.filter(m=>m.x>cfg.width/2&&m.y===45).length,2);
+ assert.ok(!members.some(m=>m.type==='common stud'&&m.x>4662));
+});

@@ -40,14 +40,14 @@ test('changed roof pitches regenerate gable blanks and reuse allocation without 
  for(const roofPitch of [15,35,45]){const p=sheathingPlan({...defaultSettings(),roofPitch});assert.ok(p.panels.every(q=>q.h<=2440&&q.w<=1220));assert.ok(p.sheetCount>=14);}
 });
 
-test('overlapping long-wall ends retain the stud grid and taller blanks still use fourteen sheets',()=>{
+test('overlapping long-wall ends follow each wall set-out and taller blanks still use fourteen sheets',()=>{
  const p=sheathingPlan();assert.equal(OSB_STOCK.bottom,3);
  for(const cfg of p.configs){
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
   assert.ok(mains.every(q=>q.h===(cfg.isSide?2050:2014)));
   if(cfg.isSide)continue;
   assert.equal(mains[0].x,-11);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+11);
-  assert.equal(mains[0].w,854.5);assert.equal(mains.at(-1).w,754.5);
+  assert.equal(mains[0].w,854.5);assert.equal(mains.at(-1).w,cfg.id==='front'?854.5:754.5);
  }
  assert.equal(p.sheetCount,14);
 });

@@ -1,4 +1,4 @@
-import { buildModel, doorLintelToLowerTopPlate, makeSchedule, scheduleGroups, studGridCentres, wallOrder, type Member, type WallConfig } from "../framing";
+import { buildModel, doorLintelToLowerTopPlate, makeSchedule, scheduleGroups, wallStudCentres, wallOrder, type Member, type WallConfig } from "../framing";
 import { rafterDimensions } from "../rafter-dimensions";
 import { canvas, clean, fmt, wrapText, hTechnical as drawH, vTechnical as drawV, BRICK_DATUM_DASH, type Fill } from "./layout";
 import { textWidth } from '../pdf-font-widths';
@@ -116,7 +116,7 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
     vTechnical(c,Y(cfg.ridgeBottom),Y(cfg.ridgeTop),X(cfg.width/2),nextRail("right"),`${fmt(cfg.ridgeDepth)} ridge`,4.3,"right");
     const run=(cfg.frameDepth-cfg.ridgeWidth)/2;
     hTechnical(c,X(cfg.upperStart),X(cfg.width/2-cfg.ridgeWidth/2),topWitness,area.y-15,`${fmt(run)} horizontal run`,5.0);
-    const grid=studGridCentres(cfg.width,cfg.studCentres,cfg.studOffset,cfg.studFace);
+    const grid=wallStudCentres(cfg);
     const first=grid[0],last=grid.at(-1),centre=cfg.width/2;
     const leftOfRidge=[...grid].reverse().find(x=>x<centre-.01);
     if(first!==undefined)hTechnical(c,X(0),X(first),bottomWitness,area.y+area.h+22,`${fmt(first)} first stud C/L from left`,3.9);
@@ -167,8 +167,8 @@ export function drawWallTechnical(cfg:WallConfig,members:Member[],page:number,to
   }
   const notesY=191;
   c.text("SETTING-OUT NOTES",12,notesY,8,true);
-  const grid=studGridCentres(cfg.width,cfg.studCentres,cfg.studOffset,cfg.studFace);
-  const gridNote=cfg.gable?`Ridge-centred grid: first C/L ${fmt(grid[0]||0)} from left and ${fmt(cfg.width-(grid.at(-1)||cfg.width))} from right.`:`Stud grid phase ${fmt(cfg.studOffset)}; opening trimmers replace intersecting grid studs.`;
+  const grid=wallStudCentres(cfg);
+  const gridNote=cfg.id==="front"?"Front studs and window cripples: right-hand positions mirror the left across the wall centre.":cfg.gable?`Ridge-centred grid: first C/L ${fmt(grid[0]||0)} from left and ${fmt(cfg.width-(grid.at(-1)||cfg.width))} from right.`:`Stud grid phase ${fmt(cfg.studOffset)}; opening trimmers replace intersecting grid studs.`;
   c.text(cfg.id==="front"
     ? `King outside faces from LEFT frame end: ${kingFaces.map((x,i)=>`K${i+1} ${fmt(x)}`).join(" | ")}. Each king extends 45 mm towards its opening.`
     : `${gridNote} Witness lines start outside the frame; levels use sole underside unless labelled.`,12,196,6);
