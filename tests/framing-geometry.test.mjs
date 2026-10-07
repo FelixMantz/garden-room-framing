@@ -194,7 +194,13 @@ test('roof default ties sit on every third centred pair', () => {
   assert.deepEqual(r.ties,[1395,2595,3795]);
   assert.equal(r.middle,r.length/2);
   assert.ok(r.ties.every(x=>r.rafters.includes(x+r.offset)));
-  assert.equal(r.offset,60);
+  assert.equal(r.width,100);
+  assert.equal(r.depth,100);
+  assert.equal(r.offset,72.5);
+  const previous=roofModel({...framing.defaultSettings(),tieWidth:75,tieDepth:75});
+  assert.deepEqual(r.ties,previous.ties);
+  assert.deepEqual(r.rafters.slice(1,-1),previous.rafters.slice(1,-1).map(x=>x+12.5));
+  for(const t of r.ties) assert.equal(t+r.width/2,r.rafters.find(x=>x===t+r.offset)-framing.defaultSettings().studFace/2);
   assert.equal(r.overhang,250);
   assert.equal(r.gableOverhang,250);
 });
@@ -277,8 +283,8 @@ test('short end bays report the actual irregular spacing to the first regular ra
  const r=roofModel(framing.defaultSettings());
  const left=r.rafters[1]-r.rafters[0];
  const right=r.rafters.at(-1)-r.rafters.at(-2);
- assert.equal(left,232.5);
- assert.equal(right,112.5);
+ assert.equal(left,245);
+ assert.equal(right,100);
 });
 
 function overlaps(a,b){
@@ -350,7 +356,7 @@ test('opening trimmers cannot occupy the California corner backing',()=>{
 test('square tie ends report their actual roof-plane collision',async()=>{
  const {tieEndClearance}=await vite.ssrLoadModule('/app/roof.ts');
  const s=framing.defaultSettings(),c=tieEndClearance(s);
- assert.ok(Math.abs(c.projection-14.5)<.1);assert.ok(Math.abs(c.run-31.1)<.1);
+ assert.ok(Math.abs(c.projection-39.5)<.1);assert.ok(Math.abs(c.run-84.7)<.1);
  assert.equal(tieEndClearance({...s,tieDepth:45}).projection,0);
 });
 

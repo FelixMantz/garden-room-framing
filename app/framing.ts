@@ -29,7 +29,7 @@ const modulo=(value:number,base:number)=>((value%base)+base)%base;
 
 export function defaultSettings():Settings {
   return {
-    roofGableOverhang:250, rafterCentres:400, tieCount:3, tieEvery:3, tieWidth:75, tieDepth:75,
+    roofGableOverhang:250, rafterCentres:400, tieCount:3, tieEvery:3, tieWidth:100, tieDepth:100,
     internalLength:5000, internalDepth:3010, brickInternalLength:5005, brickInternalDepth:3015, brickThickness:95,
     cornerLap:95, cornerType:"california", wallHeight:2077, studFace:45, studDepth:95,
     studCentres:400, topPlates:2, headerDepth:95, roofPitch:25, gableOverhang:250, ridgeWidth:45, ridgeDepth:145,

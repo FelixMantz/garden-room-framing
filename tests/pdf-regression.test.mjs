@@ -71,19 +71,19 @@ test('roof BOM excludes gable members already counted by walls',async()=>{
  const rows=roofCutSchedule(defaultSettings());
  assert.deepEqual(rows.map(r=>[r.type,r.qty]),[['Field common rafters',26],['Outer fly rafters',4],['Tie beams',3],['Ridge beam',1],['Gable outriggers',8],['OSB seam noggins',24],['OSB seam noggins',2],['OSB seam noggins',4],['OSB seam noggins',2]]);
  assert.equal(rows[4].length,183);
- assert.deepEqual(rows.slice(5).map(r=>[r.qty,r.length]),[[24,355],[2,187.5],[4,183],[2,67.5]]);
+ assert.deepEqual(rows.slice(5).map(r=>[r.qty,r.length]),[[24,355],[2,200],[4,183],[2,55]]);
 });
 test('roof plan dimensions both shortened end bays to the first regular rafters',async()=>{
  const pdf=await (await route.GET()).text();
- assert.match(pdf,/End bays - gable end-rafter C\/L to first regular rafter C\/L: left 232\.5 mm; right 112\.5 mm/);
- assert.match(pdf,/232\.5 C\/L/);
- assert.match(pdf,/112\.5 C\/L/);
+ assert.match(pdf,/End bays - gable end-rafter C\/L to first regular rafter C\/L: left 245 mm; right 100 mm/);
+ assert.match(pdf,/245 C\/L/);
+ assert.match(pdf,/100 C\/L/);
 });
 
 test('roof schedule includes the agreed mirrored chamfers and removes the unresolved clash warning',async()=>{
  const pdf=await (await route.GET()).text();
  assert.match(pdf,/TIE-END CHAMFERS - SIDE ELEVATION/);
- assert.match(pdf,/14\.5 vertical cut x 31 horizontal run/);
+ assert.match(pdf,/39\.5 vertical cut x 84\.7 horizontal run/);
  assert.match(pdf,/60\.5 end/);
  assert.doesNotMatch(pdf,/TIE-END CLEARANCE|Confirm tie-end \/ roof build-up detail/);
  const square=await (await post({...defaultSettings(),tieDepth:45})).text();

@@ -6,7 +6,7 @@ export function roofModel(settings: Settings) {
   const centres = settings.rafterCentres ?? 400;
   const count = settings.tieCount ?? 3;
   const every = settings.tieEvery ?? 3;
-  const width = settings.tieWidth ?? 75, depth = settings.tieDepth ?? 75;
+  const width = settings.tieWidth ?? 100, depth = settings.tieDepth ?? 100;
   const length = cfg.frameLength, span = cfg.frameDepth, middle = length / 2;
   const offset = (width + settings.studFace) / 2;
   const overhang = cfg.gableOverhang;
