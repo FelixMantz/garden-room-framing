@@ -25,9 +25,15 @@ test('floor PIR panels and timber supports cover slab infill without panel overl
 });
 test('686 door lining and full-width corner posts fit the short-wall junction',()=>{
  const b=bathroomModel(defaultSettings());
- assert.equal(b.roughWidth,757);assert.equal(b.centreOffset,13);
- assert.equal(b.doorStart-b.rearStud,47);
- assert.ok(b.doorEnd+47<=b.frontOuter);
+ assert.equal(b.roughWidth,757);assert.equal(b.centreOffset,34);
+ assert.equal(b.doorStart-b.rearStud,68);
+ assert.equal(b.hingePostStart-b.rearStud,21);
+ assert.equal(b.doorEnd,b.frontInner);
+ assert.equal(b.headerCut,804);
+ const [end,rotated]=b.cornerPosts;
+ assert.equal(end.y,rotated.y);
+ assert.equal(end.x+end.w,rotated.x);
+ assert.deepEqual([end.w,end.h,rotated.w,rotated.h],[47,75,75,47]);
  assert.equal(b.jambCut+b.soleTop,b.roughHead);
  assert.equal(b.roughHead+47+b.crippleCut,b.plateBottom);
 });
