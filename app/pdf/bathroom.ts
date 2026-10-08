@@ -10,10 +10,16 @@ export function drawFloor(s:Settings,page:number,total:number,c:C=canvas()){
  c.text('Flooring - PIR panels and bathroom partition supports',12,11,14,true);
  c.text('Top view | rear wall at top, front wall at bottom | mm | plan datum: rear-left inside brick corner',12,18,7.5);
  c.text('100 mm PIR stock: 2400 x 1200. Hatched strips = 47 x 75 sole plates fixed directly to slab over DPC / DPM.',12,25,7);
- b.panels.forEach(p=>{c.rect(X(p.x),Y(p.y),p.w*sc,p.h*sc,[255,255,255],black,.25);if(p.w<100)c.textVertical(p.id,X(p.x+p.w/2)+.7,Y(p.y+p.h/2),6,true);else {c.text(p.id,X(p.x+p.w/2),Y(p.y+p.h/2),9,true,'center');c.text(`${fmt(p.w)} x ${fmt(p.h)}`,X(p.x+p.w/2),Y(p.y+p.h/2)+5,7,false,'center');}});
+ b.panels.forEach(p=>{c.rect(X(p.x),Y(p.y),p.w*sc,p.h*sc,[255,255,255],black,.25);if(p.w<400)c.textVertical(p.w<100?p.id:`${p.id} | ${fmt(p.w)} x ${fmt(p.h)}`,X(p.x+p.w/2)+.7,Y(p.y+p.h/2),6,true);else {c.text(p.id,X(p.x+p.w/2),Y(p.y+p.h/2),9,true,'center');c.text(`${fmt(p.w)} x ${fmt(p.h)}`,X(p.x+p.w/2),Y(p.y+p.h/2)+5,7,false,'center');}});
  c.rect(X(b.leftOuter),Y(0),75*sc,b.doorStart*sc,'timber',black,.3);
  
  c.rect(X(b.leftOuter),Y(b.frontInner),(s.brickInternalLength-b.leftOuter)*sc,75*sc,'timber',black,.3);
+ // Divider dimensions use brick datum except the 68 mm timber stub.
+ vTechnical(c,Y(b.rearStud),Y(b.doorStart),X(b.leftOuter),X(b.leftOuter)-4,'68',6,'left');
+ vTechnical(c,Y(b.doorStart),Y(b.frontInner),X(b.leftOuter),X(b.leftOuter)-4,'757 doorway',6,'left');
+ hTechnical(c,X(b.leftOuter),X(b.rightStud),Y(b.frontOuter),Y(b.frontOuter)+10,`${fmt(b.frontLength)} long-wall frame from right stud`,6);
+ hTechnical(c,X(b.leftInner),X(b.rightFinish),Y(b.frontInner),Y(b.frontInner)-7,'1512.5 inner stud to right finish',6);
+ vTechnical(c,Y(b.frontInner),Y(b.frontOuter),X(b.leftOuter),X(b.leftOuter)-8,'75',5.5,'left');
  c.text('BATHROOM',X((b.leftInner+s.brickInternalLength)/2),Y(b.frontInner/2)-11,8,true,'center');
  // Pipe offsets use the OUTSIDE wall frame, not the brick-inside plan datum.
  const frameOutsideRight=b.rightStud+s.studDepth,frameOutsideRear=b.rearStud-s.studDepth;
@@ -39,13 +45,6 @@ export function drawFloor(s:Settings,page:number,total:number,c:C=canvas()){
  vTechnical(c,sy-47*k,sy,sx,258,'47 sole',6,'left');
  hTechnical(c,sx,sx+75*k,sy,105,'75',6);
  c.text('Stud starts +47',243,48,6.4,true);
- c.text('Sole anchored into slab',243,113,6.2,true);
- c.text('DPC / DPM below sole',243,118,6.2);
- c.text('P5: 10 mm gap to wall',243,123,6.2);
- c.text('PIR +100 / P5 +122 / FFL +137',243,128,6);
- c.text('SOLE SET-OUT (BRICK DATUM)',243,133,7,true);
- const notes=[`x ${fmt(b.leftOuter)}-${fmt(b.leftInner)} (75 wide)`,`Rear foot y 0-${fmt(b.doorStart)}`,'Latch foot uses long-wall sole',`Long sole y ${fmt(b.frontInner)}-${fmt(b.frontOuter)}`,`Long sole x ${fmt(b.leftOuter)}-${fmt(b.rightStud)}`,`P10: 75 x ${fmt(b.roughWidth)} doorway PIR`,'No raised bearer / packing.','DPM continuous; seal anchor holes.'];
- notes.forEach((t,i)=>c.text(t,243,141+i*5,6.1,i<4));
  // Locate both divider strips from the brick-inside rear-left corner.
  vTechnical(c,Y(0),Y(b.frontInner),X(b.leftOuter),X(b.leftOuter)-8,`${fmt(b.frontInner)} to long sole`,6,'left');
  hTechnical(c,X(b.leftOuter),X(s.brickInternalLength),Y(s.brickInternalDepth),Y(s.brickInternalDepth)+14,`${fmt(s.brickInternalLength-b.leftOuter)} to right brick`,6);
@@ -54,160 +53,117 @@ export function drawFloor(s:Settings,page:number,total:number,c:C=canvas()){
  c.text('Doorway: continuous PIR + slip layer + uncut P5 + floor finish. No threshold bearer / fixings into floating deck.',12,202,6.7);
  footer(c,page,total,'floor PIR / supports');return c.stream();
 }
+
 export function drawBathroomDoor(s:Settings,page:number,total:number,c:C=canvas()){
- const b=bathroomModel(s),t=b.timberThickness,full=b.sideLength+b.partition;
- const a=b.doorStart-b.rearStud,e=b.doorEnd-b.rearStud,hp=b.hingePostStart-b.rearStud;
- const leaf=b.leafStart-b.rearStud,liningStart=a+b.fittingGap,liningEnd=e-b.fittingGap;
- const leafBottom=b.ffl+b.undercut,leafTop=leafBottom+b.doorHeight,headBottom=leafTop+b.doorGap,headTop=headBottom+b.doorLining;
- c.text('Bathroom door - full short partition, lining and leaf set-out',12,11,14,true);
- c.text('Rear hinges; opens into main room | all mm | horizontal datum: rear wall inner STUD face; vertical datum: slab',12,18,7.3);
- c.text('FULL WALL ELEVATION - viewed from main room',12,27,8,true);
- const k=.059,x=70,base=184,X=(v:number)=>x+v*k,Z=(v:number)=>base-v*k;
- // Adjacent walls and shared top / sole corner.
+ const b=bathroomModel(s),t=47,full=b.sideLength+75;
+ const a=b.doorStart-b.rearStud,e=b.sideLength,hp=a-t,leaf=b.leafStart-b.rearStud,ls=a+5,le=e-5;
+ const bottom=b.ffl+10,lt=bottom+1981,hb=lt+3,ht=hb+27.5;
+ c.text('Bathroom door - short partition elevation and top-down plan',12,11,14,true);
+ c.text('All mm | elevation viewed from main room | vertical datum: slab | plan: rear at RIGHT, front at LEFT',12,18,7.3);
+ const k=.059,x=66,base=180,X=(v:number)=>x+v*k,Z=(v:number)=>base-v*k;
+ c.text('SHORT PARTITION ELEVATION',12,27,8,true);
  c.rect(X(-95),Z(b.top),95*k,b.top*k,'floor',black,.18);
- c.rect(X(b.sideLength),Z(b.top),75*k,b.top*k,'floor',black,.18);
- c.rect(X(0),Z(b.top),b.sideLength*k,t*k,'timber',black,.25);
- c.rect(X(b.sideLength),Z(b.top),75*k,t*k,'timber',black,.25);
- c.rect(X(0),Z(t),a*k,t*k,'timber',black,.25);
- c.rect(X(e),Z(t),(full-e)*k,t*k,'timber',black,.25);
- c.rect(X(hp),Z(b.roughHead),t*k,b.jambCut*k,'timber',black,.3);
+ c.rect(X(0),Z(b.top),825*k,47*k,'timber',black,.25);
+ c.rect(X(e),Z(b.top),75*k,47*k,'timber',black,.25);
+ c.rect(X(0),Z(47),a*k,47*k,'timber',black,.25);
+ c.rect(X(e),Z(47),75*k,47*k,'timber',black,.25);
+ c.rect(X(hp),Z(b.roughHead),47*k,b.jambCut*k,'timber',black,.3);
  c.rect(X(e),Z(b.plateBottom),75*k,b.studCut*k,'corner',black,.3);
- c.rect(X(hp),Z(b.roughHead+t),b.headerCut*k,t*k,'timber',black,.3);
- for(const y of [hp,(b.sideLength-t)/2])c.rect(X(y),Z(b.plateBottom),t*k,b.crippleCut*k,'timber',black,.25);
- // Lining, head and closed leaf, all drawn to actual measured positions.
- c.rect(X(liningStart),Z(headBottom),b.doorLining*k,(headBottom-b.ffl)*k,[255,255,255],black,.3);
- c.rect(X(liningEnd-b.doorLining),Z(headBottom),b.doorLining*k,(headBottom-b.ffl)*k,[255,255,255],black,.3);
- c.rect(X(liningStart),Z(headTop),(liningEnd-liningStart)*k,b.doorLining*k,[255,255,255],black,.3);
- c.rect(X(leaf),Z(leafTop),b.door*k,b.doorHeight*k,[255,255,255],black,.3);
- // Six panels are schematic; leaf envelope and frame positions are dimensional.
- for(const [y,h] of [[250,480],[850,630],[1630,220]])for(const u of [80,365])c.rect(X(leaf+u),Z(leafBottom+y+h),240*k,h*k,[255,255,255],black,.15);
- for(const h of [200,990,1780])c.rect(X(leaf)-.6,Z(leafBottom+h),1.2,76*k,[255,255,255],black,.25);
- circle(c,X(leaf+b.door-70),Z(leafBottom+1000),1);
- c.line(55,Z(0),135,Z(0),black,.45);
- c.line(55,Z(b.ffl),137,Z(b.ffl),black,.2,[2,1]);
- c.text('SLAB 0',12,Z(0)+1,7,true);
- c.text(`FFL +${fmt(b.ffl)}`,12,Z(b.ffl)+1,7,true);
- c.textVertical('REAR WALL',X(-50),120,6,true);
- c.textVertical('END STUD + ROTATED BACKING',X(b.sideLength+50),120,6,true);
- vTechnical(c,Z(b.top),Z(0),X(0),32,`${fmt(b.top)} overall`,6,'left');
- vTechnical(c,Z(b.roughHead),Z(t),X(0),43,`${fmt(b.jambCut)} post cut`,6,'left');
- vTechnical(c,Z(leafTop),Z(leafBottom),X(leaf+b.door),137,'1981 leaf',6);
- hTechnical(c,X(0),X(full),Z(b.top),35,`${fmt(full)} including long-wall corner`,6);
- hTechnical(c,X(a),X(e),Z(t),191,`${fmt(b.roughWidth)} rough opening`,6);
- hTechnical(c,X(leaf),X(leaf+b.door),Z(b.ffl),198,`${b.door} leaf`,6);
- // Leaders to the tightly spaced head components.
- const levels=[['Top plate top',b.top],['Top plate underside',b.plateBottom],['Header top',b.roughHead+t],['Rough head underside',b.roughHead],['Lining head top',headTop],['Lining head underside',headBottom],['Leaf top',leafTop]];
- levels.forEach(([name,z],i)=>{
-  const y=42+i*6.2;
-  c.line(X(e)+1,Z(Number(z)),147,y,black,.12);
-  c.text(`${name} +${fmt(Number(z))}`,149,y+1,6.1,i===3);
- });
- c.text(`Sole top +${fmt(t)} / slab-fixed`,149,90,6.5,true);
- c.text(`Leaf bottom +${fmt(leafBottom)} = FFL +${b.undercut}`,149,96,6.3);
- c.text(`Hinge post ${fmt(b.jambCut)}; header ${fmt(b.headerCut)}`,149,102,6.3);
- c.text(`2 corner studs ${fmt(b.studCut)}; 2 cripples ${fmt(b.crippleCut)}`,149,108,6.3);
- c.text('Header bears on hinge post; latch end fixes to full-height corner.',149,113,6.1);
- // Corner inset: X runs along long wall, Y toward its outer face.
- c.text('LATCH CORNER - PLAN',225,26,7.5,true);
- const cx=225,cy=55,ck=.5;
- c.rect(cx,cy,47*ck,75*ck,'timber',black,.3);
- c.rect(cx+47*ck,cy,75*ck,47*ck,'corner',black,.3);
- c.rect(cx-12.5*ck,cy-(5+27.5)*ck,100*ck,27.5*ck,[255,255,255],black,.3);
- c.line(cx-12.5*ck,cy-5*ck,cx+87.5*ck,cy-5*ck,black,.15,[1,1]);
- c.text('100 lining / 27.5 thick',cx+35*ck,35,6.2,true,'center');
- c.text('5 packers',273,49,5.8);
- c.line(cx+87.5*ck,cy-1.25,272,49,black,.12);
- c.text('END',cx+23.5*ck,cy+30*ck,6,true,'center');
- c.text('ROTATED',cx+84.5*ck,cy+23.5*ck,6,true,'center');
- hTechnical(c,cx,cx+47*ck,cy+75*ck,99,'47',6);
- hTechnical(c,cx+47*ck,cx+122*ck,cy+47*ck,99,'75',6);
- vTechnical(c,cy,cy+75*ck,cx,217,'75',6,'left');
- vTechnical(c,cy,cy+47*ck,cx+122*ck,292,'47',6);
- c.text('Both front faces align; two full-height studs.',225,106,6);
- // Enlarged plan presents every horizontal element in one datum.
- c.text('ENLARGED PLAN / HORIZONTAL ELEMENTS',149,119,8,true);
- const q=.145,px=153,py=136,P=(v:number)=>px+v*q;
- c.rect(P(0),py,full*q,75*q,'floor',black,.2);
- c.rect(P(a),py,b.roughWidth*q,75*q,[255,255,255],black,0);
- c.rect(P(hp),py,t*q,75*q,'timber',black,.3);
- c.rect(P(e),py,75*q,t*q,'timber',black,.3);
- c.rect(P(e),py+t*q,t*q,75*q,'corner',black,.3);
- for(const u of [liningStart,liningEnd-b.doorLining])c.rect(P(u),py-12.5*q,b.doorLining*q,100*q,[255,255,255],black,.3);
- // Stops sit behind the closed 35 mm leaf and project 12 mm into the opening.
- c.rect(P(liningStart+b.doorLining),py+53*q,12*q,32*q,'timber',black,.2);
- c.rect(P(liningEnd-b.doorLining-12),py+53*q,12*q,32*q,'timber',black,.2);
- c.rect(P(leaf),py+18*q,b.door*q,35*q,[255,255,255],black,.3);
- c.text('rear',P(0),132,6,true);c.text('front / long-wall corner',P(full),132,6,true,'right');
- hTechnical(c,P(a),P(e),py,156,'757 rough: 5 + 27.5 + 3 + 686 + 3 + 27.5 + 5',5.9);
- hTechnical(c,P(liningStart),P(liningEnd),py,163,'747 lining outside',6);
- hTechnical(c,P(leaf),P(leaf+b.door),py+35*q,170,'686 leaf / 692 between jambs',6);
- const coords=[`Stub 0-${fmt(a)} | hinge post ${fmt(hp)}-${fmt(a)} | rough ${fmt(a)}-${fmt(e)}`,`Lining ${fmt(liningStart)}-${fmt(liningEnd)} | leaf ${fmt(leaf)}-${fmt(leaf+b.door)}`,`End stud ${fmt(e)}-${fmt(full)} (75); rotated stud ${fmt(e)}-${fmt(e+t)} (47)`,`Leaf centre ${fmt(leaf+b.door/2)}; room centre 412.5; offset +${fmt(b.centreOffset)}`];
- coords.forEach((v,i)=>c.text(v,149,177+i*5,6.3,i===0));
- c.text('Corner: 47 x 75 end stud + 75 x 47 rotated stud, side by side.',149,195,6.1);
- c.text('Door 200612 / lining 200351: 5 mm fitting packers; scribe bathroom lining / board junction; 21 mm rear stub infill. Non-loadbearing head.',12,202,6.3);
- footer(c,page,total,'bathroom door - full wall');return c.stream();
+ c.rect(X(hp),Z(b.roughHead+47),b.headerCut*k,47*k,'timber',black,.3);
+ for(const u of [hp,389])c.rect(X(u),Z(b.plateBottom),47*k,b.crippleCut*k,'timber',black,.25);
+ for(const u of [ls,le-27.5])c.rect(X(u),Z(hb),27.5*k,(hb-b.ffl)*k,[255,255,255],black,.3);
+ c.rect(X(ls),Z(ht),(le-ls)*k,27.5*k,[255,255,255],black,.3);
+ c.rect(X(leaf),Z(lt),686*k,1981*k,[255,255,255],black,.3);
+ for(const [v,h] of [[250,480],[850,630],[1630,220]])for(const u of [80,365])c.rect(X(leaf+u),Z(bottom+v+h),240*k,h*k,[255,255,255],black,.15);
+ for(const h of [200,990,1780])c.rect(X(leaf)-.6,Z(bottom+h),1.2,76*k,[255,255,255],black,.25);
+ circle(c,X(leaf+616),Z(bottom+1000),1);
+ c.line(12,Z(0),156,Z(0),black,.4);
+ c.line(12,Z(b.ffl),154,Z(b.ffl),black,.18,[2,1]);
+ c.text('Slab 0',12,184,6.5,true);c.text('FFL',12,Z(b.ffl)-2,6.5,true);
+ c.textVertical('REAR WALL',X(-50),118,6,true);
+ c.textVertical('END STUD / ROTATED BACKING',X(862.5),118,6,true);
+ // Height dimensions alternate sides; every former callout is a dimension to slab.
+ vTechnical(c,Z(b.top),Z(0),X(0),22,fmt(b.top),6,'left');
+ vTechnical(c,Z(b.plateBottom),Z(0),X(0),31,fmt(b.plateBottom),6,'left');
+ vTechnical(c,Z(ht),Z(0),X(ls),40,fmt(ht),6,'left');
+ vTechnical(c,Z(lt),Z(0),X(leaf),49,fmt(lt),6,'left');
+ vTechnical(c,Z(b.roughHead+47),Z(0),X(e),134,fmt(b.roughHead+47),6);
+ vTechnical(c,Z(b.roughHead),Z(0),X(e),143,fmt(b.roughHead),6);
+ vTechnical(c,Z(hb),Z(0),X(e),152,fmt(hb),6);
+ // Component cuts and floor heights are attached directly to their geometry.
+ vTechnical(c,Z(b.roughHead),Z(47),X(hp),59,`${fmt(b.jambCut)} hinge post`,5.9,'left');
+ vTechnical(c,Z(b.plateBottom),Z(47),X(full),124,`${fmt(b.studCut)} corner studs`,5.9);
+ vTechnical(c,Z(b.plateBottom),Z(b.roughHead+47),X(389),X(389)+4,fmt(b.crippleCut),5.7);
+ vTechnical(c,Z(lt),Z(bottom),X(leaf+686),X(leaf+686)-4,'1981 leaf',6,'left');
+ vTechnical(c,Z(b.ffl),Z(0),X(0),16,fmt(b.ffl),5.8,'left');
+ vTechnical(c,Z(47),Z(0),X(a),X(a)+5,'47',5.7);
+ vTechnical(c,Z(bottom),Z(b.ffl),X(leaf),X(leaf)-2,'10',5.4,'left');
+ hTechnical(c,X(0),X(full),Z(b.top),33,'900 overall including corner',6);
+ hTechnical(c,X(hp),X(e),Z(b.roughHead+47),Z(b.roughHead+47)-5,'804 header',6);
+ hTechnical(c,X(0),X(a),180,188,'68',5.8);
+ hTechnical(c,X(a),X(e),180,188,'757 rough',6);
+ hTechnical(c,X(e),X(full),180,188,'75',5.8);
+ hTechnical(c,X(leaf),X(leaf+686),180,198,'686 leaf',6);
+ // Mirrored plan: viewed down, rather than looking up from below.
+ c.text('TOP-DOWN PLAN / HORIZONTAL ELEMENTS',169,32,8,true);
+ const q=.125,px=173,py=65,P=(v:number)=>px+(full-v)*q;
+ const rect=(u:number,v:number,w:number,h:number,fill:any=[255,255,255])=>c.rect(P(u+w),py+v*q,w*q,h*q,fill,black,.25);
+ rect(0,0,full,75,'floor');rect(a,0,757,75);
+ rect(hp,0,47,75,'timber');rect(e,0,75,47,'timber');rect(e,47,47,75,'corner');
+ for(const u of [ls,le-27.5])rect(u,-12.5,27.5,100);
+ rect(ls+27.5,53,12,32,'timber');rect(le-27.5-12,53,12,32,'timber');
+ rect(leaf,18,686,35);
+ c.text('FRONT / LONG WALL',P(full),56,6.3,true);c.text('REAR / HINGES',P(0),56,6.3,true,'right');
+ const dim=(u:number,v:number,y:number,label:string,size=6)=>hTechnical(c,P(v),P(u),py,y,label,size);
+ dim(0,full,45,'900 overall');
+ dim(e,full,86,'75 end stud',5.8);dim(a,e,86,'757 rough');dim(0,a,86,'68 stub',5.8);
+ dim(ls,le,96,'747 lining outside');dim(ls+27.5,le-27.5,106,'692 between jambs');
+ dim(leaf,leaf+686,116,'686 leaf');
+ // Datum dimensions locate the elements independently, measured from rear stud face.
+ dim(0,hp,128,'21',5.8);
+ dim(0,a,138,'68',5.8);
+ dim(0,ls,148,'73',5.8);
+ dim(0,leaf,158,'103.5',5.8);
+ dim(0,leaf+686,168,'789.5 to leaf far edge',5.8);
+ dim(0,le,178,'820 to lining outside',5.8);
+ dim(0,e,188,'825 to long-wall stud face',5.8);
+ vTechnical(c,py,py+75*q,P(full),166,'75 frame depth',5.8,'left');
+ c.text('47 x 75 end stud + rotated 75 x 47 backing',169,198,6.3);
+ c.text('Door 200612 / lining 200351 | 5 fitting packers | scribed lining / board junction | non-loadbearing head end-fixed to corner',12,203,6);
+ footer(c,page,total,'bathroom door');return c.stream();
 }
 export function drawBathroom(s:Settings,page:number,total:number,c:C=canvas()){
- const b=bathroomModel(s),sc=.065,X=(v:number)=>65+(v-b.leftOuter)*sc,Y=(v:number)=>38+(v-b.rearStud)*sc;
- c.text('Bathroom - internal divider wall framing and fixture set-out',12,11,14,true);
- c.text('Rear-right corner | 1500 x 800 finished clear | 75 mm timber depth + 12.5 mm plasterboard each side',12,18,7.5);
- c.rect(X(b.leftOuter),Y(b.rearStud),75*sc,b.sideLength*sc,'timber',black,.3);
- c.rect(X(b.leftOuter),Y(b.frontInner),b.frontLength*sc,75*sc,'timber',black,.3);
- c.rect(X(b.leftInner),Y(b.rearStud),12.5*sc,b.sideLength*sc,'floor',black,.15);
- c.rect(X(b.leftOuter-12.5),Y(b.rearStud),12.5*sc,(b.sideLength+75)*sc,'floor',black,.15);
- c.rect(X(b.leftInner),Y(b.frontFinish),(b.rightStud-b.leftInner)*sc,12.5*sc,'floor',black,.15);
- c.rect(X(b.leftOuter),Y(b.frontOuter),b.frontLength*sc,12.5*sc,'floor',black,.15);
- c.line(X(b.leftOuter),Y(b.rearFinish),X(b.rightFinish),Y(b.rearFinish),black,.4);c.line(X(b.rightFinish),Y(b.rearFinish),X(b.rightFinish),Y(b.frontOuter+12.5),black,.4);
- b.cornerPosts.forEach(p=>c.rect(X(p.x),Y(p.y),p.w*sc,p.h*sc,'corner',black,.3));
- c.rect(X(b.leftOuter),Y(b.hingePostStart),75*sc,47*sc,'timber',black,.3);
- // Leaf and lining derive from the selected door assembly.
- const hinge=b.leafStart;
- c.rect(X(b.leftOuter-13),Y(b.doorStart),101*sc,b.roughWidth*sc,[255,255,255],black,0);
- c.line(X(b.leftOuter),Y(hinge),X(b.leftOuter-b.door),Y(hinge),black,.4);
- for(let i=0;i<24;i++){const a=i*Math.PI/48,z=(i+1)*Math.PI/48;c.line(X(b.leftOuter-b.door*Math.cos(a)),Y(hinge+b.door*Math.sin(a)),X(b.leftOuter-b.door*Math.cos(z)),Y(hinge+b.door*Math.sin(z)),black,.2);}
- c.text('686 door',12,75,7,true);c.text('opens out',12,80,6.5);
- c.rect(X(b.leftFinish+b.basinLeft),Y(b.rearFinish),500*sc,300*sc,[255,255,255],black,.3);c.text('BASIN 500 x 300',X(b.leftFinish+b.basinLeft+250),Y(b.rearFinish+160),7,true,'center');
- c.rect(X(b.rightFinish-600),Y(b.rearFinish+235),600*sc,400*sc,[255,255,255],black,.3);c.text('WC 600 x 400',X(b.rightFinish-300),Y(b.rearFinish+410),7,true,'center');
- hTechnical(c,X(b.leftFinish),X(b.rightFinish),Y(b.frontFinish),114,'1500 finished clear',6.5);
- vTechnical(c,Y(b.rearFinish),Y(b.frontFinish),X(b.rightFinish),174,'800 finished clear',6);
- hTechnical(c,X(b.leftFinish+b.basinLeft),X(b.leftFinish+b.basinLeft+500),Y(b.rearFinish),26,'500 basin',6);
- vTechnical(c,Y(b.rearFinish),Y(b.rearFinish+300),X(b.leftFinish+b.basinLeft),X(b.leftFinish+b.basinLeft)-5,'300',6,'left');
- vTechnical(c,Y(b.rearFinish),Y(b.rearFinish+235),X(b.rightFinish),181,'235 WC rear',5.7);
- vTechnical(c,Y(b.rearFinish+635),Y(b.frontFinish),X(b.rightFinish),181,'165 WC front',5.7);
- vTechnical(c,Y(b.doorStart),Y(b.doorEnd),X(b.leftOuter),57,'757 rough opening',6,'left');
- hTechnical(c,X(b.leftOuter),X(b.rightStud),Y(b.frontOuter),121,`${fmt(b.frontLength)} framing`,6);
- c.text('REAR WALL',110,33,7,true,'center');
- c.text('FIXTURE / PIPE DATUMS',191,31,9,true);
- const lines=['Basin left gap approx. 105 (working position).','Basin front to finished divider: 500.','WC rear edge: 235 from finished rear wall.','WC front edge: 165 from finished divider.','WC centre: 435 from finished rear wall.','Supply: 50 OD, lagged fresh-water supply.','Centre: 350 from outside rear frame;','170 from outside right frame.','Soil: 110 outside diameter.','Centre: 550 from outside rear frame;','200 from outside right frame.','Outside frame to finished face: 107.5.','Pipe centres use outside-frame offsets.','Check connection clearance on site.'];
- lines.forEach((n,i)=>c.text(n,191,38+i*4.7,6.7,i===5||i===8||i===11));
- // Front divider viewed from main room. Single top and sole plates.
- c.text('FRONT DIVIDER ELEVATION',12,129,8,true);
- const k=.027,fx=20,base=193,F=(x:number)=>fx+x*k,Z=(z:number)=>base-z*k;
- const studs=[0,47,400,800,1200,b.frontLength-47];
- c.rect(F(0),Z(b.soleTop),b.frontLength*k,47*k,'timber',black,.2);c.rect(F(0),Z(b.top),b.frontLength*k,47*k,'timber',black,.2);
- studs.forEach(x=>c.rect(F(x),Z(b.plateBottom),(x===47?75:47)*k,b.studCut*k,x===47?'corner':'timber',black,.2));
- for(let i=0;i<studs.length-1;i++)c.rect(F(studs[i]+(studs[i]===47?75:47)),Z(b.ffl+1100),Math.max(0,studs[i+1]-studs[i]-(studs[i]===47?75:47))*k,47*k,'timber',black,.2);
- c.line(F(0)-2,Z(b.ffl),F(b.frontLength)+2,Z(b.ffl),black,.15,[1,1]);
- vTechnical(c,Z(b.ffl+1100),Z(b.ffl),F(0),14,'1100 FFL to noggin top',5.7,'left');
- studs.filter(x=>x!==47).forEach(x=>c.text(x===0?'0 / 47':fmt(x),F(x===0?47:x+23.5),Z(b.top)-3,5.3,true,'center'));
- hTechnical(c,F(0),F(b.frontLength),base,199,`${fmt(b.frontLength)} frame length`,6);
- vTechnical(c,Z(b.top),base,F(b.frontLength),70,`${fmt(b.top)} slab to top`,6);
- c.text('TIMBER CUTTING / ASSEMBLY',86,129,8,true);
- const cuts=[`Front sole + top: 2 x ${fmt(b.frontLength)} (47 x 75).`,`Front: 5 studs + 1 rotated corner x ${fmt(b.studCut)}.`,'Front edges: 0, 47 (rotated), 400, 800, 1200, 1553.', 'Noggin row: 1100 above FFL; 47 tall.', 'Front noggins: 278, 353, 353, 306.',`Left wall top plate: 1 x ${fmt(b.sideLength)}.`,`Door opening: ${fmt(b.roughWidth)} wide (see detail page).`,`Hinge post: 1 x ${fmt(b.jambCut)} (47 x 75).`,`Header: ${fmt(b.headerCut)} (47 x 75), end-fixed.`, `Cripples: 2 x ${fmt(b.crippleCut)} (47 x 75).`, 'Left wall butts against front divider inside face.', 'Tie rear / right ends to external framing studs.'];
- cuts.forEach((n,i)=>c.text(n,86,136+i*4.8,6.6,i<2));
- c.text('LEFT / DOOR DIVIDER',191,129,8,true);
- const lx=201,lk=.027,LY=(z:number)=>193-z*lk;
- c.rect(lx,LY(b.top),b.sideLength*lk,47*lk,'timber',black,.2);
- const end=b.doorEnd-b.rearStud,hp=b.hingePostStart-b.rearStud,stub=b.doorStart-b.rearStud;
- c.rect(lx+hp*lk,LY(b.roughHead),47*lk,b.jambCut*lk,'timber',black,.2);
- c.rect(lx+end*lk,LY(b.plateBottom),75*lk,b.studCut*lk,'corner',black,.2);
- c.rect(lx+hp*lk,LY(b.roughHead+47),b.headerCut*lk,47*lk,'timber',black,.2);
- for(const y of [hp,(b.sideLength-47)/2])c.rect(lx+y*lk,LY(b.plateBottom),47*lk,b.crippleCut*lk,'timber',black,.2);
- c.rect(lx,LY(b.soleTop),stub*lk,47*lk,'timber',black,.2);
- c.rect(lx+end*lk,LY(b.soleTop),75*lk,47*lk,'timber',black,.2);
- c.text('757 rough / 68 stub',230,153,6.5);c.text('Head +2163.5 slab',230,158,6.5);
- hTechnical(c,lx,lx+(b.sideLength+75)*lk,193,199,'900 including corner',6);
- c.text('Latch lining fixes',230,175,6.5);c.text('to long-wall corner.',230,180,6.5);
- c.text('Partition top +2357 slab, level with external frame top. Sole anchored directly to slab over DPC / DPM; top +47. Studs start immediately above sole.',12,202,6.8);
- footer(c,page,total,'bathroom partitions');return c.stream();
+ const b=bathroomModel(s),k=.065,x=87,base=181,X=(v:number)=>x+v*k,Z=(v:number)=>base-v*k;
+ c.text('Bathroom - front divider elevation',12,11,14,true);
+ c.text('Viewed from main room | 47 x 75 timber; slab-fixed sole | dimensions in mm | horizontal datum: door-end frame edge',12,18,7.4);
+ const studs=[{x:0,w:47},{x:47,w:75},{x:400,w:47},{x:800,w:47},{x:1200,w:47},{x:b.frontLength-47,w:47}];
+ c.rect(X(0),Z(b.top),b.frontLength*k,47*k,'timber',black,.3);
+ c.rect(X(0),Z(47),b.frontLength*k,47*k,'timber',black,.3);
+ studs.forEach(p=>c.rect(X(p.x),Z(b.plateBottom),p.w*k,b.studCut*k,p.x===47?'corner':'timber',black,.3));
+ const nt=b.ffl+1100,nb=nt-47;
+ for(let i=1;i<studs.length-1;i++){const start=studs[i].x+studs[i].w,end=studs[i+1].x;c.rect(X(start),Z(nt),(end-start)*k,47*k,'timber',black,.25);
+ hTechnical(c,X(start),X(end),Z(nt),Z(nt)-8,fmt(end-start),6.2);}
+ c.line(X(0)-3,base,X(b.frontLength)+3,base,black,.4);
+ c.line(12,Z(b.ffl),270,Z(b.ffl),black,.2,[2,1]);
+ c.text('FFL',12,Z(b.ffl)-2,6.5,true);c.text('SLAB 0',12,185,6.5,true);
+ // Width and stud locations: chain plus baseline dimensions.
+ hTechnical(c,X(0),X(b.frontLength),Z(b.top),22,`${fmt(b.frontLength)} overall`,7);
+ const edges=[0,47,122,400,447,800,847,1200,1247,1553,1600];
+ for(let i=0;i<edges.length-1;i++)hTechnical(c,X(edges[i]),X(edges[i+1]),Z(b.top),33,fmt(edges[i+1]-edges[i]),5.7);
+ for(const [u,y] of [[400,190],[800,196],[1200,202]])hTechnical(c,X(0),X(u),181,y,`${u} stud left edge`,6.3);
+ hTechnical(c,X(1200),X(1553),181,190,'353 to end stud',6.3);
+ vTechnical(c,Z(b.top),Z(0),X(0),26,`${fmt(b.top)} overall`,6.7,'left');
+ vTechnical(c,Z(b.plateBottom),Z(47),X(0),39,`${fmt(b.studCut)} stud cut`,6.5,'left');
+ vTechnical(c,Z(nt),Z(b.ffl),X(0),52,'1100 FFL to noggin top',6.3,'left');
+ vTechnical(c,Z(nb),Z(47),X(0),65,`${fmt(nb-47)} lower clear`,6.3,'left');
+ vTechnical(c,Z(b.plateBottom),Z(nt),X(1600),210,`${fmt(b.plateBottom-nt)} upper clear`,6.3);
+ vTechnical(c,Z(nt),Z(nb),X(1600),223,'47 noggin',6);
+ vTechnical(c,Z(47),Z(0),X(1600),223,'47 sole',6);
+ vTechnical(c,Z(b.top),Z(b.plateBottom),X(1600),223,'47 top',6);
+ vTechnical(c,Z(b.ffl),Z(0),X(1600),239,`${fmt(b.ffl)} FFL`,6.3);
+ hTechnical(c,X(0),X(47),Z(47),Z(47)-6,'47',5.8);
+ hTechnical(c,X(47),X(122),Z(47),Z(47)-12,'75 rotated',5.8);
+ c.textVertical('DOOR-END CORNER',X(23.5),90,6,true);
+ c.textVertical('ROTATED BACKING STUD',X(84.5),90,6,true);
+ footer(c,page,total,'front divider elevation');return c.stream();
 }

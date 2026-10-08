@@ -16,7 +16,10 @@ export function bathroomModel(s:Settings){
  const cornerPosts=[{x:leftOuter,y:frontInner,w:b.timberThickness,h:b.partition},{x:leftOuter+b.timberThickness,y:frontInner,w:b.partition,h:b.timberThickness}];
  const leafStart=doorStart+b.fittingGap+b.doorLining+b.doorGap;
  const roughHead=ffl+b.undercut+b.doorHeight+b.doorGap+b.doorLining+b.fittingGap;
- const zones=[{x:0,y:0,w:leftOuter,h:s.brickInternalDepth},{x:leftOuter,y:frontOuter,w:s.brickInternalLength-leftOuter,h:s.brickInternalDepth-frontOuter},{x:leftInner,y:0,w:s.brickInternalLength-leftInner,h:frontInner},{x:leftOuter,y:doorStart,w:b.partition,h:roughWidth}];
+ const wideRightStart=Math.max(0,s.brickInternalLength-2400);
+ const split=Math.min(leftOuter,wideRightStart),bottomRow=Math.max(frontOuter,s.brickInternalDepth-1200);
+ // Start from the front / bottom; wide right-hand panels stop at the long sole.
+ const zones=[{x:0,y:0,w:leftOuter,h:frontOuter},{x:0,y:frontOuter,w:split,h:bottomRow-frontOuter},{x:0,y:bottomRow,w:split,h:s.brickInternalDepth-bottomRow},{x:split,y:frontOuter,w:s.brickInternalLength-split,h:bottomRow-frontOuter},{x:split,y:bottomRow,w:s.brickInternalLength-split,h:s.brickInternalDepth-bottomRow},{x:leftInner,y:0,w:s.brickInternalLength-leftInner,h:frontInner},{x:leftOuter,y:doorStart,w:b.partition,h:roughWidth}];
  const panels:{id:string;x:number;y:number;w:number;h:number}[]=[];
  for(const z of zones)for(let y=z.y;y<z.y+z.h-.01;y+=1200)for(let x=z.x;x<z.x+z.w-.01;x+=2400)panels.push({id:`P${panels.length+1}`,x,y,w:Math.min(2400,z.x+z.w-x),h:Math.min(1200,z.y+z.h-y)});
  return {...b,doorStart,doorEnd,hingePostStart,cornerPosts,roughWidth,leafStart,roughHead,headerCut:roughWidth+b.timberThickness,jambCut:roughHead-soleTop,crippleCut:plateBottom-roughHead-b.timberThickness,centreOffset:leafStart+b.door/2-(rearFinish+b.depth/2),dx,dy,rightStud,rearStud,rightFinish,rearFinish,leftFinish,frontFinish,leftInner,leftOuter,frontInner,frontOuter,floorPir,deck,ffl,top,soleTop,plateBottom,studCut:plateBottom-soleTop,frontLength:rightStud-leftOuter,sideLength:frontInner-rearStud,panels};
