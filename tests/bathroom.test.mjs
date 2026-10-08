@@ -9,7 +9,9 @@ test('finished bathroom clear space and divider butt lengths close exactly',()=>
  const b=bathroomModel(defaultSettings());
  assert.equal(b.rightFinish-b.leftFinish,1500);assert.equal(b.frontFinish-b.rearFinish,800);
  assert.equal(b.frontLength,1600);assert.equal(b.sideLength,825);
- assert.equal(b.packing+2*b.timberThickness,b.floorPir);
+ assert.equal(b.soleTop,47);
+ assert.equal(b.studCut,2263);
+ assert.equal(b.jambCut,2116.5);
  assert.equal(b.soleTop+b.studCut+b.timberThickness,b.top);
 });
 test('floor PIR panels and timber supports cover slab infill without panel overlaps',()=>{
