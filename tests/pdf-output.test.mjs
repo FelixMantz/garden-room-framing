@@ -4,7 +4,7 @@ import test from "node:test";
 
 test("serves one twenty-four-page monochrome technical PDF with a door-level sheet", async () => {
   const pdf = (await readFile(new URL('../dist/garden-room-framing-set.pdf', import.meta.url))).toString('latin1');
-  assert.equal((pdf.match(/\/Type \/Page\b/g) ?? []).length, 24);
+  assert.equal((pdf.match(/\/Type \/Page\b/g) ?? []).length, 25);
   assert.match(pdf, /French-door front elevation and vertical build-up/);
   assert.match(pdf, /1400 LEAF HEIGHT OMITTED/);
   assert.match(pdf, /HARDWOOD CILL 40/);
@@ -28,7 +28,7 @@ test("serves one twenty-four-page monochrome technical PDF with a door-level she
   const floorSchedule = pdf.slice(pdf.indexOf("FLOOR COMPONENTS - TOP DOWN"), pdf.indexOf("DOOR ASSEMBLY"));
   assert.match(floorSchedule, /parquet/i);
   assert.doesNotMatch(floorSchedule, /Tie beam|Door lintel|Brick threshold course/);
-  assert.match(pdf, /door front elevation \| page 14 of 24/);
+  assert.match(pdf, /door front elevation \| page 14 of 25/);
   assert.doesNotMatch(pdf, /colour PDF/);
 });
 

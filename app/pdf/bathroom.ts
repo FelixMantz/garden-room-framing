@@ -12,6 +12,7 @@ export function drawFloor(s:Settings,page:number,total:number,c:C=canvas()){
  c.text('100 mm PIR stock: 2400 x 1200. Hatched strips = solid timber supports below the bathroom partitions.',12,25,7);
  b.panels.forEach(p=>{c.rect(X(p.x),Y(p.y),p.w*sc,p.h*sc,[255,255,255],black,.25);if(p.w<100)c.textVertical(p.id,X(p.x+p.w/2)+.7,Y(p.y+p.h/2),6,true);else {c.text(p.id,X(p.x+p.w/2),Y(p.y+p.h/2),9,true,'center');c.text(`${fmt(p.w)} x ${fmt(p.h)}`,X(p.x+p.w/2),Y(p.y+p.h/2)+5,7,false,'center');}});
  c.rect(X(b.leftOuter),Y(0),75*sc,b.doorStart*sc,'timber',black,.3);
+ c.rect(X(b.leftOuter),Y(b.doorEnd),75*sc,(b.frontInner-b.doorEnd)*sc,'timber',black,.3);
  c.rect(X(b.leftOuter),Y(b.frontInner),(s.brickInternalLength-b.leftOuter)*sc,75*sc,'timber',black,.3);
  c.text('BATHROOM',X((b.leftInner+s.brickInternalLength)/2),Y(b.frontInner/2)-11,8,true,'center');
  // Pipe offsets use the OUTSIDE wall frame, not the brick-inside plan datum.
@@ -31,12 +32,37 @@ export function drawFloor(s:Settings,page:number,total:number,c:C=canvas()){
  c.rect(sx+7,sy-(b.floorPir+85)*k,47*k,38*k,'timber',black,.2);
  c.text('Stud',287,49,6);c.text('47 x 75 sole',243,57,6);c.text('22 P5 deck',243,63,6);c.text('2 x 47 = 94',243,76,6);c.text(`${fmt(b.packing)} packing to 100`,243,85,6);c.text('DPM on slab',243,99,6);c.line(263,84,265,sy-97*k,black,.13);
  c.text('SUPPORT SET-OUT',243,110,8,true);
- const notes=[`Left support x ${fmt(b.leftOuter)}-${fmt(b.leftInner)}`,`Rear to front: 0-${fmt(b.doorStart)}`,`Front support y ${fmt(b.frontInner)}-${fmt(b.frontOuter)}`,`Left to right: ${fmt(b.leftOuter)}-${fmt(s.brickInternalLength)}`,'Two 47 x 75 layers laid flat.','Use measured timber thickness;',`packing = 100 - 2 x thickness.`,'Full-width continuous packing.','P10: 75 x 712.5 PIR in doorway.','DPM remains continuous below.'];
+ const notes=[`Left support x ${fmt(b.leftOuter)}-${fmt(b.leftInner)}`,`Rear to front: 0-${fmt(b.doorStart)}`,`Front support y ${fmt(b.frontInner)}-${fmt(b.frontOuter)}`,`Left to right: ${fmt(b.leftOuter)}-${fmt(s.brickInternalLength)}`,'Two 47 x 75 layers laid flat.','Use measured timber thickness;',`packing = 100 - 2 x thickness.`,'Full-width continuous packing.',`P10: 75 x ${fmt(b.roughWidth)} PIR doorway.`,'DPM remains continuous below.'];
  notes.forEach((n,i)=>c.text(n,243,117+i*4.7,6.3,i<4));
  c.text('PIR sizes are geometric infill dimensions: measure the slab / supports and allow tight fitting or foam-sealed cuts.',12,190,7);
  c.text('P5 stops at partition: 10 mm movement gaps. Sole fixes directly to timber base; no P5 trapped beneath wall.',12,196,7);
  c.text('Doorway: continuous PIR + slip layer + uncut P5 + floor finish. No threshold bearer / fixings into floating deck.',12,202,6.7);
  footer(c,page,total,'floor PIR / supports');return c.stream();
+}
+export function drawBathroomDoor(s:Settings,page:number,total:number,c:C=canvas()){
+ const b=bathroomModel(s);
+ c.text('Bathroom door - grained six-panel leaf, lining and corner framing',12,11,14,true);
+ c.text('Non-loadbearing internal partition | outward opening, rear-side hinges | dimensions in mm',12,18,7.5);
+ c.text('SELECTED DOOR ASSEMBLY',12,31,9,true);
+ const kit=['Wickes Lincoln white grained six-panel, product 200612.', 'Leaf: 1981 high x 686 wide x 35 thick; primed, paint finish.', 'Wickes softwood lining, product 200351: finished 27.5 x 108.', 'Reversible head for 686 / 762 doors; supplied 12 x 32 stops.', 'Rip lining depth to 100 for 75 framing + 2 x 12.5 board.', 'Allow extra lining depth if plaster skim increases wall thickness.', 'Paint lining / stops white to match leaf; wood grain is on leaf only.', 'Use narrow square-edge white trim at tight corner returns.', 'Standard 69 mm architrave will not fit here without ripping.', 'Ironmongery: 3 x 76 mm butt hinges, screws into sound backing.', 'Bathroom privacy latch / handles with outside emergency release.', 'Fit latch into marked lock-block side; confirm 35 mm door suitability.', 'Seal every leaf edge after fitting, including top and bottom.'];
+ kit.forEach((t,i)=>c.text(t,12,39+i*5,7,i<4));
+ c.text('SETTING-OUT / CLEARANCES',158,31,9,true);
+ const dims=[`Leaf width ${b.door} + 2 x 3 running gaps = 692 clear lining.`, '692 + 2 x 27.5 jambs = 747 lining outside width.', '747 + 2 x 5 fitting allowance = 757 rough opening.', 'Dry-assemble supplied trenched head: verify actual clear width.', 'Adjust head / packing to the measured leaf, not the label alone.', `Opening y ${fmt(b.doorStart)}-${fmt(b.doorEnd)} from brick-inside rear datum.`, `Leaf y ${fmt(b.leafStart)}-${fmt(b.leafStart+b.door)}; centre +${fmt(b.centreOffset)} forward of room centre.`, 'Finished short wall is 800; full rear post needs this small offset.', 'Rear return to rough opening 34.5; front return only 8.5.', 'Corner trim needs scribing / ripping; do not notch external frame.', `Head underside +${fmt(b.roughHead)} slab = +${fmt(b.roughHead-b.ffl)} FFL.`, 'Height = 10 undercut + 1981 leaf + 3 top gap + 27.5 head + 5.', '10 mm undercut is provisional: verify ventilation / finished floor.', 'Lining legs terminate at FFL; do not screw into floating floor.'];
+ dims.forEach((t,i)=>c.text(t,158,39+i*5,6.7,i===2||i===10));
+ c.text('FRAME ELEVATION',12,117,9,true);
+ const k=.028,x=24,base=190,Z=(v:number)=>base-(v-b.floorPir)*k;
+ for(const y of [0,b.doorEnd-b.rearStud]){c.rect(x+y*k,Z(b.roughHead),47*k,b.jambCut*k,'timber',black,.25);c.rect(x+y*k,Z(b.soleTop),47*k,47*k,'timber',black,.25);}
+ c.rect(x,Z(b.roughHead+47),(b.roughWidth+94)*k,47*k,'timber',black,.25);
+ c.rect(x,Z(b.top),b.sideLength*k,47*k,'timber',black,.25);
+ for(const y of [0,(b.sideLength-47)/2,b.doorEnd-b.rearStud])c.rect(x+y*k,Z(b.plateBottom),47*k,b.crippleCut*k,'timber',black,.25);
+ c.line(x,Z(b.ffl),x+35,Z(b.ffl),black,.3,[1,1]);
+ vTechnical(c,Z(b.roughHead),Z(b.ffl),x+25,66,`${fmt(b.roughHead-b.ffl)} above FFL`,6);
+ hTechnical(c,x+47*k,x+(47+b.roughWidth)*k,base,197,'757 rough',6);
+ c.text('FRAME / FLOOR CONNECTIONS',88,117,9,true);
+ const build=[`2 jamb posts: ${fmt(b.jambCut)} long, 47 x 75; header ${fmt(b.roughWidth+94)} long.`,`3 head cripples: ${fmt(b.crippleCut)}; top plate ${fmt(b.sideLength)} to long wall.`, 'Rear post fixed laterally to external wall stud / solid blocking.', 'Latch post extends 26 into long-wall framing; shared corner post.', 'First independent long-wall stud at 75, not 0: avoid timber overlap.', 'Header bears 47 on each post; non-loadbearing door head only.', 'Rear foot support y 0-49.5; front foot y 806.5-902.5 at corner.', 'Front short sole ends at y 827.5; long sole supports remaining post.', 'Foot supports: DPM, solid packing + 2 x 47 timber to PIR level.', '47 x 75 sole / foot plates fixed to support, not floating P5.', 'Continuous PIR / slip layer / P5 / finish through 757 doorway.', 'No continuous slab-mounted threshold beam; no threshold sole.', 'Check timber actual sizes, lining, finished floor and plumb before cuts.'];
+ build.forEach((t,i)=>c.text(t,88,125+i*4.8,6.7,i<2));
+ c.text('Sources: wickes.co.uk | door /p/200612 | lining /p/200351 | verified 8 Oct 2026. Assembly allowances are design assumptions.',12,202,6.5);
+ footer(c,page,total,'bathroom door detail');return c.stream();
 }
 export function drawBathroom(s:Settings,page:number,total:number,c:C=canvas()){
  const b=bathroomModel(s),sc=.065,X=(v:number)=>65+(v-b.leftOuter)*sc,Y=(v:number)=>38+(v-b.rearStud)*sc;
@@ -49,12 +75,12 @@ export function drawBathroom(s:Settings,page:number,total:number,c:C=canvas()){
  c.rect(X(b.leftInner),Y(b.frontFinish),(b.rightStud-b.leftInner)*sc,12.5*sc,'floor',black,.15);
  c.rect(X(b.leftOuter),Y(b.frontOuter),b.frontLength*sc,12.5*sc,'floor',black,.15);
  c.line(X(b.leftOuter),Y(b.rearFinish),X(b.rightFinish),Y(b.rearFinish),black,.4);c.line(X(b.rightFinish),Y(b.rearFinish),X(b.rightFinish),Y(b.frontOuter+12.5),black,.4);
- // Door / swing is the confirmed 700 mm layout envelope; final jamb positions depend on lining.
- const hinge=b.rearFinish+100,end=hinge+700;
- c.rect(X(b.leftOuter-13),Y(hinge),101*sc,700*sc,[255,255,255],black,0);
- c.line(X(b.leftOuter),Y(hinge),X(b.leftOuter-700),Y(hinge),black,.4);
- for(let i=0;i<24;i++){const a=i*Math.PI/48,z=(i+1)*Math.PI/48;c.line(X(b.leftOuter-700*Math.cos(a)),Y(hinge+700*Math.sin(a)),X(b.leftOuter-700*Math.cos(z)),Y(hinge+700*Math.sin(z)),black,.2);}
- c.text('700 door',12,75,7,true);c.text('opens out',12,80,6.5);
+ // Leaf and lining derive from the selected door assembly.
+ const hinge=b.leafStart;
+ c.rect(X(b.leftOuter-13),Y(b.doorStart),101*sc,b.roughWidth*sc,[255,255,255],black,0);
+ c.line(X(b.leftOuter),Y(hinge),X(b.leftOuter-b.door),Y(hinge),black,.4);
+ for(let i=0;i<24;i++){const a=i*Math.PI/48,z=(i+1)*Math.PI/48;c.line(X(b.leftOuter-b.door*Math.cos(a)),Y(hinge+b.door*Math.sin(a)),X(b.leftOuter-b.door*Math.cos(z)),Y(hinge+b.door*Math.sin(z)),black,.2);}
+ c.text('686 door',12,75,7,true);c.text('opens out',12,80,6.5);
  c.rect(X(b.leftFinish+b.basinLeft),Y(b.rearFinish),500*sc,300*sc,[255,255,255],black,.3);c.text('BASIN 500 x 300',X(b.leftFinish+b.basinLeft+250),Y(b.rearFinish+160),7,true,'center');
  c.rect(X(b.rightFinish-600),Y(b.rearFinish+235),600*sc,400*sc,[255,255,255],black,.3);c.text('WC 600 x 400',X(b.rightFinish-300),Y(b.rearFinish+410),7,true,'center');
  hTechnical(c,X(b.leftFinish),X(b.rightFinish),Y(b.frontFinish),114,'1500 finished clear',6.5);
@@ -66,24 +92,27 @@ export function drawBathroom(s:Settings,page:number,total:number,c:C=canvas()){
  // Front divider viewed from main room. Single top and sole plates.
  c.text('FRONT DIVIDER ELEVATION',12,129,8,true);
  const k=.027,fx=20,base=193,F=(x:number)=>fx+x*k,Z=(z:number)=>base-(z-b.floorPir)*k;
- const studs=[0,400,800,1200,b.frontLength-47];
+ const studs=[75,400,800,1200,b.frontLength-47];
  c.rect(F(0),Z(b.soleTop),b.frontLength*k,47*k,'timber',black,.2);c.rect(F(0),Z(b.top),b.frontLength*k,47*k,'timber',black,.2);
  studs.forEach(x=>c.rect(F(x),Z(b.plateBottom),47*k,b.studCut*k,'timber',black,.2));
  for(let i=0;i<studs.length-1;i++)c.rect(F(studs[i]+47),Z(b.ffl+1100),Math.max(0,studs[i+1]-studs[i]-47)*k,47*k,'timber',black,.2);
  hTechnical(c,F(0),F(b.frontLength),base,199,`${fmt(b.frontLength)} frame length`,6);
  vTechnical(c,Z(b.top),base,F(b.frontLength),70,`${fmt(b.top-b.floorPir)} frame height`,6);
  c.text('TIMBER CUTTING / ASSEMBLY',86,129,8,true);
- const cuts=[`Front sole + top: 2 x ${fmt(b.frontLength)} (47 x 75).`,`Front studs: 5 x ${fmt(b.studCut)} (47 x 75).`,'Front studs left edges: 0, 400, 800, 1200, 1553.', 'Noggin row: 1100 above FFL; 47 tall.', 'Front noggins: 3 x 353 + 1 x 306.',`Left wall top plate: 1 x ${fmt(b.sideLength)}.`,'Left wall door jambs / header / sole: site set-out.','Door height and lining allowance not yet specified.','700 is the sketch door / swing envelope;', 'confirm leaf, lining and fitting gaps before cutting.', 'Left wall butts against front divider inside face.', 'Tie rear / right ends to external framing studs.'];
+ const cuts=[`Front sole + top: 2 x ${fmt(b.frontLength)} (47 x 75).`,`Front studs: 5 x ${fmt(b.studCut)} (47 x 75).`,'Front studs left edges: 75, 400, 800, 1200, 1553.', 'Noggin row: 1100 above FFL; 47 tall.', 'Front noggins: 278, 353, 353, 306.',`Left wall top plate: 1 x ${fmt(b.sideLength)}.`,`Door opening: ${fmt(b.roughWidth)} wide (see detail page).`,`Jamb posts: 2 x ${fmt(b.jambCut)} (47 x 75).`,`Header: ${fmt(b.roughWidth+94)} (47 x 75).`, `Cripples: 3 x ${fmt(b.crippleCut)} (47 x 75).`, 'Left wall butts against front divider inside face.', 'Tie rear / right ends to external framing studs.'];
  cuts.forEach((n,i)=>c.text(n,86,136+i*4.8,6.6,i<2));
  c.text('LEFT / DOOR DIVIDER',191,129,8,true);
  const lx=201,lk=.027,LY=(z:number)=>193-(z-b.floorPir)*lk;
  c.rect(lx,LY(b.top),b.sideLength*lk,47*lk,'timber',black,.2);
- c.rect(lx,LY(b.plateBottom),47*lk,b.studCut*lk,'timber',black,.2);
- c.rect(lx+(b.sideLength-47)*lk,LY(b.plateBottom),47*lk,b.studCut*lk,'timber',black,.2);
- c.line(lx,LY(b.ffl+2000),lx+b.sideLength*lk,LY(b.ffl+2000),black,.25,[1,1]);
- c.text('Header height /',230,153,6.5);c.text('jamb positions TBC',230,158,6.5);
- hTechnical(c,lx,lx+b.sideLength*lk,193,199,`${fmt(b.sideLength)} frame`,6);
- c.text('700 door envelope;',230,175,6.5);c.text('allow for lining.',230,180,6.5);
+ const start=b.doorStart-b.rearStud,end=b.doorEnd-b.rearStud;
+ for(const y of [0,end])c.rect(lx+y*lk,LY(b.roughHead),47*lk,b.jambCut*lk,'timber',black,.2);
+ c.rect(lx,LY(b.roughHead+47),(b.roughWidth+94)*lk,47*lk,'timber',black,.2);
+ for(const y of [0,(b.sideLength-47)/2,end])c.rect(lx+y*lk,LY(b.plateBottom),47*lk,b.crippleCut*lk,'timber',black,.2);
+ c.rect(lx,LY(b.soleTop),47*lk,47*lk,'timber',black,.2);
+ c.rect(lx+end*lk,LY(b.soleTop),47*lk,47*lk,'timber',black,.2);
+ c.text('757 rough opening',230,153,6.5);c.text('Head +2163.5 slab',230,158,6.5);
+ hTechnical(c,lx,lx+b.sideLength*lk,193,199,`${fmt(b.sideLength)} to long wall`,6);
+ c.text('Latch post shares',230,175,6.5);c.text('long-wall corner.',230,180,6.5);
  c.text('Partition top +2357 slab, level with external frame top. Partition sole directly on base at +100 slab; top +147 slab.',12,202,6.8);
  footer(c,page,total,'bathroom partitions');return c.stream();
 }
