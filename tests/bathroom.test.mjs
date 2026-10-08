@@ -18,6 +18,6 @@ test('floor PIR panels and timber supports cover slab infill without panel overl
  assert.ok(p.w>0&&p.w<=2400&&p.h>0&&p.h<=1200);
  for(const q of b.panels.slice(i+1))assert.ok(Math.min(p.x+p.w,q.x+q.w)<=Math.max(p.x,q.x)||Math.min(p.y+p.h,q.y+q.h)<=Math.max(p.y,q.y));
  }
- const area=b.panels.reduce((a,p)=>a+p.w*p.h,0)+75*b.frontInner+75*(s.brickInternalLength-b.leftOuter);
+ const area=b.panels.reduce((a,p)=>a+p.w*p.h,0)+75*b.doorStart+75*(s.brickInternalLength-b.leftOuter);
  assert.equal(area,s.brickInternalLength*s.brickInternalDepth);
 });
