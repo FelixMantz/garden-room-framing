@@ -1,5 +1,5 @@
 import { configForWall, type Settings } from './framing';
-export const BATHROOM={width:1500,depth:800,partition:75,lining:12.5,door:686,doorHeight:1981,doorThickness:35,doorLining:27.5,doorGap:3,fittingGap:5,undercut:10,basinWidth:500,basinDepth:300,basinLeft:105,toiletProjection:600,toiletWidth:400,toiletRear:235,timberThickness:47};
+export const BATHROOM={width:1500,depth:800,partition:75,lining:12.5,door:686,doorHeight:1981,doorThickness:35,doorLining:30,doorGap:3,fittingGap:2.5,undercut:10,basinWidth:500,basinDepth:300,basinLeft:105,toiletProjection:600,toiletWidth:400,toiletRear:235,timberThickness:47};
 export function bathroomModel(s:Settings){
  const b=BATHROOM,dx=(s.brickInternalLength-s.internalLength)/2,dy=(s.brickInternalDepth-s.internalDepth)/2;
  // Plan datum = rear-left inside brick corner. Y increases towards front.
@@ -24,3 +24,4 @@ export function bathroomModel(s:Settings){
  for(const z of zones)for(let y=z.y;y<z.y+z.h-.01;y+=1200)for(let x=z.x;x<z.x+z.w-.01;x+=2400)panels.push({id:`P${panels.length+1}`,x,y,w:Math.min(2400,z.x+z.w-x),h:Math.min(1200,z.y+z.h-y)});
  return {...b,doorStart,doorEnd,hingePostStart,cornerPosts,roughWidth,leafStart,roughHead,headerCut:roughWidth+b.timberThickness,jambCut:roughHead-soleTop,crippleCut:plateBottom-roughHead-b.timberThickness,centreOffset:leafStart+b.door/2-(rearFinish+b.depth/2),dx,dy,rightStud,rearStud,rightFinish,rearFinish,leftFinish,frontFinish,leftInner,leftOuter,frontInner,frontOuter,floorPir,deck,ffl,top,soleTop,plateBottom,studCut:plateBottom-soleTop,frontLength:rightStud-leftOuter,sideLength:frontInner-rearStud,panels};
 }
+

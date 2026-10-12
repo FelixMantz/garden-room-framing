@@ -22,7 +22,7 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
     c.text(`Garden room framing set | door front elevation | page ${page} of ${total}`,148.5,205,6.4,false,"center");
     return c.stream();
   }
-  const {fit,sideFit,lining,operating,closedPairWidth,leafHeight,leftLeafWidth,rightLeafWidth,meetingOverlap,leafThickness,
+  const {fit,topFit,sideFit,lining,headHeight,cillHeight,verticalOperating,operating,closedPairWidth,leafHeight,leftLeafWidth,rightLeafWidth,meetingOverlap,leafThickness,
     openingBase,openingTop,frameBottom,cillTop,leafBottom,frameTop,headBottom,leafTop}=assembly;
   const slab=0,ffl=cfg.ffl;
   const thresholdTop=cfg.courseHeight,thresholdSetout=openingBase-thresholdTop;
@@ -112,8 +112,8 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
 
   [slab,thresholdTop,ffl,openingBase,frameBottom,cillTop,leafBottom,leafTop,headBottom,frameTop,openingTop,lintelTop,lowerPlateBottom,lowerPlateTop,wallTop].forEach(level=>levelLine(level,[slab,thresholdTop,ffl,openingTop,lowerPlateBottom,wallTop].includes(level)));
   c.text(`BRICK THRESHOLD COURSE ${fmt(thresholdTop)}`,rough.x+rough.w/2,Y(thresholdTop/2)+1.3,4.8,true,"center");
-  c.text("HARDWOOD CILL 40",rough.x+rough.w/2,Y((frameBottom+cillTop)/2)+1.3,5.0,true,"center");
-  c.text("HARDWOOD HEAD 40",rough.x+rough.w/2,Y((headBottom+frameTop)/2)+1.3,5.0,true,"center");
+  c.text("PROFILED CILL 38 MAX",rough.x+rough.w/2,Y((frameBottom+cillTop)/2)+1.3,5.0,true,"center");
+  c.text("DFC46 HEAD / REBATE",rough.x+rough.w/2,Y((headBottom+frameTop)/2)+1.3,5.0,true,"center");
   c.text(`TIMBER LINTEL ${fmt(cfg.headerDepth)}`,rough.x+rough.w/2,Y((openingTop+lintelTop)/2)+1.3,5.2,true,"center");
   const lintelPlateGap=lowerPlateBottom-lintelTop;
   if(lintelPlateGap>0)c.text(`CRIPPLE GAP ${fmt(lintelPlateGap)}`,rough.x+rough.w/2,Y((lintelTop+lowerPlateBottom)/2)+1.2,4.5,true,"center");
@@ -135,13 +135,13 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
   });
   leader(`LEAF BOTTOM +${fmt(leafBottom)}`,70,Y(leafBottom),76,123,"left",true,4.5);
   leader(`OPENING BASE +${fmt(openingBase)}`,70,Y(openingBase),76,128,"left",true,4.5);
-  leader("5 FRAME-FIT GAP",70,Y((openingBase+frameBottom)/2),76,133,"left",false,4.4);
-  leader("5 OPERATING GAP",70,Y((cillTop+leafBottom)/2),76,138,"left",false,4.4);
+  leader(`${fmt(fit)} BOTTOM FRAME-FIT GAP`,70,Y((openingBase+frameBottom)/2),76,133,"left",false,4.4);
+  leader(`${fmt(verticalOperating)} OPERATING GAP`,70,Y((cillTop+leafBottom)/2),76,138,"left",false,4.4);
   leader(`${fmt(thresholdSetout)} BRICK TOP TO OPENING BASE`,rough.x+rough.w*.76,Y((thresholdTop+openingBase)/2),112,146,"left",true,4.2);
-  leader("4.5 FIT | 40 HARDWOOD JAMB | 5 OPERATING",X(sideFit+lining/2),Y(1980),57,91,"left",true,4.4);
+  leader(`${fmt(sideFit)} FIT | ${fmt(lining)} REBATE SHOULDER | ${fmt(operating)} OP`,X(sideFit+lining/2),Y(1980),57,91,"left",true,4.4);
   leader(`LEAF TOP +${fmt(leafTop)}`,X(door.width*.56),Y(leafTop),112,76,"left",true,4.5);
-  leader("5 OPERATING GAP",X(door.width*.56),Y((leafTop+headBottom)/2),112,81,"left",false,4.4);
-  leader("5 FRAME-FIT GAP",X(door.width*.56),Y((frameTop+openingTop)/2),112,86,"left",false,4.4);
+  leader(`${fmt(verticalOperating)} OPERATING GAP`,X(door.width*.56),Y((leafTop+headBottom)/2),112,81,"left",false,4.4);
+  leader(`${fmt(topFit)} TOP FRAME-FIT GAP`,X(door.width*.56),Y((frameTop+openingTop)/2),112,86,"left",false,4.4);
   leader(`OPENING TOP +${fmt(openingTop)}`,X(door.width*.56),Y(openingTop),112,91,"left",true,4.5);
   vTechnical(c,Y(ffl),Y(wallTop),leftEdge,12,`${fmt(wallTop-ffl)} FFL to tie U/S`,4.8,"left");
   vTechnical(c,Y(openingBase),Y(openingTop),leftEdge-1,18,`${fmt(door.height)} structural opening`,4.5,"left");
@@ -150,6 +150,7 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
   hTechnical(c,rough.x,rough.x+rough.w,Y(-85)+1,183,`${fmt(door.width)} structural opening`,5.1);
   hTechnical(c,X(leafStart),X(rightLeafEnd),Y(-85)+1,190,`${fmt(closedPairWidth)} closed leaf set`,4.8);
 
+  c.text("DFC46 1248 x 2062 x 68; cill levels nominal - verify weathered profile",12,200,5.1);
   // Independent margin chains keep true heights readable across the break.
   vTechnical(c,Y(slab),Y(soleBottom),rightEdge,191,`${fmt(soleBottom)} dwarf wall`,5,"right");
   vTechnical(c,Y(soleTop),Y(lowerPlateBottom),rightEdge,201,`${fmt(lowerPlateBottom-soleTop)} king stud cut`,5,"right");
@@ -169,15 +170,15 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
     {top:wallTop,thickness:cfg.studFace,label:"Upper top plate"},
     {top:lowerPlateTop,thickness:cfg.studFace,label:"Lower top plate"},
     {top:lintelTop,thickness:cfg.headerDepth,label:"Door lintel"},
-    {top:openingTop,thickness:fit,label:"Top frame-fit gap"},
-    {top:frameTop,thickness:lining,label:"Hardwood head"},
-    {top:headBottom,thickness:operating,label:"Top operating gap"},
+    {top:openingTop,thickness:topFit,label:"Top frame-fit gap"},
+    {top:frameTop,thickness:headHeight,label:"Effective head / rebate shoulder"},
+    {top:headBottom,thickness:verticalOperating,label:"Top operating gap"},
     {top:leafTop,thickness:leafHeight,label:"Door leaf"},
     {top:soleTop,thickness:cfg.studFace,label:"Sole plate"},
     {top:cfg.masonryHeight,thickness:cfg.masonryHeight,label:"Brick dwarf wall"},
     ...(lowerPlateBottom>lintelTop?[{top:lowerPlateBottom,thickness:lowerPlateBottom-lintelTop,label:"Above-lintel infill"}]:[]),
-    {top:leafBottom,thickness:operating,label:"Bottom operating gap"},
-    {top:cillTop,thickness:lining,label:"Hardwood cill"},
+    {top:leafBottom,thickness:verticalOperating,label:"Bottom operating gap"},
+    {top:cillTop,thickness:cillHeight,label:"Cill maximum profile (nominal)"},
     {top:frameBottom,thickness:fit,label:"Bottom frame-fit gap"},
     ...[
       {top:openingBase,thickness:thresholdSetout,label:"Brick top to opening base"},
@@ -205,15 +206,16 @@ export function drawDoorVertical(settings:Settings,page:number,total:number,sche
   const notesY=floorBottom+8;c.text("DOOR ASSEMBLY",188,notesY,7.5,true);
   const notes=[
     `Width: ${door.width} = ${sideFit} fit + ${lining} jamb + ${operating} op + ${closedPairWidth} leaves + ${operating} op + ${lining} jamb + ${sideFit} fit.`,
-    `Height: ${door.height} = ${fit} fit + ${lining} cill + ${operating} op + ${leafHeight} leaf + ${operating} op + ${lining} head + ${fit} fit.`,
+    `Height: ${door.height} = ${fit} bottom fit + ${cillHeight} max cill + ${verticalOperating} op + ${leafHeight} leaf + ${verticalOperating} op + ${headHeight} head + ${topFit} top fit.`,
     `Left: ${leftLeafWidth} full / 577 rebate; heights 1979 hinge / 1976 meeting.`,
     `Right: ${rightLeafWidth} full / 576 rebate; heights 1975 hinge / 1980 meeting.`,
     `Meeting rebates ${meetingOverlap} overlap; leaves ${leafThickness} thick; opposing rebates 21 deep.`,
     `Cill top +${fmt(cillTop)} slab = ${fmt(cillTop-ffl)} above FFL on this set-out.`,
     `Brick threshold top +${fmt(thresholdTop)} slab; structural opening base +${fmt(openingBase)}; ${fmt(thresholdSetout)} between.`,
-    "Confirm actual cill rebates before fixing its support/upstand.",
+    "Ordered DFC46: 1248 x 2062 x 68; rebate 1170 x 1985. Head/cill supplied 1326 wide, 39 projecting each side: trim to fit after supplier confirmation. Cill 130 deep, weathered profile: levels shown use its 38 maximum height with nominal top at FFL; verify actual support and leaf/weatherseal levels.",
   ];let noteY=notesY+7;notes.forEach((note,i)=>{wrapText(note,97,5).forEach(line=>{if(noteY>199)throw new Error('Door detail exceeds its PDF page. Reduce custom floor layers.');c.text(line,188,noteY,5.0,i===6);noteY+=2.4;});noteY+=2.3;});
   c.text(`Garden room framing set | door front elevation | page ${page} of ${total}`,148.5,205,6.4,false,"center");
   return c.stream();
 }
+
 

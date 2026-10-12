@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("serves one twenty-four-page monochrome technical PDF with a door-level sheet", async () => {
+test("serves one twenty-nine-page monochrome technical PDF with a door-level sheet", async () => {
   const pdf = (await readFile(new URL('../dist/garden-room-framing-set.pdf', import.meta.url))).toString('latin1');
   assert.equal((pdf.match(/\/Type \/Page\b/g) ?? []).length, 29);
   assert.match(pdf, /French-door front elevation and vertical build-up/);
   assert.match(pdf, /1400 LEAF HEIGHT OMITTED/);
-  assert.match(pdf, /HARDWOOD CILL 40/);
-  assert.match(pdf, /5 FRAME-FIT GAP/);
+  assert.match(pdf, /PROFILED CILL 38 MAX/);
+  assert.match(pdf, /7 BOTTOM FRAME-FIT GAP/);
   assert.match(pdf, /Cill top \+137 slab = 0 above FFL/);
   assert.doesNotMatch(pdf, /CRIPPLE GAP/);
   assert.match(pdf, /WALL FRAME & DOOR COMPONENTS - TOP DOWN/);
@@ -38,3 +38,4 @@ test("shows only the technical PDF controls", async () => {
   assert.match(source, /Download technical PDF/);
   assert.doesNotMatch(source, /Open six-page PDF|Open B&amp;W PDF|name="style"/);
 });
+

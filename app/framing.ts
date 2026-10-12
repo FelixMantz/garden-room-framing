@@ -39,7 +39,7 @@ export function defaultSettings():Settings {
     walls:{
       front:{name:"Front wall",gable:false,studOffset:45,openings:[
         {type:"window",x:528,width:1010,height:1040,level:757},
-        {type:"door",x:1963,width:1264,height:2080,level:-45,note:"Measured French-door pair approximately 1165 × 1980 mm; 40 mm hardwood lining and cill; cill top flush with FFL; 5 mm operating margins; 4.5 mm side frame-fitting gaps and 5 mm top/bottom frame-fitting gaps; one 70 mm brick threshold course is laid across the doorway, leaving 22 mm to the structural opening base at +92 mm above slab; final structural opening 1264 × 2080 mm."},
+        {type:"door",x:1963,width:1264,height:2080,level:-45,note:"Measured French-door pair approximately 1165 × 1980 mm; ordered DFC46 frame 1248 × 2062 × 68 mm; 1170 × 1985 mm rebate opening; profiled cill 38 mm maximum height × 130 mm depth; 8 mm side frame-fitting gaps and 18 mm total vertical fitting clearance; one 70 mm brick threshold course is laid across the doorway, leaving 22 mm to the structural opening base at +92 mm above slab; final structural opening 1264 × 2080 mm."},
         {type:"window",x:3652,width:1010,height:1040,level:757},
       ]},
       rear:{name:"Rear wall",gable:false,studOffset:45,openings:[]},
@@ -269,3 +269,4 @@ export function scheduleGroups(cfg:WallConfig,members:Member[]) {
     {name:"Gable",members:members.filter(isGable).map(m=>m.type==="upper top plate"?{...m,type:"gable sole plate (upper top plate)"}:m)},
   ];
 }
+

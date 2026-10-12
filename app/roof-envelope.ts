@@ -31,8 +31,8 @@ export function roofEnvelope(s:Settings){
  const structural=[...(roof.gableOverhang>0?[-roof.flyRafterProjection]:[]),...roof.rafters,...(roof.gableOverhang>0?[roof.length+roof.flyRafterProjection]:[])];
  const intermediate=roof.rafters.slice(1).flatMap((x,i)=>x-roof.rafters[i]>=200?[(x+roof.rafters[i])/2]:[]);
  const blocking=deck.blocks.map(b=>({...b,x:b.x,y:deck.fromRidgeSlope}));
- const perimeter=structural.slice(1).flatMap((x,i)=>{const length=x-structural[i]-s.studFace;return length>0?[{x:structural[i]+s.studFace/2,length}]:[];});
  const osbSheets=columns.length*2,pirSheets=10;
  const fits=width>4800&&width<=6000&&pirLower>0&&pirLower<=1200&&deck.rowWidth+lower+kerf<=2440&&columns.every(q=>q.w<=1220);
- return {roof,deck,left,right,width,columns,osb,lower,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,perimeter,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
+ return {roof,deck,left,right,width,columns,osb,lower,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
 }
+

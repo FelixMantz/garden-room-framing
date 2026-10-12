@@ -56,8 +56,8 @@ export function drawFloor(s:Settings,page:number,total:number,c:C=canvas()){
 
 export function drawBathroomDoor(s:Settings,page:number,total:number,c:C=canvas()){
  const b=bathroomModel(s),t=47,full=b.sideLength+75;
- const a=b.doorStart-b.rearStud,e=b.sideLength,hp=a-t,leaf=b.leafStart-b.rearStud,ls=a+5,le=e-5;
- const bottom=b.ffl+10,lt=bottom+1981,hb=lt+3,ht=hb+27.5;
+ const a=b.doorStart-b.rearStud,e=b.sideLength,hp=a-t,leaf=b.leafStart-b.rearStud,ls=a+b.fittingGap,le=e-b.fittingGap;
+ const bottom=b.ffl+10,lt=bottom+1981,hb=lt+3,ht=hb+b.doorLining;
  c.text('Bathroom door - short partition elevation and top-down plan',12,11,14,true);
  c.text('All mm | elevation viewed from main room | vertical datum: slab | plan: rear at RIGHT, front at LEFT',12,18,7.3);
  const k=.059,x=66,base=180,X=(v:number)=>x+v*k,Z=(v:number)=>base-v*k;
@@ -71,8 +71,8 @@ export function drawBathroomDoor(s:Settings,page:number,total:number,c:C=canvas(
  c.rect(X(e),Z(b.plateBottom),75*k,b.studCut*k,'corner',black,.3);
  c.rect(X(hp),Z(b.roughHead+47),b.headerCut*k,47*k,'timber',black,.3);
  for(const u of [hp,389])c.rect(X(u),Z(b.plateBottom),47*k,b.crippleCut*k,'timber',black,.25);
- for(const u of [ls,le-27.5])c.rect(X(u),Z(hb),27.5*k,(hb-b.ffl)*k,[255,255,255],black,.3);
- c.rect(X(ls),Z(ht),(le-ls)*k,27.5*k,[255,255,255],black,.3);
+ for(const u of [ls,le-b.doorLining])c.rect(X(u),Z(hb),b.doorLining*k,(hb-b.ffl)*k,[255,255,255],black,.3);
+ c.rect(X(ls),Z(ht),(le-ls)*k,b.doorLining*k,[255,255,255],black,.3);
  c.rect(X(leaf),Z(lt),686*k,1981*k,[255,255,255],black,.3);
  for(const [v,h] of [[250,480],[850,630],[1630,220]])for(const u of [80,365])c.rect(X(leaf+u),Z(bottom+v+h),240*k,h*k,[255,255,255],black,.15);
  for(const h of [200,990,1780])c.rect(X(leaf)-.6,Z(bottom+h),1.2,76*k,[255,255,255],black,.25);
@@ -106,30 +106,31 @@ export function drawBathroomDoor(s:Settings,page:number,total:number,c:C=canvas(
  hTechnical(c,X(leaf),X(leaf+686),180,198,'686 leaf',6);
  // Mirrored plan: viewed down, rather than looking up from below.
  c.text('TOP-DOWN PLAN / HORIZONTAL ELEMENTS',169,32,8,true);
+ c.text('30 lining; 108 depth - trim to finished wall depth',169,38,6);
  const q=.125,px=173,py=65,P=(v:number)=>px+(full-v)*q;
  const rect=(u:number,v:number,w:number,h:number,fill:any=[255,255,255])=>c.rect(P(u+w),py+v*q,w*q,h*q,fill,black,.25);
  rect(0,0,full,75,'floor');rect(a,0,757,75);
  rect(hp,0,47,75,'timber');rect(e,0,75,47,'timber');rect(e,47,47,75,'corner');
- for(const u of [ls,le-27.5])rect(u,-12.5,27.5,100);
- rect(ls+27.5,53,12,32,'timber');rect(le-27.5-12,53,12,32,'timber');
+ for(const u of [ls,le-b.doorLining])rect(u,-12.5,b.doorLining,108);
+ rect(ls+b.doorLining,53,12,32,'timber');rect(le-b.doorLining-12,53,12,32,'timber');
  rect(leaf,18,686,35);
  c.text('FRONT / LONG WALL',P(full),56,6.3,true);c.text('REAR / HINGES',P(0),56,6.3,true,'right');
  const dim=(u:number,v:number,y:number,label:string,size=6)=>hTechnical(c,P(v),P(u),py,y,label,size);
  dim(0,full,45,'900 overall');
  dim(e,full,86,'75 end stud',5.8);dim(a,e,86,'757 rough');dim(0,a,86,'68 stub',5.8);
- dim(ls,le,96,'747 lining outside');dim(ls+27.5,le-27.5,106,'692 between jambs');
+ dim(ls,le,96,`${fmt(le-ls)} lining outside`);dim(ls+b.doorLining,le-b.doorLining,106,'692 between jambs');
  dim(leaf,leaf+686,116,'686 leaf');
  // Datum dimensions locate the elements independently, measured from rear stud face.
  dim(0,hp,128,'21',5.8);
  dim(0,a,138,'68',5.8);
- dim(0,ls,148,'73',5.8);
+ dim(0,ls,148,fmt(ls),5.8);
  dim(0,leaf,158,'103.5',5.8);
  dim(0,leaf+686,168,'789.5 to leaf far edge',5.8);
- dim(0,le,178,'820 to lining outside',5.8);
+ dim(0,le,178,`${fmt(le)} to lining outside`,5.8);
  dim(0,e,188,'825 to long-wall stud face',5.8);
  vTechnical(c,py,py+75*q,P(full),166,'75 frame depth',5.8,'left');
  c.text('47 x 75 end stud + rotated 75 x 47 backing',169,198,6.3);
- c.text('Door 200612 / lining 200351 | 5 fitting packers | scribed lining / board junction | non-loadbearing head end-fixed to corner',12,203,6);
+ c.text('Ordered 1981 x 686 x 35 door / 2100 x 108 x 30 lining | 2.5 side packers | scribed lining / board junction | non-loadbearing head end-fixed to corner',12,203,6);
  footer(c,page,total,'bathroom door');return c.stream();
 }
 export function drawBathroom(s:Settings,page:number,total:number,c:C=canvas()){
@@ -167,3 +168,4 @@ export function drawBathroom(s:Settings,page:number,total:number,c:C=canvas()){
  c.textVertical('ROTATED BACKING STUD',X(84.5),90,6,true);
  footer(c,page,total,'front divider elevation');return c.stream();
 }
+

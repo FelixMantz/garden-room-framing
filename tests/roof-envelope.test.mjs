@@ -12,7 +12,8 @@ test('roof OSB nests fit stock, joints have backing, broad end panels bridge gab
  assert.ok(m.columns[0].x<0&&m.columns[0].x+m.columns[0].w>0);
  assert.ok(m.columns.at(-1).x<m.roof.length&&m.columns.at(-1).x+m.columns.at(-1).w>m.roof.length);
  assert.ok(1200+3+m.lower<=2440);assert.equal(m.deck.fromRidgeSlope,1201.5);
- assert.ok(m.perimeter.every(b=>m.structural.includes(b.x-22.5)&&m.structural.includes(b.x+b.length+22.5)));
+ assert.equal(m.blocking.length,32);
+ assert.ok(m.blocking.every(b=>b.y===1201.5));
 });
 test('PIR covers ridge-to-eaves with staggered joints, plumb bevels and a rebate enclosing the ridge corner',()=>{
  const s=defaultSettings(),m=roofEnvelope(s),p=s.roofPitch*Math.PI/180;
@@ -37,3 +38,4 @@ test('PIR covers ridge-to-eaves with staggered joints, plumb bevels and a rebate
 test('batten overlay matches the agreed fixing counts',()=>{
  const m=roofEnvelope(defaultSettings());assert.equal(m.structural.length,17);assert.equal(m.intermediate.length,13);assert.equal(m.longScrews,98);assert.equal(m.shortScrews,52);
 });
+

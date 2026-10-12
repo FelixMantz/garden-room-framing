@@ -21,7 +21,7 @@ export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas())
   c.line(X(m.left),Y(wallS),X(m.right),Y(wallS),black,.4,[2,1]);
   if(kind==='osb'){
    for(const x of m.structural)c.line(X(x),Y(0),X(x),Y(m.deck.deckSlope),black,.12,[1,1]);
-   for(const y of [0,m.deck.fromRidgeSlope,m.deck.deckSlope])c.line(X(m.left),Y(y),X(m.right),Y(y),black,.7);
+   c.line(X(m.left),Y(m.deck.fromRidgeSlope),X(m.right),Y(m.deck.fromRidgeSlope),black,.7);
    hTechnical(c,X(m.left),X(m.right),Y(0),top-2,`${fmt(m.width)}`,8);
    vTechnical(c,Y(0),Y(1200),X(m.right),X(m.right)+9,'1200',8);
    vTechnical(c,Y(1203),Y(m.deck.deckSlope),X(m.right),X(m.right)+9,fmt(m.lower),8);
@@ -118,12 +118,11 @@ export function drawRoofEnvelopeDetails(s:Settings,page:number,total:number,c=ca
   }
  }
  strip('upper',126);strip('lower',151);
- c.text('45 x 95 noggins: ridge / seam / eaves',12,177,10,true);
+ c.text('45 x 95 noggins: one sheet-joint row per slope',12,177,10,true);
  const gx=24,gy=183,gw=220,gh=9;
  c.rect(gx,gy,gw,gh);for(const x of [gx,gx+55,gx+110,gx+165,gx+220])c.line(x,gy,x,gy+gh,black,.7);
- for(const y of [gy,gy+gh/2,gy+gh])c.line(gx,y,gx+gw,y,black,.65);
- const groups=new Map<number,number>();m.perimeter.forEach(q=>groups.set(q.length,(groups.get(q.length)||0)+4));
- c.text(`${m.blocking.length} seam blocks | ${m.perimeter.length*4} added edge blocks: ${[...groups].map(([length,qty])=>`${qty} x ${fmt(length)}`).join(' | ')}`,12,198,8);
+ c.line(gx,gy+gh/2,gx+gw,gy+gh/2,black,.65);
+ c.text(`${m.blocking.length} seam blocks total | joint C/L ${fmt(m.deck.fromRidgeSlope)} from ridge | no added edge rows`,12,198,8);
  footer(c,page,total);return c.stream();
 }
 export function drawRoofBattens(s:Settings,page:number,total:number,c=canvas()){
@@ -140,7 +139,9 @@ export function drawRoofBattens(s:Settings,page:number,total:number,c=canvas()){
  c.text('Solid / squares: inclined SPAX 220 | 30 x 3 + 4 x 2 = 98; 2 spare',12,155,9);
  c.text('Dashed / crosses: gold 140 into OSB | 26 x 2 = 52; 48 remaining',12,164,9);
  c.text(`Proposed screw stations: ${fmt(start)} / ${fmt(mid)} / ${fmt(end)} from ridge face`,12,173,8);
+ c.text('SPAX 220: 67 deg to roof plane / 23 deg from perpendicular; tips point upslope.',12,179,7);
  c.text(`Structural C/L from left deck edge: ${m.structural.map(x=>fmt(x-m.left)).join(', ')}`,12,184,6.4);
  c.text(`Intermediate C/L: ${m.intermediate.map(x=>fmt(x-m.left)).join(', ')}`,12,191,6.4);
  footer(c,page,total);return c.stream();
 }
+
