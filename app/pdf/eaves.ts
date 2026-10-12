@@ -5,7 +5,7 @@ import { rafterTailCut } from '../rafter-dimensions';
 
 /** Eaves junction: dimensions in mm; proprietary profiles remain schematic. */
 export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
-  const pitch=s.roofPitch*Math.PI/180, co=Math.cos(pitch);
+  const pitch=s.roofPitch*Math.PI/180, co=Math.cos(pitch), si=Math.sin(pitch);
   const {fasciaThickness,eavesTailRun}=roofOverhangs(s.gableOverhang,s.roofGableOverhang,s.studFace);
   const scale=Math.min(.18,80/(eavesTailRun+s.studDepth)), left=64, base=147, right=left+Math.min(118,(base-42-141*scale/co)/Math.tan(pitch));
   const y=(x:number,n:number)=>base-(x-left)*Math.tan(pitch)-n*scale/co;
@@ -26,6 +26,16 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text('Eaves - roof build-up and gutter junction',12,11,14,true);
   c.text(`Section down the roof slope | pitch ${fmt(s.roofPitch)} degrees | dimensions in mm | do not scale`,12,18,8);
   c.text(`${fmt(s.gableOverhang)} mm horizontal: outer wall framing to outer fascia; ${fmt(eavesTailRun)} mm to rafter tail.`,12,24,7.5);
+  // Set-out uses the deck-end plumb line projected onto the tile plane.
+  // D is the actual cleat hook-to-leg depth along the slope; not published.
+  const gutterProjection=40, cleatDepthShown=80;
+  const noseDownSlope=(fasciaThickness+gutterProjection)/co;
+  const fasciaOuter=left-fasciaThickness*scale;
+  const tileEdgeX=fasciaOuter-gutterProjection*scale;
+  const battenStartX=tileEdgeX+cleatDepthShown*scale*co;
+  // The batten's square eaves cut and the cleat lip share a roof-normal plane.
+  const cleatTop=top+batten,cleatFoot=top+2;
+  const battenFootX=battenStartX+(cleatTop-cleatFoot)*scale*si;
   // Single eaves-to-ridge batten layer shown beyond the section; air channel in front.
   // The wall follows the actual eaves projection. Fit longer projections to this sheet.
   const wallX=left+eavesTailRun*scale;
@@ -64,14 +74,15 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   line([left,y(left,osb)],[right,y(right,osb)],.55,[2,.7]);
   for(let x=left+7;x<right-3;x+=10)c.text('PIR',x,y(x,osb+pir/2)+1,6,false,'center');
   line([left,y(left,top)],[right,y(right,top)],.65);
-  for(const n of [top+2,top+batten])line([left,y(left,n)],[right,y(right,n)],.15,[2,1]);
+  for(const [n,x] of [[cleatFoot,battenFootX],[cleatTop,battenStartX]])line([x,y(x,n)],[right,y(right,n)],.15,[2,1]);
+  line([battenStartX,y(battenStartX,cleatTop)],[battenFootX,y(battenFootX,cleatFoot)],.15,[2,1]);
   // Thin stepped metal sheet; drawing thickness exaggerated for legibility.
   const tileN=top+batten+5;
-  const tilePoints:number[][]=[[left-15,y(left-15,tileN)]];
+  const tilePoints:number[][]=[[tileEdgeX,y(tileEdgeX,tileN)]];
   for(let x=left+7;x<right;x+=250*scale*co){tilePoints.push([x,y(x,tileN)],[x+1,y(x+1,tileN)+1.2]);}
   tilePoints.push([right,y(right,tileN)]);
   tilePoints.slice(1).forEach((p,i)=>line(tilePoints[i],p,.65));
-  // Vertical fascia fixed to rafter tails; tray passes over its top.
+  // Vertical fascia fixed to rafter tails; membrane drapes over its top.
   const soffitThickness=9;
   const fasciaTop=y(left,top)+2,fasciaBottom=tailFlatY+soffitThickness*scale,fasciaHeight=(fasciaBottom-fasciaTop)/scale;
   c.rect(left-fasciaThickness*scale,fasciaTop,fasciaThickness*scale,fasciaBottom-fasciaTop,'timber',[0,0,0],.3);
@@ -94,23 +105,44 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   }
   // Soffit stops at the cladding face, rather than passing through the wall layers.
   if(claddingOuter>left)c.rect(left,soffitY,claddingOuter-left,soffitThickness*scale,[255,255,255],[0,0,0],.25);
-  // Tray tucked under membrane and extending beyond fascia, with a drip into gutter.
-  const trayEnd=[left-19,y(left,top)+8];
-  line([left+24,y(left+24,top)+.8],[left,y(left,top)+.8],.35);
-  line([left,y(left,top)+.8],trayEnd,.35);line(trayEnd,[trayEnd[0],trayEnd[1]+2],.35);
-  // Open half-round gutter, supported by fascia bracket (schematic).
-  const gx=left-19,gy=y(left,top)+5,gr=12;
+  // Open nominal 112 mm half-round gutter (brackets and fall set on site).
+  const gutterWidth=112,gx=fasciaOuter-gutterWidth*scale/2,gy=y(left,top)+5,gr=gutterWidth*scale/2;
   const arc=Array.from({length:25},(_,i)=>[gx+gr*Math.cos(Math.PI*i/24),gy+gr*Math.sin(Math.PI*i/24)]);
   arc.slice(1).forEach((p,i)=>line(arc[i],p,.65));
-  line([left-4,gy+7],[gx+gr,gy+7],.5);
-  // Inlet is above tray; dots indicate insect grille, not solid blocking.
+  line([fasciaOuter,gy+7],[gx+gr,gy+7],.5);
+  // Flexible membrane follows the fascia edge, then naturally drapes into gutter.
+  const membraneEnd=[gx,gy+gr*.75];
+  const membranePath=[[left,y(left,top)],[fasciaOuter,y(left,top)+1.5],
+    [fasciaOuter-2,y(left,top)+2.3],[fasciaOuter-4,y(left,top)+4],
+    [gx+3,membraneEnd[1]-4],membraneEnd];
+  membranePath.slice(1).forEach((p,i)=>line(membranePath[i],p,.65));
+  // Inlet is above the membrane; dots indicate insect grille, not solid blocking.
   const inletX=left-1;
   for(let n=4;n<batten;n+=5)c.rect(inletX,y(inletX,top+n),.5,.5,[0,0,0],[0,0,0],.2);
   arrow([left-11,y(left-11,top+12)],[left+24,y(left+24,top+12)],[1.5,1]);
   arrow([left+32,y(left+32,top)+2],[left+5,y(left+5,top)+2]);
-  // Starter cleat schematically hooks the first tile edge.
-  line([left+8,y(left+8,tileN)-.8],[left-15,y(left-15,tileN)-.8],.3);
-  line([left-15,y(left-15,tileN)-.8],[left-15,y(left-15,tileN)+1.5],.3);
+  // Cleat leg butts the batten end; flange bears on top and is fixed there.
+  // Hook-to-leg depth is schematic until the delivered profile is measured.
+  line([battenStartX+8,y(battenStartX+8,cleatTop)], [battenStartX,y(battenStartX,cleatTop)],.4);
+  // Continuous roof-parallel plate with a perpendicular lip below it.
+  line([battenStartX,y(battenStartX,cleatTop)], [tileEdgeX,y(tileEdgeX,cleatTop)],.4);
+  line([battenStartX,y(battenStartX,cleatTop)], [battenFootX,y(battenFootX,cleatFoot)],.4);
+  const joint=[battenStartX,y(battenStartX,cleatTop)];
+  const squareSize=1.3;
+  const squareA=[joint[0]-squareSize*co,joint[1]+squareSize*si];
+  const squareB=[squareA[0]+squareSize*si,squareA[1]+squareSize*co];
+  const squareC=[joint[0]+squareSize*si,joint[1]+squareSize*co];
+  line(squareA,squareB,.15);line(squareB,squareC,.15);
+  line([tileEdgeX,y(tileEdgeX,cleatTop)], [tileEdgeX,y(tileEdgeX,tileN)],.4);
+  line([tileEdgeX,y(tileEdgeX,tileN)], [tileEdgeX+1.5,y(tileEdgeX+1.5,tileN)],.4);
+  // Fixing through cleat flange into each longitudinal batten.
+  line([battenStartX+3,y(battenStartX+3,cleatTop+2)], [battenStartX+3,y(battenStartX+3,top+8)],.35);
+  hTechnical(c,tileEdgeX,fasciaOuter,y(tileEdgeX,tileN),94,'40 H tile projection',5.5);
+  const da=[tileEdgeX,y(tileEdgeX,cleatTop)-7],db=[battenStartX,y(battenStartX,cleatTop)-7];
+  line(da,db,.13);
+  for(const p of [da,db])line([p[0]-1,p[1]-1],[p[0]+1,p[1]+1],.13);
+  c.textRotated('D: cleat hook to leg', (da[0]+db[0])/2,(da[1]+db[1])/2-2,-s.roofPitch,5.6,true);
+  leader('Perpendicular underside lip / batten end',battenFootX,y(battenFootX,cleatFoot),65,85);
   // Leaders stay short or outside the roof, avoiding longitudinal dimension lines.
   leader('Extralight Shingle roof tiles',right-27,y(right-27,tileN),197,39);
   leader('Single vertical battens 25 x 50',right-6,y(right-6,top+12),197,51);
@@ -119,16 +151,20 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text('25 mm ventilation between battens.',197,69,6.5);
   c.text('No separate horizontal tile-batten layer.',197,75,6.5);
   leader('Breathable membrane',right,y(right,top),197,83);
-  c.text('Directly on PIR; laps over tray.',197,88,6.5);
+  c.text('On PIR; drapes over fascia into gutter.',197,88,6.5);
   leader('PIR insulation 100',right,y(right,osb+50),197,100);
   leader('Polythene VCL - 250 micron',right,y(right,osb),197,111);
   c.text('On OSB, below PIR; tape laps / penetrations.',197,116,6.2);
   leader('OSB roof deck 11',right-12,y(right-12,osb/2),197,122);
   leader(`Rafter ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,right,y(right,-s.studDepth/2),197,132);
-  leader('Starter cleat',left-14,y(left-14,tileN),15,88);
-  leader('Vent inlet above tray',left-1,y(left-1,top+12),15,104);
-  leader('Eaves protector tray',48,y(left,top)+7,15,116);
-  leader('Rain gutter',gx-8,gy+9,15,153);
+  leader('Extralight starter cleat',tileEdgeX,y(tileEdgeX,cleatTop),15,79);
+  leader('Vent inlet above membrane',left-1,y(left-1,top+12),15,104);
+  leader('Membrane drape',gx,membraneEnd[1],15,140);
+  c.text('Approx. 100 mm beyond outer fascia.',15,145,6.2);
+  c.text('Trim to centre; clear of gutter bottom.',15,150,6.2);
+  line([gx-gr*.8,gy+gr*.6],[10,gy+gr*.6],.13);
+  line([10,gy+gr*.6],[10,157],.13);
+  c.text('Rain gutter',15,158,7.2,true);
   leader('Vertical fascia',left-2,fasciaBottom-8,15,177);
   leader(`${fmt(tailCut.plumbFace)} mm plumb rafter face`,left,tailTopY+tailCut.plumbFace*scale/2,15,166);
   leader(`${fmt(tailCut.horizontalRun)} horizontal underside cut`,(left+tailFlatX)/2,tailFlatY,65,177);
@@ -146,19 +182,25 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text('Battens dashed; insect mesh at cavity head.',197,182,6.2);
   c.text('Cladding top: 3 mm below soffit underside.',197,187,6.2);
   hTechnical(c,left-fasciaThickness*scale,wallX,fasciaBottom,181,`${fmt(s.gableOverhang)} wall to outer fascia`,5.5);
+  c.text('STARTER CLEAT / BATTEN SET-OUT',100,35,8,true);
+  c.text(`Target: 40 mm horizontal tile projection past fascia.`,100,41,6.4);
+  c.text(`Batten start = D - ${fmt(noseDownSlope)} mm upslope of deck-end plumb datum.`,100,47,6.4);
+  c.text(`Measure D along slope: engaged tile edge to cleat abutment leg.`,100,53,6.4);
+  c.text('Dry-fit one tile + cleat; mark leg, then start every batten there.',100,59,6.4);
+  c.text('Cleat parallel to roof; underside lip at 90 degrees; D schematic.',100,65,6.4);
   c.text('FASCIA SECTION',15,35,8,true);
   const fx=40,fy=43,fs=.14,fw=fasciaThickness*fs,fh=fasciaHeight*fs;
   c.rect(fx,fy,fw,fh,'timber',[0,0,0],.25);
   hTechnical(c,fx,fx+fw,fy,39,fmt(fasciaThickness),6);
   vTechnical(c,fy,fy+fh,fx+fw,55,`${fmt(fasciaHeight)} overall height`,6);
-  c.text('22 mm timber thickness assumed.',65,46,6.5);
-  c.text('Fascia bottom flush with 9 mm soffit underside;',65,51,6.5);
-  c.text('confirm against tray / gutter set-out.',65,56,6.5);
+  c.text('22 mm timber fascia assumed.',15,69,6.2);
+  c.text('Bottom flush with 9 mm soffit underside.',65,71,6.2);
+  c.text('Confirm height against membrane / gutter.',65,76,6.2);
 
 
   c.line(12,190,285,190,[0,0,0],.2);
   c.text('Solid arrow: drainage. Dashed arrow: air inlet ABOVE membrane. Soffit closes the overhang; it does not ventilate the roof.',12,195,7);
-  c.text('VCL: 250 micron polythene to roof and walls; no ceiling VCL. Separate terminations at wall head; discontinuity accepted.',12,200,6.5);
+  c.text('Membrane-only eaves: exposed tail requires permanent UV suitability. Set-out adapted from SupaLite guide pp. 26 / 30; dry-fit actual cleat.',12,200,6.5);
   c.text(`Garden room framing set | eaves cross section | page ${page} of ${total}`,148.5,207,6.4,false,'center');
   return c.stream();
 }
