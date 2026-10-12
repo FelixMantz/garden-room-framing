@@ -1,6 +1,10 @@
 # Garden Room Framing Designer
 
-Garden-room wall elevations, cutting schedules, roof and construction details, and a 17-page technical PDF.
+Garden-room wall elevations, cutting schedules, roof and construction details, and a 29-page technical PDF.
+
+## Keep the app and master spec in sync
+
+**Required:** follow [AGENTS.md](AGENTS.md) and update the relevant sections of the [master specification](https://docs.google.com/document/d/1ILhSBko2Po7cq2c5KZfn3nbhcgPIh1S5PD6NR_BnrPw/edit) whenever changing build dimensions, materials, openings, layer build-ups, cutting quantities, fixings or construction details. Verify both sources after the edit. The prominent comments in `app/framing.ts` and `app/specification.ts` repeat this requirement.
 
 ## Run locally
 
