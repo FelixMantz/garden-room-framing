@@ -5,11 +5,11 @@ const v=await createServer({configFile:false,appType:'custom',optimizeDeps:{noDi
 const {sheathingPlan,wallOsbTop,OSB_STOCK}=await v.ssrLoadModule('/app/sheathing.ts');
 const {buildModel,defaultSettings}=await v.ssrLoadModule('/app/framing.ts');
 after(()=>v.close());
-test('wall / gable cutting plan fits fourteen ordered sheets and has unique panel IDs',()=>{
- const p=sheathingPlan();assert.equal(p.sheetCount,14);assert.equal(new Set(p.panels.map(q=>q.id)).size,p.panels.length);
- assert.ok(p.cuts.every(q=>q.sheet>=1&&q.sheet<=14));
+test('wall / gable cutting plan fits fifteen ordered sheets and has unique panel IDs',()=>{
+ const p=sheathingPlan();assert.equal(p.sheetCount,15);assert.equal(new Set(p.panels.map(q=>q.id)).size,p.panels.length);
+ assert.ok(p.cuts.every(q=>q.sheet>=1&&q.sheet<=15));
  assert.ok(p.panels.every(q=>q.w>0&&q.h>0&&q.w<=1220&&q.h<=2440));
- assert.ok(p.cuts.filter(q=>q.panel.includes('G')).every(q=>q.source!=='new sheet'));
+ 
 });
 test('wall vertical joints bear on existing studs / cripples and gable joints on existing gable studs',()=>{
  const p=sheathingPlan();for(const cfg of p.configs){
@@ -27,12 +27,12 @@ test('wall vertical joints bear on existing studs / cripples and gable joints on
   for(let i=0;i<gs.length-1;i++){const x=gs[i].x+gs[i].w+1.5;assert.ok(members.some(m=>['gable stud','ridge support stud'].includes(m.type)&&Math.abs(m.x+m.w/2-x)<.01));}
  }
 });
-test('base clearance and plate-backed horizontal gable joint respect eaves detail',()=>{
+test('base clearance and noggin-backed horizontal joint respect eaves detail',()=>{
  const p=sheathingPlan();for(const cfg of p.configs){
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));assert.ok(mains.every(q=>q.y===OSB_STOCK.bottom));
   if(!cfg.isSide){assert.equal(wallOsbTop(cfg),2017);continue;}
   const gs=p.panels.filter(q=>q.wall===cfg.id&&q.gable);assert.equal(gs[0].y-mains[0].y-mains[0].h,3);
-  assert.ok(gs[0].y>cfg.wallHeight-cfg.studFace&&gs[0].y<cfg.wallHeight);
+  assert.equal(gs[0].y,762);assert.equal(mains[0].h,756);
   assert.equal(mains[0].x,-cfg.cornerLap+3);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+cfg.cornerLap-3);
  }
 });
@@ -40,16 +40,16 @@ test('changed roof pitches regenerate gable blanks and reuse allocation without 
  for(const roofPitch of [15,35,45]){const p=sheathingPlan({...defaultSettings(),roofPitch});assert.ok(p.panels.every(q=>q.h<=2440&&q.w<=1220));assert.ok(p.sheetCount>=14);}
 });
 
-test('overlapping long-wall ends follow each wall set-out and taller blanks still use fourteen sheets',()=>{
+test('overlapping long-wall ends follow each wall set-out and taller blanks still use fifteen sheets',()=>{
  const p=sheathingPlan();assert.equal(OSB_STOCK.bottom,3);
  for(const cfg of p.configs){
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
-  assert.ok(mains.every(q=>q.h===(cfg.isSide?2050:2014)));
+  assert.ok(mains.every(q=>q.h===(cfg.isSide?756:2014)));
   if(cfg.isSide)continue;
   assert.equal(mains[0].x,-11);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+11);
   assert.equal(mains[0].w,854.5);assert.equal(mains.at(-1).w,cfg.id==='front'?854.5:754.5);
  }
- assert.equal(p.sheetCount,14);
+ assert.equal(p.sheetCount,15);
 });
 test('lower-wall drawing shares the OSB base clearance and corner page contains labelled corner only',async()=>{
  const {drawLowerWall}=await v.ssrLoadModule('/app/pdf/lower-wall.ts');

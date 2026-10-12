@@ -1,5 +1,5 @@
 import { buildModel, slopePolygon, type Settings, type WallConfig } from '../framing';
-import { sheathingPlan, wallOsbTop, OSB_STOCK } from '../sheathing';
+import { sheathingPlan, wallOsbTop, gableJointAxis, OSB_STOCK } from '../sheathing';
 import { canvas, fmt } from './layout';
 type C=ReturnType<typeof canvas>;
 const footer=(c:C,page:number,total:number,label:string)=>c.text(`Garden room framing set | ${label} | page ${page} of ${total}`,148.5,207,6.4,false,'center');
@@ -12,7 +12,7 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
   c.text(`${cfg.name.toUpperCase()} - viewed from outside`,left,title,9,true);
   for(const q of p.panels.filter(q=>q.wall===cfg.id)){
    c.polygon(q.points.map(([x,y])=>[X(x),Y(y)]),[255,255,255],[0,0,0],.3);
-   const cx=X(q.x+q.w/2),cy=Y(q.y+Math.min(q.h/2,300));
+   const cx=X(q.x+q.w/2),cy=Y(q.bridge?Math.min(q.y+q.h-100,cfg.wallHeight-140):q.y+Math.min(q.h/2,300));
    c.text(q.id,cx,cy,6.5,true,'center');
    if(!q.gable)c.text(`${fmt(q.w)} wide`,cx,base+4,5.5,false,'center');
   }
@@ -27,7 +27,7 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
   c.text(`Joint axes x: ${mains.filter((q,i)=>i<mains.length-1&&Math.abs(mains[i+1].x-q.x-q.w-3)<.01).map(q=>fmt(q.x+q.w+1.5)).join(', ')}`,left,base+9,6);
   c.text(`OSB top ${fmt(wallOsbTop(cfg))}; bottom +${OSB_STOCK.bottom}; blank height ${fmt(wallOsbTop(cfg)-OSB_STOCK.bottom)}`,left,base+14,6);
-  if(cfg.gable)c.text(`Gable joint axis +${fmt(cfg.wallHeight-cfg.studFace/2)} on upper plate; 3 below roof deck`,left,base+19,6);
+  if(cfg.gable)c.text(`Joint axis +${fmt(gableJointAxis(cfg))}; upper sheets bridge plates; 3 below deck`,left,base+19,6);
  }
  wall(p.configs[0],12,80,32);wall(p.configs[1],160,80,32);
  wall(p.configs[2],12,175,107);wall(p.configs[3],160,175,107);
@@ -37,16 +37,16 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
 export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas()){
  const p=sheathingPlan(s);c.text('OSB cutting and offcut reuse plan',12,11,14,true);
  c.text(`${p.sheetCount} of ${OSB_STOCK.quantity} ordered sheets allocated to walls and gables; ${OSB_STOCK.quantity-p.sheetCount} remain for roof / reserve. 3 mm saw kerf allowed.`,12,18,7.5);
- c.text('Cut full-height wall blanks first; route openings and retain cut-outs. Cut gable blanks next, then mark / cut roof slopes.',12,24,7);
- const groups=[p.cuts.filter(q=>!q.panel.includes('G')&&!q.panel.startsWith('FH')),p.cuts.filter(q=>q.panel.includes('G')||q.panel.startsWith('FH'))];
- groups.forEach((cuts,col)=>{const x=12+col*144;c.text(col?'GABLES / DOOR HEAD - REUSED MATERIAL':'WALL BLANKS - CUT WIDTH x HEIGHT',x,33,8,true);let y=40;
+ c.text('Follow the listed allocation order; upper side sheets bridge the plates. Cut roof slopes, windows and ridge pockets after marking.',12,24,7);
+ const split=Math.ceil(p.cuts.length/2),groups=[p.cuts.slice(0,split),p.cuts.slice(split)];
+ groups.forEach((cuts,col)=>{const x=12+col*144;c.text(col?'CUTTING ORDER - CONTINUED':'WALL / GABLE BLANKS - WIDTH x HEIGHT',x,33,8,true);let y=40;
   for(const q of cuts){c.text(`${q.panel}  ${fmt(q.w)} x ${fmt(q.h)}  [sheet ${q.sheet}]`,x,y,7,true);c.text(q.source,x,y+4,6);y+=8;}
  });
  c.line(12,181,285,181,[0,0,0],.2);
  const notes=['Blank dimensions include joint clearance; these are finished sizes, not nominal 1200 mm module sizes.',
- 'Gable sizes are enclosing rectangles: mark the slope from the elevation / actual rafter, then trim. Cut around the projecting ridge beam.',
+ 'Upper side-panel sizes are enclosing rectangles: mark roof slopes and ridge pockets. Lower joint uses existing noggins at default settings.',
  `The ${p.sheetCount}-sheet layout is a practical cutting plan, not a proven mathematical minimum. Keep one extra sheet available for damage / site variation.`,
- 'Do not discard offcuts until every listed reuse is complete. Measure the actual frame before batching cuts; leave the saw kerf on the waste side.'];
+ 'Fix upper sheets to studs, both plate layers and gable framing. Back all solid edges; verify gable restraint / structural fixings separately.'];
  let y=187;for(const n of notes){c.text(n,12,y,6.7);y+=5;}
  footer(c,page,total,'OSB cutting plan');return c.stream();
 }
