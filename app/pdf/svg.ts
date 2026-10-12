@@ -10,6 +10,7 @@ export function svgCanvas():ReturnType<typeof canvas>{
   polygon:(pts,f=[255,255,255],_s=[],lw=.15)=>{ops.push(`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${fill(f)}" stroke="black" stroke-width="${lw}"/>`);},
   line:(a,b,c,d,_s=[],lw=.15,dash=null)=>{ops.push(`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="black" stroke-width="${lw}" ${dash?`stroke-dasharray="${dash.join(' ')}"`:''}/>`);return ops.length;},
   text:(v,x,y,size=7,bold=false,align='left')=>{ops.push(`<text x="${x}" y="${y}" font-family="Arial,Helvetica,sans-serif" font-size="${size*25.4/72}" font-weight="${bold?700:400}" text-anchor="${align==='left'?'start':align==='right'?'end':'middle'}">${escape(v)}</text>`);},
+  textRotated:(v,x,y,angle,size=7,bold=false)=>{ops.push(`<text transform="translate(${x} ${y}) rotate(${angle})" font-family="Arial,Helvetica,sans-serif" font-size="${size*25.4/72}" font-weight="${bold?700:400}" text-anchor="middle">${escape(v)}</text>`);},
   textVertical:(v,x,y,size=7,bold=false)=>{ops.push(`<text transform="translate(${x} ${y}) rotate(-90)" font-family="Arial,Helvetica,sans-serif" font-size="${size*25.4/72}" font-weight="${bold?700:400}" text-anchor="middle">${escape(v)}</text>`);},
   stream:()=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297 210" role="img" aria-label="Technical framing drawing">${ops.join('')}</svg>`
  };

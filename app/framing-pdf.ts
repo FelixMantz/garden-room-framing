@@ -10,7 +10,8 @@ import { drawLowerWall } from "./pdf/lower-wall";
 import { drawFramePosition } from "./pdf/frame-position";
 import { drawSheathing, drawSheathingCuts, drawSheathingDetails } from "./pdf/sheathing";
 import { drawFloor, drawBathroom, drawBathroomDoor } from "./pdf/bathroom";
-export const FRAMING_PDF_PAGE_COUNT=25;
+import {drawRoofEnvelope,drawRoofEnvelopeCuts,drawRoofEnvelopeDetails,drawRoofBattens} from './pdf/roof-envelope';
+export const FRAMING_PDF_PAGE_COUNT=29;
 export function generateFramingPdf(settings:Settings){
   const configs=wallOrder.map(id=>configForWall(settings,id));
   const errors=[...configs.flatMap(validate),...roofModel(settings).errors];
@@ -18,6 +19,6 @@ export function generateFramingPdf(settings:Settings){
   const pages:((page:number,total:number)=>string)[]=[];
   configs.forEach(cfg=>{const members=buildModel(cfg);pages.push((p,t)=>drawWallTechnical(cfg,members,p,t),(p,t)=>drawWallSchedule(cfg,members,p,t));if(cfg.gable)pages.push((p,t)=>drawWallSchedule(cfg,members,p,t,"Gable"));});
   pages.push((p,t)=>drawRoof(settings,p,t),(p,t)=>drawRoofSchedule(settings,p,t),(p,t)=>drawCuts(settings,p,t),
-    (p,t)=>drawDoorVertical(settings,p,t),(p,t)=>drawDoorVertical(settings,p,t,true),(p,t)=>drawEaves(settings,p,t),(p,t)=>drawLowerWall(settings,p,t),drawPatternKey,(p,t)=>drawFramePosition(settings,p,t),(p,t)=>drawSheathing(settings,p,t),(p,t)=>drawSheathingCuts(settings,p,t),(p,t)=>drawSheathingDetails(settings,p,t),(p,t)=>drawFloor(settings,p,t),(p,t)=>drawBathroom(settings,p,t),(p,t)=>drawBathroomDoor(settings,p,t));
+    (p,t)=>drawDoorVertical(settings,p,t),(p,t)=>drawDoorVertical(settings,p,t,true),(p,t)=>drawEaves(settings,p,t),(p,t)=>drawLowerWall(settings,p,t),drawPatternKey,(p,t)=>drawFramePosition(settings,p,t),(p,t)=>drawSheathing(settings,p,t),(p,t)=>drawSheathingCuts(settings,p,t),(p,t)=>drawSheathingDetails(settings,p,t),(p,t)=>drawFloor(settings,p,t),(p,t)=>drawBathroom(settings,p,t),(p,t)=>drawBathroomDoor(settings,p,t),(p,t)=>drawRoofEnvelope(settings,p,t),(p,t)=>drawRoofEnvelopeCuts(settings,p,t),(p,t)=>drawRoofEnvelopeDetails(settings,p,t),(p,t)=>drawRoofBattens(settings,p,t));
   return buildPdf(pages.map((draw,i)=>draw(i+1,pages.length)));
 }
