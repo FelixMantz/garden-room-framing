@@ -106,9 +106,9 @@ export function configForWall(settings:Settings,id:WallId):WallConfig {
   }).sort((a,b)=>a.x-b.x);
   return {...settings,...wall,id,isSide,width,upperStart,upperEnd,gableRise,frameLength,frameDepth,brickLength,brickDepth,gableOverhang,ridgeWidth,ridgeDepth,brickStart,brickEnd:brickStart+brickBody,
     brickBody,masonryHeight,frameBase,ffl,plates,computedOpenings,ridgeBottom,ridgeTop,rafterVerticalDepth,rafterSeatLift,eavesTailRun,
-    // Noggin upper face at 783 mm above sole underside; leaves 1204 mm for
-    // a 1200 mm-high PIR piece plus 4 mm fitting tolerance in full-height bays.
-    parsedNogginRows:[783-settings.studFace/2],
+    // 718 mm gauge: sole top to noggin underside. With 45 mm timber, the
+    // centre is +785.5 and top +808 from sole underside; upper PIR clear = 1179.
+    parsedNogginRows:[settings.studFace+718+settings.studFace/2],
     minX:Math.min(0,upperStart-(wall.gable?gableOverhang:0),brickStart),maxX:Math.max(width,upperEnd+(wall.gable?gableOverhang:0),brickStart+brickBody),maxY:wall.gable?Math.max(ridgeTop,settings.wallHeight+gableRise+rafterSeatLift+rafterVerticalDepth/2):settings.wallHeight};
 }
 

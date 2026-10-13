@@ -5,11 +5,43 @@ const v=await createServer({configFile:false,appType:'custom',optimizeDeps:{noDi
 const {sheathingPlan,wallOsbTop,OSB_STOCK}=await v.ssrLoadModule('/app/sheathing.ts');
 const {buildModel,defaultSettings}=await v.ssrLoadModule('/app/framing.ts');
 after(()=>v.close());
+test('finished window profiles close across the panel joint and preserve both gable lengths',async()=>{
+ const {osbFinishedProfile}=await v.ssrLoadModule('/app/sheathing.ts'),p=sheathingPlan();
+ const profile=id=>{const panel=p.panels.find(q=>q.id===id);return osbFinishedProfile(panel,p.configs.find(c=>c.id===panel.wall));};
+ const upper=profile('LU2'),lower=profile('LB2');
+ assert.deepEqual(upper.cutouts,[{x:221.5,y:0,w:710,h:1010}]);
+ assert.deepEqual(lower.cutouts,[{x:221.5,y:754,w:710,h:27}]);
+ assert.equal(upper.cutouts[0].h+lower.cutouts[0].h+OSB_STOCK.gap,1040);
+ assert.equal(Number(upper.sideHeights[0].toFixed(1)),1534.7);
+ assert.equal(Number(upper.sideHeights[1].toFixed(1)),2083.1);
+ assert.deepEqual(profile('LU3').sideHeights,upper.sideHeights.toReversed());
+ assert.equal(profile('RU2').cutouts.length,0);
+ const front=profile('F1').cutouts[0];
+ assert.deepEqual(front,{x:539,y:754,w:315.5,h:1040});
+ assert.equal(2014-front.y-front.h,220);
+});
 test('wall / gable cutting plan fits fifteen ordered sheets and has unique panel IDs',()=>{
  const p=sheathingPlan();assert.equal(p.sheetCount,15);assert.equal(new Set(p.panels.map(q=>q.id)).size,p.panels.length);
  assert.ok(p.cuts.every(q=>q.sheet>=1&&q.sheet<=15));
  assert.ok(p.panels.every(q=>q.w>0&&q.h>0&&q.w<=1220&&q.h<=2440));
  
+});
+test('visual sheet nests preserve finished sizes, rotations and kerf-separated pieces',async()=>{
+ const p=sheathingPlan();assert.equal(p.nests.length,p.cuts.length);
+ for(const q of p.nests){
+  const cut=p.cuts.find(a=>a.panel===q.panel);
+  assert.deepEqual([q.w,q.h],q.rotated?[cut.h,cut.w]:[cut.w,cut.h]);
+  assert.ok(q.x>=0&&q.y>=0&&q.x+q.w<=1220+.001&&q.y+q.h<=2440+.001);
+  for(const other of p.nests.filter(a=>a.sheet===q.sheet&&a.panel!==q.panel)){
+   const xOverlap=Math.min(q.x+q.w,other.x+other.w)-Math.max(q.x,other.x);
+   const yOverlap=Math.min(q.y+q.h,other.y+other.h)-Math.max(q.y,other.y);
+   assert.ok(xOverlap<=-3+.001||yOverlap<=-3+.001,`${q.panel} / ${other.panel} kerf`);
+  }
+ }
+ const {drawSheathingCuts,drawSheathingCutsContinued}=await v.ssrLoadModule('/app/pdf/sheathing.ts');
+ const output=drawSheathingCuts(defaultSettings(),21,30)+drawSheathingCutsContinued(defaultSettings(),22,30);
+ assert.equal((output.match(/\(x 3\)/g)||[]).length,1);assert.ok(output.includes('(1534.7)'));assert.ok(output.includes('(2083.1)'));
+ assert.ok(output.includes('(630.5 x 125)'));assert.ok(!output.includes('CUTTING ORDER'));
 });
 test('wall vertical joints bear on existing studs / cripples and gable joints on existing gable studs',()=>{
  const p=sheathingPlan();for(const cfg of p.configs){
@@ -32,7 +64,7 @@ test('base clearance and noggin-backed horizontal joint respect eaves detail',()
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));assert.ok(mains.every(q=>q.y===OSB_STOCK.bottom));
   if(!cfg.isSide){assert.equal(wallOsbTop(cfg),2017);continue;}
   const gs=p.panels.filter(q=>q.wall===cfg.id&&q.gable);assert.equal(gs[0].y-mains[0].y-mains[0].h,3);
-  assert.equal(gs[0].y,762);assert.equal(mains[0].h,756);
+  assert.equal(gs[0].y,787);assert.equal(mains[0].h,781);
   assert.equal(mains[0].x,-cfg.cornerLap+3);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+cfg.cornerLap-3);
  }
 });
@@ -44,7 +76,7 @@ test('overlapping long-wall ends follow each wall set-out and taller blanks stil
  const p=sheathingPlan();assert.equal(OSB_STOCK.bottom,3);
  for(const cfg of p.configs){
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
-  assert.ok(mains.every(q=>q.h===(cfg.isSide?756:2014)));
+  assert.ok(mains.every(q=>q.h===(cfg.isSide?781:2014)));
   if(cfg.isSide)continue;
   assert.equal(mains[0].x,-11);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+11);
   assert.equal(mains[0].w,854.5);assert.equal(mains.at(-1).w,cfg.id==='front'?854.5:754.5);
