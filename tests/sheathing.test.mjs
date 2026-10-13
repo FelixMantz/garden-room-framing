@@ -11,6 +11,23 @@ test('wall / gable cutting plan fits fifteen ordered sheets and has unique panel
  assert.ok(p.panels.every(q=>q.w>0&&q.h>0&&q.w<=1220&&q.h<=2440));
  
 });
+test('visual sheet nests preserve finished sizes, rotations and kerf-separated pieces',async()=>{
+ const p=sheathingPlan();assert.equal(p.nests.length,p.cuts.length);
+ for(const q of p.nests){
+  const cut=p.cuts.find(a=>a.panel===q.panel);
+  assert.deepEqual([q.w,q.h],q.rotated?[cut.h,cut.w]:[cut.w,cut.h]);
+  assert.ok(q.x>=0&&q.y>=0&&q.x+q.w<=1220+.001&&q.y+q.h<=2440+.001);
+  for(const other of p.nests.filter(a=>a.sheet===q.sheet&&a.panel!==q.panel)){
+   const xOverlap=Math.min(q.x+q.w,other.x+other.w)-Math.max(q.x,other.x);
+   const yOverlap=Math.min(q.y+q.h,other.y+other.h)-Math.max(q.y,other.y);
+   assert.ok(xOverlap<=-3+.001||yOverlap<=-3+.001,`${q.panel} / ${other.panel} kerf`);
+  }
+ }
+ const {drawSheathingCuts}=await v.ssrLoadModule('/app/pdf/sheathing.ts');
+ const output=drawSheathingCuts(defaultSettings(),21,29);
+ assert.ok(output.includes('(x 4)'));assert.equal((output.match(/\(x 3\)/g)||[]).length,2);
+ assert.ok(output.includes('(630.5 x 125)'));assert.ok(!output.includes('CUTTING ORDER'));
+});
 test('wall vertical joints bear on existing studs / cripples and gable joints on existing gable studs',()=>{
  const p=sheathingPlan();for(const cfg of p.configs){
   const members=buildModel(cfg),mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH')).sort((a,b)=>a.x-b.x);

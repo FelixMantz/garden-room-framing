@@ -35,19 +35,40 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
  footer(c,page,total,'OSB wall elevations');return c.stream();
 }
 export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas()){
- const p=sheathingPlan(s);c.text('OSB cutting and offcut reuse plan',12,11,14,true);
- c.text(`${p.sheetCount} of ${OSB_STOCK.quantity} ordered sheets allocated to walls and gables; ${OSB_STOCK.quantity-p.sheetCount} remain for roof / reserve. 3 mm saw kerf allowed.`,12,18,7.5);
- c.text('Follow the listed allocation order; upper side sheets bridge the plates. Cut roof slopes, windows and ridge pockets after marking.',12,24,7);
- const split=Math.ceil(p.cuts.length/2),groups=[p.cuts.slice(0,split),p.cuts.slice(split)];
- groups.forEach((cuts,col)=>{const x=12+col*144;c.text(col?'CUTTING ORDER - CONTINUED':'WALL / GABLE BLANKS - WIDTH x HEIGHT',x,33,8,true);let y=40;
-  for(const q of cuts){c.text(`${q.panel}  ${fmt(q.w)} x ${fmt(q.h)}  [sheet ${q.sheet}]`,x,y,7,true);c.text(q.source,x,y+4,6);y+=8;}
+ const p=sheathingPlan(s);c.text('OSB wall sheet nests - visual cutting guide',12,11,14,true);
+ c.text(`Stock 1220 x 2440 x 11 | kerf 3 | ${p.sheetCount} wall / gable sheets | ${OSB_STOCK.quantity-p.sheetCount} roof / reserve sheets`,12,19,8);
+ c.text('Dimensions on pieces are finished blank sizes, with kerf already allowed. Dotted areas are unused offcuts.',12,26,7);
+ const groups:{sheets:number[],pieces:typeof p.nests}[]=[];
+ for(let sheet=1;sheet<=p.sheetCount;sheet++){
+  const pieces=p.nests.filter(q=>q.sheet===sheet),key=JSON.stringify(pieces.map(q=>[q.x,q.y,q.w,q.h]));
+  const match=groups.find(g=>JSON.stringify(g.pieces.map(q=>[q.x,q.y,q.w,q.h]))===key);
+  if(match)match.sheets.push(sheet);else groups.push({sheets:[sheet],pieces});
+ }
+ const cols=4,rows=Math.ceil(groups.length/cols),cellH=153/rows,sc=Math.min(59/2440,(cellH-19)/2440),cellW=68;
+ groups.forEach((g,i)=>{
+  const cellX=12+(i%cols)*cellW,top=40+Math.floor(i/cols)*cellH,x=cellX+17;
+  c.text(`x ${g.sheets.length}`,x+1220*sc/2,top-5,10,true,'center');
+  c.text(`Sheets ${g.sheets.join(', ')}`,x+1220*sc/2,top-1,6.5,false,'center');
+  c.rect(x,top,1220*sc,2440*sc,'floor',[0,0,0],.4);
+  g.pieces.forEach(q=>{
+   const px=x+q.x*sc,py=top+q.y*sc,w=q.w*sc,h=q.h*sc;
+   c.rect(px,py,w,h,[255,255,255],[0,0,0],.22);
+   // Equivalent slots share a nest; retain every panel ID on its own slot.
+   const ids=g.sheets.map(sheet=>p.nests.filter(a=>a.sheet===sheet).find(a=>a.x===q.x&&a.y===q.y&&a.w===q.w&&a.h===q.h)!.panel).join(' / ');
+   const dim=`${fmt(q.w)} x ${fmt(q.h)}`;
+   if(h<5){
+    c.text(dim,px+w/2,py+h/2+.6,5.2,true,'center');
+    c.line(px+w,py+h/2,cellX+60,py+h/2,[0,0,0],.12);c.text(ids,cellX+61,py+h/2+.6,5.3);
+   }else if(w<12){
+    c.textVertical(ids,px+w/2-1.2,py+h/2,5.5,true);
+    c.textVertical(dim,px+w/2+1.5,py+h/2,5.5);
+   }else{
+    c.text(ids,px+w/2,py+h/2-1,6,true,'center');
+    c.text(dim,px+w/2,py+h/2+2.5,6,true,'center');
+   }
+  });
  });
- c.line(12,181,285,181,[0,0,0],.2);
- const notes=['Blank dimensions include joint clearance; these are finished sizes, not nominal 1200 mm module sizes.',
- 'Upper side-panel sizes are enclosing rectangles: mark roof slopes and ridge pockets. Lower joint uses existing noggins at default settings.',
- `The ${p.sheetCount}-sheet layout is a practical cutting plan, not a proven mathematical minimum. Keep one extra sheet available for damage / site variation.`,
- 'Fix upper sheets to studs, both plate layers and gable framing. Back all solid edges; verify gable restraint / structural fixings separately.'];
- let y=187;for(const n of notes){c.text(n,12,y,6.7);y+=5;}
+ c.text('Gable pieces show enclosing blanks; mark roof slopes, ridge pockets and openings from page 20 before final shaping.',12,195,7);
  footer(c,page,total,'OSB cutting plan');return c.stream();
 }
 export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=canvas()){
