@@ -1,6 +1,6 @@
 # Garden Room Framing Designer
 
-Garden-room wall elevations, cutting schedules, roof and construction details, and a 29-page technical PDF.
+Garden-room wall elevations, cutting schedules, roof and construction details, and a 30-page technical PDF.
 
 ## Keep the app and master spec in sync
 

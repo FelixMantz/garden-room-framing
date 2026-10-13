@@ -1,6 +1,6 @@
 import { buildModel, slopePolygon, type Settings, type WallConfig } from '../framing';
-import { sheathingPlan, wallOsbTop, gableJointAxis, OSB_STOCK } from '../sheathing';
-import { canvas, fmt } from './layout';
+import { sheathingPlan, wallOsbTop, gableJointAxis, osbFinishedProfile, OSB_STOCK } from '../sheathing';
+import { canvas, fmt, hTechnical, vTechnical } from './layout';
 type C=ReturnType<typeof canvas>;
 const footer=(c:C,page:number,total:number,label:string)=>c.text(`Garden room framing set | ${label} | page ${page} of ${total}`,148.5,207,6.4,false,'center');
 export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
@@ -34,43 +34,79 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
  c.text('Solid outlines = OSB cuts; dashed timber = backing. Window / door edges bear on sill, lintel and jamb timber.',12,199,6.8);
  footer(c,page,total,'OSB wall elevations');return c.stream();
 }
-export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas()){
- const p=sheathingPlan(s);c.text('OSB wall sheet nests - visual cutting guide',12,11,14,true);
- c.text(`Stock 1220 x 2440 x 11 | kerf 3 | ${p.sheetCount} wall / gable sheets | ${OSB_STOCK.quantity-p.sheetCount} roof / reserve sheets`,12,19,8);
- c.text('Dimensions on pieces are finished blank sizes, with kerf already allowed. Dotted areas are unused offcuts.',12,26,7);
+export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas(),part=0){
+ const p=sheathingPlan(s),black=[0,0,0];
+ c.text('OSB wall sheet nests - finished cutting patterns',12,11,14,true);
+ c.text(`1220 x 2440 x 11 stock | 3 mm kerf | ${p.sheetCount} sheets walls / gables | ${OSB_STOCK.quantity-p.sheetCount} roof / reserve`,12,19,8);
+ c.text('Finished dimensions in mm. Cut on the waste side of each line; dotted areas are waste / window cut-outs.',12,26,7);
+ const profile=(q:typeof p.nests[number])=>{const panel=p.panels.find(a=>a.id===q.panel)!;return {panel,...osbFinishedProfile(panel,p.configs.find(a=>a.id===panel.wall)!)};};
+ const key=(pieces:typeof p.nests)=>JSON.stringify(pieces.map(q=>{const f=profile(q);return [q.x,q.y,q.w,q.h,q.rotated,f.points,f.cutouts];}));
  const groups:{sheets:number[],pieces:typeof p.nests}[]=[];
  for(let sheet=1;sheet<=p.sheetCount;sheet++){
-  const pieces=p.nests.filter(q=>q.sheet===sheet),key=JSON.stringify(pieces.map(q=>[q.x,q.y,q.w,q.h]));
-  const match=groups.find(g=>JSON.stringify(g.pieces.map(q=>[q.x,q.y,q.w,q.h]))===key);
+  const pieces=p.nests.filter(q=>q.sheet===sheet),match=groups.find(g=>key(g.pieces)===key(pieces));
   if(match)match.sheets.push(sheet);else groups.push({sheets:[sheet],pieces});
  }
- const cols=4,rows=Math.ceil(groups.length/cols),cellH=153/rows,sc=Math.min(59/2440,(cellH-19)/2440),cellW=68;
- groups.forEach((g,i)=>{
-  const cellX=12+(i%cols)*cellW,top=40+Math.floor(i/cols)*cellH,x=cellX+17;
-  c.text(`x ${g.sheets.length}`,x+1220*sc/2,top-5,10,true,'center');
-  c.text(`Sheets ${g.sheets.join(', ')}`,x+1220*sc/2,top-1,6.5,false,'center');
-  c.rect(x,top,1220*sc,2440*sc,'floor',[0,0,0],.4);
+ const perPage=Math.ceil(groups.length/2),shown=groups.slice(part*perPage,(part+1)*perPage);
+ const cols=4,rows=Math.ceil(shown.length/cols),cellH=151/rows,sc=Math.min(58/2440,(cellH-18)/2440),cellW=68;
+ shown.forEach((g,i)=>{
+  const cellX=12+(i%cols)*cellW,top=46+Math.floor(i/cols)*cellH,x=cellX+17;
+  c.text(`x ${g.sheets.length}`,x+1220*sc/2,top-12,8,true,'center');
+  c.text(`Sheet${g.sheets.length>1?'s':''} ${g.sheets.join(', ')}`,x+1220*sc/2,top-8,5.5,false,'center');
+  c.rect(x,top,1220*sc,2440*sc,'floor',black,.25);
   g.pieces.forEach(q=>{
-   const px=x+q.x*sc,py=top+q.y*sc,w=q.w*sc,h=q.h*sc;
-   c.rect(px,py,w,h,[255,255,255],[0,0,0],.22);
-   // Equivalent slots share a nest; retain every panel ID on its own slot.
+   const f=profile(q),panel=f.panel,px=x+q.x*sc,py=top+q.y*sc;
+   const point=(u:number,v:number)=>[px+(q.rotated?v:u)*sc,py+(q.rotated?u:v)*sc];
    const ids=g.sheets.map(sheet=>p.nests.filter(a=>a.sheet===sheet).find(a=>a.x===q.x&&a.y===q.y&&a.w===q.w&&a.h===q.h)!.panel).join(' / ');
-   const dim=`${fmt(q.w)} x ${fmt(q.h)}`;
-   if(h<5){
-    c.text(dim,px+w/2,py+h/2+.6,5.2,true,'center');
-    c.line(px+w,py+h/2,cellX+60,py+h/2,[0,0,0],.12);c.text(ids,cellX+61,py+h/2+.6,5.3);
-   }else if(w<12){
-    c.textVertical(ids,px+w/2-1.2,py+h/2,5.5,true);
-    c.textVertical(dim,px+w/2+1.5,py+h/2,5.5);
+   c.polygon(f.points.map(([u,v])=>point(u,v)),[255,255,255],black,.25);
+   // Blank bounding box is dashed; solid diagonal is the actual gable cut.
+   if(panel.gable){const corners=[[0,0],[panel.w,0],[panel.w,panel.h],[0,panel.h]].map(([u,v])=>point(u,v));for(let j=0;j<4;j++)c.line(...[...corners[j],...corners[(j+1)%4]] as [number,number,number,number],black,.1,[.7,.5]);}
+   f.cutouts.forEach(o=>{
+    const a=point(o.x,o.y),b=point(o.x+o.w,o.y+o.h);
+    c.rect(a[0],a[1],b[0]-a[0],b[1]-a[1],'floor',black,.25);
+   });
+   const textAt=(label:string,u:number,v:number,size=5,bold=false,vertical=false)=>{const a=point(u,v);if(vertical!==q.rotated)c.textVertical(label,a[0],a[1],size,bold);else c.text(label,a[0],a[1]+.6,size,bold,'center');};
+   const labelY=panel.gable?Math.max(...f.cutouts.map(o=>o.y+o.h),0)+(Math.min(...f.sideHeights)-Math.max(...f.cutouts.map(o=>o.y+o.h),0))/2:panel.h/2;
+   if(!f.cutouts.length&&!panel.gable){
+    if(q.h*sc<4){textAt(`${fmt(q.w)} x ${fmt(q.h)}`,panel.w/2,panel.h/2,4.6,true);c.line(px+q.w*sc,py+q.h*sc/2,cellX+60,py+q.h*sc/2,black,.1);c.text(ids,cellX+61,py+q.h*sc/2+.5,4.6);}
+    else if(q.w*sc<12){textAt(ids,panel.w/2-65,panel.h/2,4.8,true,true);textAt(`${fmt(panel.w)} x ${fmt(panel.h)}`,panel.w/2+90,panel.h/2,4.8,false,true);}
+    else{textAt(ids,panel.w/2,panel.h/2-90,5,true);textAt(`${fmt(q.w)} x ${fmt(q.h)}`,panel.w/2,panel.h/2+110,4.8,true);}
    }else{
-    c.text(ids,px+w/2,py+h/2-1,6,true,'center');
-    c.text(dim,px+w/2,py+h/2+2.5,6,true,'center');
+    textAt(ids,panel.w/2,panel.gable&&panel.w<500?120:(!panel.gable&&f.cutouts.length?200:labelY),panel.w<500?5:6,true);
+    // Both lengths on the actual gable edges; they share the flat-base datum.
+    const left=point(0,0),right=point(panel.w,0);
+    if(panel.gable&&panel.w<500){
+     textAt(fmt(panel.w),panel.w/2,270,5.2);
+     textAt(fmt(f.sideHeights[0]),panel.w/3,Math.min(...f.sideHeights)/2,5,true,true);
+     textAt(fmt(f.sideHeights[1]),panel.w*2/3,Math.min(...f.sideHeights)/2,5,true,true);
+    }else if(panel.gable){
+     vTechnical(c,py,py+f.sideHeights[0]*sc,left[0],left[0]-3,fmt(f.sideHeights[0]),5.5,'left');
+     vTechnical(c,py,py+f.sideHeights[1]*sc,right[0],right[0]+3,fmt(f.sideHeights[1]),5.5);
+     hTechnical(c,left[0],right[0],py,py-2.3,fmt(panel.w),5.5);
+    }else{if(q.y===0)hTechnical(c,left[0],right[0],py,py-2.3,fmt(panel.w),5.5);else textAt(fmt(panel.w),panel.w/2,340,5.5);vTechnical(c,py,py+panel.h*sc,right[0],right[0]+3,fmt(panel.h),5.5);}
+    for(const o of f.cutouts){
+     const leftArm=o.x,rightArm=panel.w-o.x-o.w,below=o.y,above=panel.h-o.y-o.h;
+     if(o.h>=100){
+      textAt(`${fmt(o.w)} x ${fmt(o.h)}`,o.x+o.w/2,o.y+o.h/2,5.5,true,true);
+      if(leftArm>0)textAt(fmt(leftArm),leftArm/2,o.y+o.h/2,5.5,true,true);
+      if(rightArm>0)textAt(fmt(rightArm),panel.w-rightArm/2,o.y+o.h/2,5.5,true,true);
+      if(!panel.gable){const edge=point(0,0)[0]-3;
+       if(below>0)vTechnical(c,py,py+below*sc,left[0],edge,fmt(below),5.5,'left');
+       if(above>0)vTechnical(c,py+(o.y+o.h)*sc,py+panel.h*sc,left[0],edge,fmt(above),5.5,'left');
+      }
+     }else{
+      const a=point(0,panel.h);c.text(`${fmt(leftArm)} | ${fmt(o.w)} | ${fmt(rightArm)}`,px+q.w*sc/2,a[1]-5.3,5.2,true,'center');
+      c.text(`${fmt(o.h)} notch; ${fmt(below)} remains`,px+q.w*sc/2,a[1]-2.8,5.2,false,'center');
+     }
+    }
    }
   });
  });
- c.text('Gable pieces show enclosing blanks; mark roof slopes, ridge pockets and openings from page 20 before final shaping.',12,195,7);
+ c.text(`Cutting guide ${part+1} of 2`,285,11,9,true,'right');
+ c.text('Gable lengths: flat base to each end of the diagonal. Width labels inside side arms show OSB remaining beside windows.',12,197,6.5);
+ c.text('Lower-panel notch labels: left arm | opening width | right arm. Ridge-board pockets: mark from the installed frame.',12,201,6.5);
  footer(c,page,total,'OSB cutting plan');return c.stream();
 }
+export function drawSheathingCutsContinued(s:Settings,page:number,total:number,c:C=canvas()){return drawSheathingCuts(s,page,total,c,1);}
 export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=canvas()){
  c.text('Featheredge cladding - corner post and concealed edge battens',12,11,14,true);
  c.text('Horizontal section / plan | dimensions in mm | schematic corner framing; do not scale',12,18,7.5);

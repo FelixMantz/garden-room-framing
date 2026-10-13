@@ -3,6 +3,16 @@ export const OSB_STOCK={width:1220,height:2440,thickness:11,quantity:26,gap:3,ke
 export type OsbPanel={id:string,wall:WallId,x:number,y:number,w:number,h:number,points:number[][],gable:boolean,bridge?:boolean,sheet?:number,source?:string};
 type Scrap={w:number,h:number,sheet:number,source:string,x:number,y:number,rotated:boolean};
 export type OsbNestPiece={panel:string,sheet:number,x:number,y:number,w:number,h:number,rotated:boolean};
+/** Finished outline / apertures in panel coordinates, from its flat base-left. */
+export function osbFinishedProfile(panel:OsbPanel,cfg:WallConfig){
+ const points=panel.points.map(([x,y])=>[x-panel.x,y-panel.y]);
+ const cutouts=cfg.computedOpenings.filter(o=>o.type==='window').map(o=>{
+  const x=Math.max(panel.x,o.x)-panel.x,y=Math.max(panel.y,o.sill)-panel.y;
+  return {x,y,w:Math.min(panel.x+panel.w,o.x+o.width)-panel.x-x,h:Math.min(panel.y+panel.h,o.sill+o.height)-panel.y-y};
+ }).filter(o=>o.w>0&&o.h>0);
+ const sideHeights=[0,panel.w].map(x=>Math.max(...points.filter(q=>Math.abs(q[0]-x)<.001).map(q=>q[1])));
+ return {points,cutouts,sideHeights};
+}
 // Eaves stop in lower plate; side-wall sheets bridge the wall / gable junction.
 export function wallOsbTop(cfg:WallConfig){return cfg.isSide?gableJointAxis(cfg)-1.5:cfg.wallHeight-cfg.studFace-cfg.studFace/3;}
 export function gableJointAxis(cfg:WallConfig){return Math.max(cfg.parsedNogginRows[0],Math.ceil(gableRoofTop(cfg,cfg.width/2)-2440+1.5));}
