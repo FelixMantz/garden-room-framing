@@ -32,7 +32,7 @@ test('base clearance and noggin-backed horizontal joint respect eaves detail',()
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));assert.ok(mains.every(q=>q.y===OSB_STOCK.bottom));
   if(!cfg.isSide){assert.equal(wallOsbTop(cfg),2017);continue;}
   const gs=p.panels.filter(q=>q.wall===cfg.id&&q.gable);assert.equal(gs[0].y-mains[0].y-mains[0].h,3);
-  assert.equal(gs[0].y,762);assert.equal(mains[0].h,756);
+  assert.equal(gs[0].y,787);assert.equal(mains[0].h,781);
   assert.equal(mains[0].x,-cfg.cornerLap+3);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+cfg.cornerLap-3);
  }
 });
@@ -44,7 +44,7 @@ test('overlapping long-wall ends follow each wall set-out and taller blanks stil
  const p=sheathingPlan();assert.equal(OSB_STOCK.bottom,3);
  for(const cfg of p.configs){
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
-  assert.ok(mains.every(q=>q.h===(cfg.isSide?756:2014)));
+  assert.ok(mains.every(q=>q.h===(cfg.isSide?781:2014)));
   if(cfg.isSide)continue;
   assert.equal(mains[0].x,-11);assert.equal(mains.at(-1).x+mains.at(-1).w,cfg.width+11);
   assert.equal(mains[0].w,854.5);assert.equal(mains.at(-1).w,cfg.id==='front'?854.5:754.5);
