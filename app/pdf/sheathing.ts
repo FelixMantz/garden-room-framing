@@ -5,7 +5,7 @@ type C=ReturnType<typeof canvas>;
 const footer=(c:C,page:number,total:number,label:string)=>c.text(`Garden room framing set | ${label} | page ${page} of ${total}`,148.5,207,6.4,false,'center');
 export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
  const p=sheathingPlan(s);c.text('OSB wall sheathing - all four external elevations',12,11,14,true);
- c.text('11 mm OSB3 | ordered sheets 1220 x 2440 | 3 mm joints | dimensions from sole underside / wall-body left',12,18,7.5);
+ c.text('11 mm OSB3 | ordered sheets 1220 x 2440 | 3-4 mm joints | dimensions from sole underside / wall-body left',12,18,7.5);
  c.text(`${p.sheetCount} sheets allocated including both gables; keep all labelled offcuts. Panel IDs refer to the cutting plan.`,12,24,7.5,true);
  function wall(cfg:WallConfig,left:number,base:number,title:number){
   const sc=.023,min=cfg.isSide?-cfg.cornerLap:0,X=(x:number)=>left+(x-min)*sc,Y=(y:number)=>base-y*sc;
@@ -25,9 +25,9 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
   if(cfg.gable){const x=cfg.width/2-cfg.ridgeWidth/2;c.rect(X(x),Y(cfg.ridgeTop),cfg.ridgeWidth*sc,(cfg.ridgeTop-cfg.ridgeBottom)*sc,[255,255,255],[0,0,0],.2);c.text('Cut around ridge beam',left+80,title+5,5.5);}
   c.line(X(min),base,X(cfg.isSide?cfg.width+cfg.cornerLap:cfg.width),base,[0,0,0],.15,[2,.7,.3,.7]);
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
-  c.text(`Joint axes x: ${mains.filter((q,i)=>i<mains.length-1&&Math.abs(mains[i+1].x-q.x-q.w-3)<.01).map(q=>fmt(q.x+q.w+1.5)).join(', ')}`,left,base+9,6);
+  c.text(`Joint axes x: ${mains.filter((q,i)=>i<mains.length-1&&mains[i+1].x-q.x-q.w<=4.01).map(q=>fmt((q.x+q.w+mains[mains.indexOf(q)+1].x)/2)).join(', ')}`,left,base+9,6);
   c.text(`OSB top ${fmt(wallOsbTop(cfg))}; bottom +${OSB_STOCK.bottom}; blank height ${fmt(wallOsbTop(cfg)-OSB_STOCK.bottom)}`,left,base+14,6);
-  if(cfg.gable)c.text(`Joint axis +${fmt(gableJointAxis(cfg))}; upper sheets bridge plates; 3 below deck`,left,base+19,6);
+  if(cfg.gable)c.text(`Joint axis +${fmt(gableJointAxis(cfg))}; upper sheets bridge plates; 3-4 below deck`,left,base+19,6);
  }
  wall(p.configs[0],12,80,32);wall(p.configs[1],160,80,32);
  wall(p.configs[2],12,175,107);wall(p.configs[3],160,175,107);
@@ -38,7 +38,7 @@ export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas
  const p=sheathingPlan(s),black=[0,0,0];
  c.text('OSB wall sheet nests - finished cutting patterns',12,11,14,true);
  c.text(`1220 x 2440 x 11 stock | 3 mm kerf | ${p.sheetCount} sheets walls / gables | ${OSB_STOCK.quantity-p.sheetCount} roof / reserve`,12,19,8);
- c.text('Finished dimensions in mm. Cut on the waste side of each line; dotted areas are waste / window cut-outs.',12,26,7);
+ c.text('Whole-mm finished cuts; rounded inward for 3-4 mm joints. Cut on waste side; dotted areas are waste / window cut-outs.',12,26,7);
  const profile=(q:typeof p.nests[number])=>{const panel=p.panels.find(a=>a.id===q.panel)!;return {panel,...osbFinishedProfile(panel,p.configs.find(a=>a.id===panel.wall)!)};};
  const key=(pieces:typeof p.nests)=>JSON.stringify(pieces.map(q=>{const f=profile(q);return [q.x,q.y,q.w,q.h,q.rotated,f.points,f.cutouts];}));
  const groups:{sheets:number[],pieces:typeof p.nests}[]=[];
@@ -102,8 +102,8 @@ export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas
   });
  });
  c.text(`Cutting guide ${part+1} of 2`,285,11,9,true,'right');
- c.text('Gable lengths: flat base to each end of the diagonal. Width labels inside side arms show OSB remaining beside windows.',12,197,6.5);
- c.text('Lower-panel notch labels: left arm | opening width | right arm. Ridge-board pockets: mark from the installed frame.',12,201,6.5);
+ c.text('Gable lengths: flat base to each diagonal end BEFORE ridge pocket. Follow roof pitch; mark pocket from fitted ridge.',12,197,6.5);
+ c.text('Lower notches: left arm | opening | right arm. Check installed frame / openings before cutting; retain labelled offcuts.',12,201,6.5);
  footer(c,page,total,'OSB cutting plan');return c.stream();
 }
 export function drawSheathingCutsContinued(s:Settings,page:number,total:number,c:C=canvas()){return drawSheathingCuts(s,page,total,c,1);}
@@ -154,3 +154,4 @@ export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=can
  c.text('45 x 45 post is a working size: approx. 3 mm proud of 18 mm cladding. Leave 5 mm end gaps; keep cavity top / bottom open.',12,202,7.5);
  footer(c,page,total,'OSB and cladding corner');return c.stream();
 }
+
