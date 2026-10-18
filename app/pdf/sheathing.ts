@@ -1,6 +1,7 @@
 import { buildModel, slopePolygon, type Settings, type WallConfig } from '../framing';
 import { sheathingPlan, wallOsbTop, gableJointAxis, osbFinishedProfile, OSB_STOCK } from '../sheathing';
 import { canvas, fmt, hTechnical, vTechnical } from './layout';
+import { wallOsbLabel } from '../sheathing-progress';
 type C=ReturnType<typeof canvas>;
 const footer=(c:C,page:number,total:number,label:string)=>c.text(`Garden room framing set | ${label} | page ${page} of ${total}`,148.5,207,6.4,false,'center');
 export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
@@ -56,7 +57,7 @@ export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas
   g.pieces.forEach(q=>{
    const f=profile(q),panel=f.panel,px=x+q.x*sc,py=top+q.y*sc;
    const point=(u:number,v:number)=>[px+(q.rotated?v:u)*sc,py+(q.rotated?u:v)*sc];
-   const ids=g.sheets.map(sheet=>p.nests.filter(a=>a.sheet===sheet).find(a=>a.x===q.x&&a.y===q.y&&a.w===q.w&&a.h===q.h)!.panel).join(' / ');
+   const ids=g.sheets.map(sheet=>p.nests.filter(a=>a.sheet===sheet).find(a=>a.x===q.x&&a.y===q.y&&a.w===q.w&&a.h===q.h)!.panel).map(wallOsbLabel).join('\n');
    c.polygon(f.points.map(([u,v])=>point(u,v)),[255,255,255],black,.25);
    // Blank bounding box is dashed; solid diagonal is the actual gable cut.
    if(panel.gable){const corners=[[0,0],[panel.w,0],[panel.w,panel.h],[0,panel.h]].map(([u,v])=>point(u,v));for(let j=0;j<4;j++)c.line(...[...corners[j],...corners[(j+1)%4]] as [number,number,number,number],black,.1,[.7,.5]);}
@@ -64,14 +65,14 @@ export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas
     const a=point(o.x,o.y),b=point(o.x+o.w,o.y+o.h);
     c.rect(a[0],a[1],b[0]-a[0],b[1]-a[1],'floor',black,.25);
    });
-   const textAt=(label:string,u:number,v:number,size=5,bold=false,vertical=false)=>{const a=point(u,v);if(vertical!==q.rotated)c.textVertical(label,a[0],a[1],size,bold);else c.text(label,a[0],a[1]+.6,size,bold,'center');};
+   const textAt=(label:string,u:number,v:number,size=5,bold=false,vertical=false)=>{const a=point(u,v),lines=label.split('\n');lines.forEach((line,i)=>{const offset=(i-(lines.length-1)/2)*size*.42;if(vertical!==q.rotated)c.textVertical(line,a[0]+offset,a[1],size,bold);else c.text(line,a[0],a[1]+.6+offset,size,bold,'center');});};
    const labelY=panel.gable?Math.max(...f.cutouts.map(o=>o.y+o.h),0)+(Math.min(...f.sideHeights)-Math.max(...f.cutouts.map(o=>o.y+o.h),0))/2:panel.h/2;
    if(!f.cutouts.length&&!panel.gable){
     if(q.h*sc<4){textAt(`${fmt(q.w)} x ${fmt(q.h)}`,panel.w/2,panel.h/2,4.6,true);c.line(px+q.w*sc,py+q.h*sc/2,cellX+60,py+q.h*sc/2,black,.1);c.text(ids,cellX+61,py+q.h*sc/2+.5,4.6);}
     else if(q.w*sc<12){textAt(ids,panel.w/2-65,panel.h/2,4.8,true,true);textAt(`${fmt(panel.w)} x ${fmt(panel.h)}`,panel.w/2+90,panel.h/2,4.8,false,true);}
     else{textAt(ids,panel.w/2,panel.h/2-90,5,true);textAt(`${fmt(q.w)} x ${fmt(q.h)}`,panel.w/2,panel.h/2+110,4.8,true);}
    }else{
-    textAt(ids,panel.w/2,panel.gable&&panel.w<500?120:(!panel.gable&&f.cutouts.length?200:labelY),panel.w<500?5:6,true);
+    textAt(panel.gable&&panel.w<500?ids.replace(' [DONE]','\n[DONE]'):ids,panel.w/2,panel.gable&&panel.w<500?120:(!panel.gable&&f.cutouts.length?200:labelY),panel.w<500?5:6,true);
     // Both lengths on the actual gable edges; they share the flat-base datum.
     const left=point(0,0),right=point(panel.w,0);
     if(panel.gable&&panel.w<500){

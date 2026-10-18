@@ -4,6 +4,8 @@ import {createServer} from 'vite';
 const vite=await createServer({configFile:false,server:{middlewareMode:true,hmr:false},appType:'custom'});
 const route=await vite.ssrLoadModule('/app/api/framing-pdf/route.ts');
 const {defaultSettings}=await vite.ssrLoadModule('/app/framing.ts');
+const {generateFramingPdf,PDF_PARTS}=await vite.ssrLoadModule('/app/framing-pdf.ts');
+const fullPdf=async()=>new Response(generateFramingPdf(defaultSettings()));
 after(()=>vite.close());
 const post=(settings,output='inline')=>{
  const body=new FormData();body.set('config',JSON.stringify(settings));body.set('output',output);
@@ -15,7 +17,7 @@ test('default GET and form POST generate identical PDFs; download preserves cont
  assert.match(download.headers.get('Content-Disposition'),/^attachment/);
  const bytes=await get.text();assert.equal(await posted.text(),bytes);assert.equal(await download.text(),bytes);
  assert.doesNotMatch(bytes,/NaN|Infinity/);
- assert.equal((bytes.match(/\/Type \/Page\b/g)||[]).length, 30);
+ assert.equal((bytes.match(/\/Type \/Page\b/g)||[]).length, 15);
 });
 test('malformed and unsafe settings return 400 before geometry is generated',async()=>{
  for(const patch of [null,{}, {...defaultSettings(),studCentres:0},{...defaultSettings(),topPlates:3},{...defaultSettings(),brickCourses:1.5},{...defaultSettings(),layers:[{name:'bad',thickness:-10}]}])assert.equal((await post(patch)).status,400);
@@ -30,14 +32,14 @@ test('zero gable projection has no negative outrigger dimension',async()=>{
  const pdf=await res.text();assert.doesNotMatch(pdf.slice(pdf.indexOf("Roof cutting and set-out"),pdf.indexOf("Gable rafters - dimensions")),/Gable outriggers/);assert.doesNotMatch(pdf,/Outrigger clear run: -/);
 });
 test('gable elevations dimension the ridge-centred stud grid from both edges',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  assert.match(pdf,/305 first stud C\/L from left/);
  assert.match(pdf,/400 stud C\/C to ridge/);
  assert.match(pdf,/305 first stud C\/L from right/);
  assert.match(pdf,/first C\/L 305 from left and 305 from right/);
 });
 test('front elevation sets upper brick courses out from both outside corners to the door opening',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  assert.match(pdf,/1965\.5 L brick return/);
  assert.match(pdf,/K1 438.*K2 1628.*K3 1873.*K4 3317.*K5 3562.*K6 4752/);
  assert.match(pdf,/8 FIT/);
@@ -46,7 +48,7 @@ test('front elevation sets upper brick courses out from both outside corners to 
  assert.match(pdf,/courses 2-4/);
 });
 test('birdsmouth detail labels the heel and seat cuts and true sloping tail set-out',async()=>{
- const standard=await (await route.GET()).text();
+ const standard=await (await fullPdf()).text();
  assert.match(standard,/251\.6 along slope .*228 horiz/);
  assert.match(standard,/Heel cut 44\.3 vertical; seat cut 95 horizontal/);
  assert.doesNotMatch(standard,/vertical from top to (outer|inner) seat corner/);
@@ -59,9 +61,8 @@ test('birdsmouth detail labels the heel and seat cuts and true sloping tail set-
 
 test('default build artifact matches generator and schedules immediately follow drawings',async()=>{
  const {readFile}=await import('node:fs/promises');
- const pdf=await (await route.GET()).text();
- assert.equal(await readFile(new URL('../public/garden-room-framing-set.pdf',import.meta.url),'utf8'),pdf);
- const pages=pdf.split('stream\n').filter((_,i)=>i%2===1);
+ const pdf=await (await fullPdf()).text();
+ for(const part of PDF_PARTS)assert.equal(await readFile(new URL(`../public/${part.filename}`,import.meta.url),'utf8'),new TextDecoder().decode(generateFramingPdf(defaultSettings(),part.id)));
  const titles=['Front wall - dimensioned elevation','Front wall - cutting schedule','Rear wall - dimensioned elevation','Rear wall - cutting schedule','Left gable wall - dimensioned elevation','Left gable wall - cutting schedule','Right gable wall - dimensioned elevation','Right gable wall - cutting schedule','Roof framing','Roof cutting and set-out','Gable rafters - dimensions','French-door','French-door','Black-and-white'];
  let pos=-1;for(const title of titles){pos=pdf.indexOf(title,pos+1);assert.ok(pos>=0,title);}
  assert.doesNotMatch(pdf,/Board schedule - section/);
@@ -74,14 +75,14 @@ test('roof BOM excludes gable members already counted by walls',async()=>{
  assert.deepEqual(rows.slice(5).map(r=>[r.qty,r.length]),[[24,355],[2,200],[4,183],[2,55]]);
 });
 test('roof plan dimensions both shortened end bays to the first regular rafters',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  assert.match(pdf,/End bays - gable end-rafter C\/L to first regular rafter C\/L: left 245 mm; right 100 mm/);
  assert.match(pdf,/245 C\/L/);
  assert.match(pdf,/100 C\/L/);
 });
 
 test('roof schedule includes the agreed mirrored chamfers and removes the unresolved clash warning',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  assert.match(pdf,/TIE-END CHAMFERS - SIDE ELEVATION/);
  assert.match(pdf,/39\.5 vertical cut x 84\.7 horizontal run/);
  assert.match(pdf,/60\.5 end/);
@@ -91,7 +92,7 @@ test('roof schedule includes the agreed mirrored chamfers and removes the unreso
  assert.doesNotMatch(square,/0 cut/);
 });
 test('last sheet shows the centred timber bearing and measured masonry datums',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  const last=pdf.slice(pdf.indexOf('Timber frame positioning on the dwarf wall'));
  assert.match(last,/5005 x 3015/);assert.match(last,/5000 x 3010/);
  assert.match(last,/2\.5 mm internal timber overhang/);
@@ -100,7 +101,7 @@ test('last sheet shows the centred timber bearing and measured masonry datums',a
 });
 
 test('enlarged rafter tail dimensions the flat cut and final plan identifies butt joints',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  const cuts=pdf.slice(pdf.indexOf('Gable rafters - dimensions'),pdf.indexOf('French-door front'));
  assert.equal((cuts.match(/117\.6 horizontal soffit cut/g)||[]).length,2);
  const last=pdf.slice(pdf.indexOf('Timber frame positioning on the dwarf wall'));
@@ -112,7 +113,7 @@ test('enlarged rafter tail dimensions the flat cut and final plan identifies but
 
 
 test('roof plan and eaves section dimension outside fascia faces',async()=>{
- const pdf=await (await route.GET()).text();
+ const pdf=await (await fullPdf()).text();
  assert.match(pdf,/5690 outer fascia to outer fascia/);
  assert.match(pdf,/3700 H fascia overall depth/);
  assert.equal((pdf.match(/250 to fascia/g)||[]).length,2);
@@ -141,3 +142,25 @@ test('OSB cross-joints have continuous blocking across both slopes including fly
  }
 });
 
+
+test('API exports each independently numbered PDF and rejects unknown parts',async()=>{
+ for(const part of PDF_PARTS){
+  const get=await route.GET(new Request(`http://localhost/api/framing-pdf?part=${part.id}`));
+  const form=new FormData();form.set('config',JSON.stringify(defaultSettings()));form.set('part',part.id);form.set('output','download');
+  const posted=await route.POST(new Request('http://localhost/api/framing-pdf',{method:'POST',body:form}));
+  const pdf=await get.text();assert.equal(await posted.text(),pdf);
+  assert.match(posted.headers.get('Content-Disposition'),new RegExp(part.filename));
+  assert.equal((pdf.match(/\/Type \/Page\b/g)||[]).length,part.pageCount);
+  assert.match(pdf,new RegExp(`page 1 of ${part.pageCount}`));
+  assert.match(pdf,new RegExp(`page ${part.pageCount} of ${part.pageCount}`));
+ }
+ assert.equal((await route.GET(new Request('http://localhost/api/framing-pdf?part=bad'))).status,400);
+});
+
+test('the split retains every original page, sharing only the drawing key',()=>{
+ const streams=part=>new TextDecoder().decode(generateFramingPdf(defaultSettings(),part)).split('stream\n').filter((_,i)=>i%2===1).map(stream=>stream.split('\n').filter(line=>!line.includes('Garden room ')).join('\n'));
+ const full=streams(),timber=streams('timber'),construction=streams('construction');
+ assert.equal(timber.length+construction.length,full.length+1);
+ for(const page of full)assert.ok([...timber,...construction].includes(page));
+ assert.equal(timber.filter(page=>construction.includes(page)).length,1);
+});

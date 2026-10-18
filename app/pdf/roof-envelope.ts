@@ -6,7 +6,7 @@ function title(c:ReturnType<typeof canvas>,name:string,s:Settings){
  c.text(name,12,12,14,true);
  c.text(`mm ALONG THE ${fmt(s.roofPitch)} DEG SLOPE; widths parallel to ridge.`,12,21,9,true);
 }
-function footer(c:ReturnType<typeof canvas>,page:number,total:number){c.text(`Roof envelope | ${page} / ${total}`,148.5,205,6.4,false,'center');}
+function footer(c:ReturnType<typeof canvas>,page:number,total:number){c.text(`Garden room framing set | roof envelope | page ${page} of ${total}`,148.5,205,6.4,false,'center');}
 export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas()){
  const m=roofEnvelope(s);title(c,'Roof OSB / PIR',s);
  // Two developed slopes use independent axes, retaining the actual sheet proportions.

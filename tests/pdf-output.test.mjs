@@ -2,9 +2,17 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("serves one thirty-page monochrome technical PDF with a door-level sheet", async () => {
-  const pdf = (await readFile(new URL('../dist/garden-room-framing-set.pdf', import.meta.url))).toString('latin1');
-  assert.equal((pdf.match(/\/Type \/Page\b/g) ?? []).length, 30);
+test("serves separate timber and construction PDFs with all original drawing content", async () => {
+  const timber = (await readFile(new URL('../dist/garden-room-timber-framing.pdf', import.meta.url))).toString('latin1');
+  const construction = (await readFile(new URL('../dist/garden-room-construction-details.pdf', import.meta.url))).toString('latin1');
+  const pdf=timber+construction;
+  assert.equal((timber.match(/\/Type \/Page\b/g) ?? []).length, 15);
+  assert.equal((construction.match(/\/Type \/Page\b/g) ?? []).length, 16);
+  assert.match(timber,/Roof framing/);
+  assert.match(timber,/Timber frame positioning on the dwarf wall/);
+  assert.doesNotMatch(timber,/OSB wall sheet nests|Bathroom/);
+  assert.match(construction,/OSB wall sheet nests/);
+  assert.doesNotMatch(construction,/Front wall - dimensioned elevation/);
   assert.match(pdf, /French-door front elevation and vertical build-up/);
   assert.match(pdf, /1400 LEAF HEIGHT OMITTED/);
   assert.match(pdf, /PROFILED CILL 38 MAX/);
@@ -28,14 +36,16 @@ test("serves one thirty-page monochrome technical PDF with a door-level sheet", 
   const floorSchedule = pdf.slice(pdf.indexOf("FLOOR COMPONENTS - TOP DOWN"), pdf.indexOf("DOOR ASSEMBLY"));
   assert.match(floorSchedule, /parquet/i);
   assert.doesNotMatch(floorSchedule, /Tie beam|Door lintel|Brick threshold course/);
-  assert.match(pdf, /door front elevation \| page 14 of 30/);
+  assert.match(pdf, /door front elevation \| page 1 of 16/);
   assert.doesNotMatch(pdf, /colour PDF/);
 });
 
-test("shows only the technical PDF controls", async () => {
+test("shows both PDF parts and adjusted export controls", async () => {
   const source = await readFile(new URL("../app/framing-designer.tsx", import.meta.url), "utf8");
-  assert.match(source, /Open technical PDF/);
-  assert.match(source, /Download technical PDF/);
+  assert.match(source, /PDF_PARTS.map/);
+  assert.match(source, /Open PDF/);
+  assert.match(source, /Download PDF/);
+  assert.match(source, /exportAdjustedPdf\(part.id/);
   assert.doesNotMatch(source, /Open six-page PDF|Open B&amp;W PDF|name="style"/);
 });
 

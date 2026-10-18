@@ -93,7 +93,7 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   // Short face dimensions have their own staggered rails beneath the roof.
   hTechnical(c,X(r.ties[0]-r.width/2),X(r.ties[0]+r.width/2),tailRear,tailRear+16,`${f(r.width)} tie width`,4.5);
   hTechnical(c,X(r.ties[0]),X(r.ties[0]+r.offset),tailRear,tailRear+22,`${f(r.offset)} tie/rafter C/L`,4.5);
-  c.text(`${n.blocks.length} noggins ${settings.studFace} x ${settings.studDepth}: top faces flush with roof deck; 1,200 mm ridge row + 3 mm OSB joint. Cut lengths: page 10.`,12,196.5,6);
+  c.text(`${n.blocks.length} noggins ${settings.studFace} x ${settings.studDepth}: top faces flush with roof deck; 1,200 mm ridge row + 3 mm OSB joint. Cut lengths: roof cutting schedule.`,12,196.5,6);
   c.text(`H = horizontal plan distance; [S] = along one ${settings.roofPitch} deg roof slope. Across-ridge totals use H only. C/L = centreline; C/C = centres.`,12,200,6);
   c.text(`Garden room framing set | page ${page} of ${total} | verify structural sizing and as-built dimensions before cutting`,148.5,205,6.2,false,"center",[90,90,90]);
   return c.stream();

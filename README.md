@@ -1,6 +1,6 @@
 # Garden Room Framing Designer
 
-Garden-room wall elevations, cutting schedules, roof and construction details, and a 30-page technical PDF.
+Garden-room wall elevations, cutting schedules, roof and construction details, and two technical PDFs: timber framing (15 pages) and sheathing, insulation and interiors (16 pages).
 
 ## Keep the app and master spec in sync
 
@@ -22,7 +22,7 @@ npm test
 npm run preview
 ```
 
-The production files are in `dist/`. The app is configured for `/garden-room-framing/` on GitHub Pages. The default PDF is generated during the build. Adjusted PDFs are generated directly in the browser without a server.
+The production files are in `dist/`. The app is configured for `/garden-room-framing/` on GitHub Pages. Both default PDFs are generated during the build. Each has independent page numbering and a drawing key. Adjusted PDFs are generated directly in the browser without a server.
 
 ## Deploy
 

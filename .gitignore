@@ -44,3 +44,6 @@ next-env.d.ts
 /public/garden-room-framing-set.pdf
 
 *.tsbuildinfo
+
+/public/garden-room-timber-framing.pdf
+/public/garden-room-construction-details.pdf
