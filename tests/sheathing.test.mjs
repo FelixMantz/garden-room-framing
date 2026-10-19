@@ -93,12 +93,15 @@ test('lower-wall drawing shares the OSB base clearance and corner page contains 
  assert.ok(!corner.includes('BOTTOM EDGE'));assert.ok(!corner.includes('TOP EDGES'));
 });
 
-test('Construction details tab renders one labelled external corner SVG',async()=>{
+test('Construction details tab renders the cill assessment and labelled external corner SVGs',async()=>{
  const {renderToStaticMarkup}=await import('react-dom/server');
  const {createElement}=await import('react');
  const {default:ConstructionDetails}=await v.ssrLoadModule('/app/construction-details.tsx');
  const html=renderToStaticMarkup(createElement(ConstructionDetails,{settings:defaultSettings()}));
- assert.equal((html.match(/<svg\b/g)||[]).length,1);
+ assert.equal((html.match(/<svg\b/g)||[]).length,2);
+ assert.ok(html.includes('Window cill depth assessment'));
+ assert.ok(html.includes('37.0 mm projection'));
+ assert.ok(html.includes('Window cill - wall section'));
  for(const label of ['Long-wall OSB','Side-wall OSB','California return stud','Corner post - 45 x 45','Side blind vertical batten','3 mm clear'])assert.ok(html.includes(label),label);
  assert.ok(!html.includes('Floor build-up and dwarf wall'));assert.ok(!html.includes('Timber frame positioning'));
 });
@@ -129,4 +132,15 @@ test('whole-mm wall cuts preserve door-head clearance and the installed roof slo
    }
   }
  }
+});
+
+test('cill projection includes the frame footprint, cladding envelope and proud trims',async()=>{
+ const {windowCillModel}=await v.ssrLoadModule('/app/window-cill.ts');
+ const settings=defaultSettings(),m=windowCillModel(settings);
+ assert.deepEqual(m.options.map(o=>o.projection),[-18,37,67]);
+ assert.equal(m.frameBack,-59);assert.equal(m.requiredFrameOffset,14);
+ assert.equal(windowCillModel(settings,{frameOuterOffset:0}).projection,26);
+ assert.equal(windowCillModel(settings,{frameOuterOffset:14}).meetsTarget,true);
+ assert.equal(windowCillModel(settings,{claddingEnvelope:22,trimProud:5}).projection,28);
+ assert.equal(windowCillModel(settings,{cillDepth:180}).projection,67);
 });

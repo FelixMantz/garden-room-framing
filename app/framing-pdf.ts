@@ -12,10 +12,11 @@ import { drawSheathing, drawSheathingCuts, drawSheathingCutsContinued, drawSheat
 import { drawFloor, drawBathroom, drawBathroomDoor } from "./pdf/bathroom";
 import {drawRoofEnvelope,drawRoofEnvelopeCuts,drawRoofEnvelopeDetails,drawRoofBattens} from './pdf/roof-envelope';
 import { drawTieConnection } from './pdf/tie-connection';
-export const FRAMING_PDF_PAGE_COUNT=31;
+import { drawWindowCill } from './pdf/window-cill';
+export const FRAMING_PDF_PAGE_COUNT=32;
 export const PDF_PARTS = [
   {id:'timber', label:'Part 1 - Timber framing', filename:'garden-room-timber-framing.pdf', pageCount:16},
-  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:16},
+  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:17},
 ] as const;
 export type PdfPart = typeof PDF_PARTS[number]['id'];
 export function generateFramingPdf(settings:Settings,part?:PdfPart){
@@ -27,12 +28,13 @@ export function generateFramingPdf(settings:Settings,part?:PdfPart){
   pages.push((p,t)=>drawRoof(settings,p,t),(p,t)=>drawRoofSchedule(settings,p,t),(p,t)=>drawCuts(settings,p,t),
     (p,t)=>drawDoorVertical(settings,p,t),(p,t)=>drawDoorVertical(settings,p,t,true),(p,t)=>drawEaves(settings,p,t),(p,t)=>drawLowerWall(settings,p,t),drawPatternKey,(p,t)=>drawFramePosition(settings,p,t),(p,t)=>drawSheathing(settings,p,t),(p,t)=>drawSheathingCuts(settings,p,t),(p,t)=>drawSheathingCutsContinued(settings,p,t),(p,t)=>drawSheathingDetails(settings,p,t),(p,t)=>drawFloor(settings,p,t),(p,t)=>drawBathroom(settings,p,t),(p,t)=>drawBathroomDoor(settings,p,t),(p,t)=>drawRoofEnvelope(settings,p,t),(p,t)=>drawRoofEnvelopeCuts(settings,p,t),(p,t)=>drawRoofEnvelopeDetails(settings,p,t),(p,t)=>drawRoofBattens(settings,p,t));
   pages.push((p,t)=>drawTieConnection(settings,p,t));
+  pages.push((p,t)=>drawWindowCill(settings,p,t));
   // Original drawing order is retained for regression comparisons. Each published
   // part has its own numbering; include the material key in both for standalone use.
   const selected=part==='timber'
     ? [...pages.slice(0,13),pages[30],pages[17],pages[18]]
     : part==='construction'
-      ? [...pages.slice(13,17),...pages.slice(19,30),pages[17]]
+      ? [...pages.slice(13,17),...pages.slice(19,30),pages[31],pages[17]]
       : pages;
   const label=PDF_PARTS.find(item=>item.id===part)?.label;
   return buildPdf(selected.map((draw,i)=>{
