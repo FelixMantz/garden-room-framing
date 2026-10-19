@@ -6,9 +6,12 @@ test("serves separate timber and construction PDFs with all original drawing con
   const timber = (await readFile(new URL('../dist/garden-room-timber-framing.pdf', import.meta.url))).toString('latin1');
   const construction = (await readFile(new URL('../dist/garden-room-construction-details.pdf', import.meta.url))).toString('latin1');
   const pdf=timber+construction;
-  assert.equal((timber.match(/\/Type \/Page\b/g) ?? []).length, 15);
+  assert.equal((timber.match(/\/Type \/Page\b/g) ?? []).length, 16);
   assert.equal((construction.match(/\/Type \/Page\b/g) ?? []).length, 16);
   assert.match(timber,/Roof framing/);
+  assert.match(timber,/M10 x 180 A2 coach bolt/);
+  assert.match(timber,/28 dia. counterbore/);
+  assert.doesNotMatch(construction,/tie beam connection/);
   assert.match(timber,/Timber frame positioning on the dwarf wall/);
   assert.doesNotMatch(timber,/OSB wall sheet nests|Bathroom/);
   assert.match(construction,/OSB wall sheet nests/);
