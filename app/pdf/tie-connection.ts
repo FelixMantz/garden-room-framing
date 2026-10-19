@@ -42,7 +42,9 @@ export function drawTieConnection(s:Settings,page:number,total:number){
  c.text('24.65 dia. head; 5.38 high; fully threaded',12,35,7.5);
  c.text('28 dia. counterbore',12,44,8,true);
  c.text('12 deep vertically at bolt centre',12,50,7.5);
- leader(bolt,seat,58,51);
+ c.text(`${fmt(12-14*slope)} shallow side (towards tie end)`,12,56,7.5);
+ c.text(`${fmt(12+14*slope)} deep side (towards tie centre)`,12,62,7.5);
+ leader(bolt,seat,105,44);
  c.text('11 OSB',234,27,9,true);leader(245,top(245)+deck/2,250,30);
  c.text('Rafter',253,53,9,true);leader(232,top(232)-30,259,55);
  c.text('Chamfer',15,70,8,true);leader(12,top(12),44,69);
