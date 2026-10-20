@@ -10,6 +10,12 @@ export function drawTieConnection(s:Settings,page:number,total:number){
  const bolt=s.studDepth/2,seat=end+bolt*slope-12,plates=2*s.studFace;
  const top=(x:number)=>end+x*slope;
  const leader=(x:number,z:number,tx:number,ty:number)=>{c.line(X(x),Y(z),tx,ty,[0,0,0],.18);};
+ const arrowLeader=(points:number[][])=>{
+  for(let i=1;i<points.length;i++)c.line(...points[i-1] as [number,number],...points[i] as [number,number],[0,0,0],.18);
+  const tip=points.at(-1)!,prev=points.at(-2)!,len=Math.hypot(tip[0]-prev[0],tip[1]-prev[1]);
+  const ux=(tip[0]-prev[0])/len,uy=(tip[1]-prev[1])/len;
+  c.polygon([tip,[tip[0]-1.4*ux+.5*uy,tip[1]-1.4*uy-.5*ux],[tip[0]-1.4*ux-.5*uy,tip[1]-1.4*uy+.5*ux]],[0,0,0]);
+ };
  c.text('Tie beam / rafter connection',12,12,14,true);
  c.text('Side view - adjacent rafter shown behind the tie beam | dimensions in mm',12,19,8);
  // Rafter and continuous roof deck behind the foreground tie.
@@ -38,14 +44,16 @@ export function drawTieConnection(s:Settings,page:number,total:number){
   c.line(X(x-2),Y(z-2),X(x+2),Y(z+2),[0,0,0],.3);
   c.line(X(x-2),Y(z+2),X(x+2),Y(z-2),[0,0,0],.3);
  }
- c.text('M10 x 180 A2 coach bolt - DIN 603',12,29,9,true);
- c.text('24.65 dia. head; 5.38 high; fully threaded',12,35,7.5);
+ c.rect(143,24,82,14,[255,255,255],[255,255,255],0);
+ c.text('M10 x 180 A2 coach bolt - DIN 603',145,29,9,true);
+ c.text('24.65 dia. head; 5.38 high; fully threaded',145,35,7.5);
+ arrowLeader([[143,33],[125,33],[125,Y(seat+3)],[X(bolt+5),Y(seat+3)]]);
  c.text('28 dia. counterbore',12,44,8,true);
  c.text('12 deep vertically at bolt centre',12,50,7.5);
  c.text(`${fmt(12-14*slope)} shallow side (towards tie end)`,12,56,7.5);
  c.text(`${fmt(12+14*slope)} deep side (towards tie centre)`,12,62,7.5);
  c.text(`${fmt(s.tieDepth-seat)} deep from original flat top`,12,68,7.5,true);
- leader(bolt,seat,105,44);
+ arrowLeader([[61,67],[74,67],[X(bolt-14),Y(seat+(12-14*slope)/2)]]);
  c.text('11 OSB',234,27,9,true);leader(245,top(245)+deck/2,250,30);
  c.text('Rafter',253,53,9,true);leader(232,top(232)-30,259,55);
  c.text('Chamfer',15,78,8,true);leader(12,top(12),44,77);
