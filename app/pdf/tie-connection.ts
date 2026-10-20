@@ -44,10 +44,11 @@ export function drawTieConnection(s:Settings,page:number,total:number){
  c.text('12 deep vertically at bolt centre',12,50,7.5);
  c.text(`${fmt(12-14*slope)} shallow side (towards tie end)`,12,56,7.5);
  c.text(`${fmt(12+14*slope)} deep side (towards tie centre)`,12,62,7.5);
+ c.text(`${fmt(s.tieDepth-seat)} deep from original flat top`,12,68,7.5,true);
  leader(bolt,seat,105,44);
  c.text('11 OSB',234,27,9,true);leader(245,top(245)+deck/2,250,30);
  c.text('Rafter',253,53,9,true);leader(232,top(232)-30,259,55);
- c.text('Chamfer',15,70,8,true);leader(12,top(12),44,69);
+ c.text('Chamfer',15,78,8,true);leader(12,top(12),44,77);
  c.rect(160,82,70,23,[255,255,255],[255,255,255],0);
  c.text('Oak tie beam',164,88,10,true);
  c.text(`${fmt(s.tieWidth)} depth into page`,164,95,8);
@@ -63,6 +64,8 @@ export function drawTieConnection(s:Settings,page:number,total:number){
  c.text('11 dia. through-hole',151,181,8);leader(bolt,-40,148,179);
  vTechnical(c,Y(end),Y(0),X(0),X(0)-8,`${fmt(end)} end`,8,'left');
  vTechnical(c,Y(s.tieDepth),Y(0),X(255),X(255)+8,`${fmt(s.tieDepth)} height`,8);
+ c.line(X(0),Y(s.tieDepth),X(d.run),Y(s.tieDepth),[0,0,0],.12,[1,1]);
+ hTechnical(c,X(0),X(d.run),Y(s.tieDepth),38,`${fmt(d.run)} chamfer run`,7);
  hTechnical(c,X(0),X(bolt),Y(0),Y(0)+8,fmt(bolt),7);
  hTechnical(c,X(bolt),X(s.studDepth),Y(0),Y(0)+8,fmt(bolt),7);
  hTechnical(c,X(0),X(s.studDepth),Y(-plates),190,`${fmt(s.studDepth)} plate width`,8);
