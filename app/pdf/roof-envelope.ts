@@ -23,8 +23,7 @@ export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas())
    for(const x of m.structural)c.line(X(x),Y(0),X(x),Y(m.deck.deckSlope),black,.12,[1,1]);
    c.line(X(m.left),Y(m.deck.fromRidgeSlope),X(m.right),Y(m.deck.fromRidgeSlope),black,.7);
    hTechnical(c,X(m.left),X(m.right),Y(0),top-2,`${fmt(m.width)}`,8);
-   vTechnical(c,Y(m.perimeterGap),Y(1200),X(m.right),X(m.right)+9,fmt(m.upperHeight),8);
-   vTechnical(c,Y(1203),Y(m.deck.deckSlope-m.perimeterGap),X(m.right),X(m.right)+9,fmt(m.lower),8);
+   vTechnical(c,Y(m.perimeterGap),Y(m.deck.deckSlope-m.perimeterGap),X(m.right),X(m.right)+9,fmt(m.stripLength),8);
    vTechnical(c,Y(0),Y(m.deck.deckSlope),X(m.right),X(m.right)+18,fmt(m.deck.deckSlope),8);
   }else{
    c.line(X(m.left),Y(0),X(m.right),Y(0),black,.2,[1,1]);
@@ -34,7 +33,7 @@ export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas())
   c.text('Ridge',X(m.left)-2,top+3,7,true,'right');c.text('Eaves',X(m.left)-2,Y(m.deck.deckSlope)-1,7,true,'right');
  }
  plan('osb',40);plan('pir',123);
- c.text(`Noggin C/L ${fmt(m.deck.fromRidgeSlope)}; joints 3.`,12,109,8);
+ c.text(`Noggin C/L ${fmt(m.deck.fromRidgeSlope)}; continuous OSB strips; column joints 3.`,12,109,8);
  c.text('Heavy: noggins | dotted: rafters | dashed: walls',12,193,8);
  c.text('OSB: 3 mm perimeter setback; 3 mm sheet joints.',285,193,8,false,'right');
  footer(c,page,total);return c.stream();
@@ -53,15 +52,13 @@ export function drawRoofEnvelopeCuts(s:Settings,page:number,total:number,c=canva
   c.text(`${sheets.length} sheets - ${fmt(g.w)} mm wide`,x,41,9,true);
   c.text(`Sheets ${sheets.join(', ')}`,x,46,7);
   c.rect(x,50,1220*sc,2440*sc,'floor');
-  c.rect(x,50,g.w*sc,m.upperHeight*sc,'timber');
-  c.rect(x,50+(m.upperHeight+3)*sc,g.w*sc,m.lower*sc,[255,255,255]);
-  c.text(g.indices.map(j=>`U${j+1}`).join(' / '),x+g.w*sc/2,50+m.upperHeight/2*sc,7,true,'center');
-  c.text(g.indices.map(j=>`E${j+1}`).join(' / '),x+g.w*sc/2,50+(m.upperHeight+3+m.lower/2)*sc,7,true,'center');
-  c.text(`${fmt(g.w)} x ${fmt(m.upperHeight)} mm`,x+35,50+m.upperHeight/2*sc,8);
-  c.text(`${fmt(g.w)} x ${fmt(m.lower)} mm`,x+35,50+(m.upperHeight+3+m.lower/2)*sc,8);
-  c.text('Each sheet: 1 upper + 1 eaves panel',x,118,7);
+  c.rect(x,50,g.w*sc,m.stripLength*sc,'timber');
+  c.text(g.indices.map(j=>`D${j+1}`).join(' / '),x+g.w*sc/2,50+m.stripLength/2*sc,7,true,'center');
+  c.text(`${fmt(g.w)} x ${fmt(m.stripLength)} mm`,x+35,50+m.stripLength/2*sc,8);
+  c.text('Each sheet: 1 continuous ridge-to-eaves strip',x,118,6.5);
+
  });
- c.text(`Slope set-out: 3 + ${fmt(m.upperHeight)} + 3 + ${fmt(m.lower)} + 3 = ${fmt(m.deck.deckSlope)} mm.`,12,124,8);
+ c.text(`Slope set-out: 3 + ${fmt(m.stripLength)} + 3 = ${fmt(m.deck.deckSlope)} mm; no cross-slope OSB joint.`,12,124,8);
  c.text('PIR 2400 x 1200 x 100 | kerf 3',12,130,10,true);
  const sc=42/2400,top=144;
  const nests=[{label:'1-4',parts:[{id:'RU1 / RU2',w:2400,h:1200}]},{label:'5',parts:[{id:'RU3',w:m.width-4800,h:1200},{id:'RU3',w:m.width-4800,h:1200}]},{label:'6-9',parts:[{id:'RE2 / RE3',w:2400,h:m.pirLower}]},{label:'10',parts:[{id:'RE1',w:m.width-4800,h:m.pirLower},{id:'RE1',w:m.width-4800,h:m.pirLower}]}];
@@ -128,11 +125,11 @@ export function drawRoofEnvelopeDetails(s:Settings,page:number,total:number,c=ca
   }
  }
  strip('upper',126);strip('lower',151);
- c.text('45 x 95 noggins: one sheet-joint row per slope',12,177,10,true);
+ c.text('45 x 95 noggins: intermediate support below continuous OSB',12,177,10,true);
  const gx=24,gy=183,gw=220,gh=9;
  c.rect(gx,gy,gw,gh);for(const x of [gx,gx+55,gx+110,gx+165,gx+220])c.line(x,gy,x,gy+gh,black,.7);
  c.line(gx,gy+gh/2,gx+gw,gy+gh/2,black,.65);
- c.text(`${m.blocking.length} seam blocks total | joint C/L ${fmt(m.deck.fromRidgeSlope)} from ridge | no added edge rows`,12,198,8);
+ c.text(`${m.blocking.length} support blocks total | row C/L ${fmt(m.deck.fromRidgeSlope)} from ridge | no added edge rows`,12,198,8);
  footer(c,page,total);return c.stream();
 }
 export function drawRoofBattens(s:Settings,page:number,total:number,c=canvas()){

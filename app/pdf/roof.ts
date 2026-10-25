@@ -38,7 +38,7 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
     c.rect(fasciaRight-r.fasciaThickness*scale,tailFront,r.fasciaThickness*scale,tailRear-tailFront,"timber");
   }
   r.ties.forEach((x,i)=>{c.rect(X(x-r.width/2),Y(0),r.width*scale,r.span*scale,"tie");c.text(`T${i+1}: ${f(x)}`,X(x),tailRear+4,6,true,"center");});
-  // Top-flush blocking follows the sheet seam on both slopes, including verge bays.
+  // Top-flush blocking supports continuous sheets on both slopes, including verge bays.
   n.blocks.forEach(b=>c.rect(X(b.x),Y(b.y-b.planWidth/2),b.length*scale,b.planWidth*scale,"outrigger",[0,0,0],.25));
   c.rect(X(0),Y(ridgeFront),r.length*scale,settings.ridgeWidth*scale,"ridge");
 
@@ -93,7 +93,7 @@ export function drawRoof(settings:Settings,page:number,total:number,c=canvas()){
   // Short face dimensions have their own staggered rails beneath the roof.
   hTechnical(c,X(r.ties[0]-r.width/2),X(r.ties[0]+r.width/2),tailRear,tailRear+16,`${f(r.width)} tie width`,4.5);
   hTechnical(c,X(r.ties[0]),X(r.ties[0]+r.offset),tailRear,tailRear+22,`${f(r.offset)} tie/rafter C/L`,4.5);
-  c.text(`${n.blocks.length} noggins ${settings.studFace} x ${settings.studDepth}: top faces flush with roof deck; 1,200 mm ridge row + 3 mm OSB joint. Cut lengths: roof cutting schedule.`,12,196.5,6);
+  c.text(`${n.blocks.length} noggins ${settings.studFace} x ${settings.studDepth}: top faces flush with roof deck; continuous ridge-to-eaves OSB strips. Cut lengths: roof cutting schedule.`,12,196.5,6);
   c.text(`H = horizontal plan distance; [S] = along one ${settings.roofPitch} deg roof slope. Across-ridge totals use H only. C/L = centreline; C/C = centres.`,12,200,6);
   c.text(`Garden room framing set | page ${page} of ${total} | verify structural sizing and as-built dimensions before cutting`,148.5,205,6.2,false,"center",[90,90,90]);
   return c.stream();

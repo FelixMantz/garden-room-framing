@@ -70,7 +70,7 @@ test('default build artifact matches generator and schedules immediately follow 
 test('roof BOM excludes gable members already counted by walls',async()=>{
  const {roofCutSchedule}=await vite.ssrLoadModule('/app/roof.ts');
  const rows=roofCutSchedule(defaultSettings());
- assert.deepEqual(rows.map(r=>[r.type,r.qty]),[['Field common rafters',26],['Outer fly rafters',4],['Tie beams',3],['Ridge beam',1],['Gable outriggers',8],['OSB seam noggins',24],['OSB seam noggins',2],['OSB seam noggins',4],['OSB seam noggins',2]]);
+ assert.deepEqual(rows.map(r=>[r.type,r.qty]),[['Field common rafters',26],['Outer fly rafters',4],['Tie beams',3],['Ridge beam',1],['Gable outriggers',8],['Roof deck noggins',24],['Roof deck noggins',2],['Roof deck noggins',4],['Roof deck noggins',2]]);
  assert.equal(rows[4].length,183);
  assert.deepEqual(rows.slice(5).map(r=>[r.qty,r.length]),[[24,355],[2,200],[4,183],[2,55]]);
 });

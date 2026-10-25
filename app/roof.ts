@@ -80,7 +80,7 @@ export function roofCutSchedule(settings:Settings){
   {type:'Tie beams',qty:r.count,section:`${r.width} x ${r.depth}`,length:r.span,cut:tieEndClearance(settings).projection>.01?'Chamfer both top corners; see detail':'Square ends; no chamfer required'},
   {type:'Ridge beam',qty:1,section:`${settings.ridgeWidth} x ${settings.ridgeDepth}`,length:r.length,cut:'Square ends; between gable outer faces'},
   ...(r.outriggerRuns.length?[{type:'Gable outriggers',qty:r.outriggerRuns.length*4,section,length:r.outriggerRuns[0].end-r.outriggerRuns[0].start,cut:'Square ends; clear run outside wall'}]:[]),
-  ...[...nogginGroups].sort((a,b)=>b[0]-a[0]).map(([length,qty])=>({type:'OSB seam noggins',qty,section,length,cut:'Square ends; top flush with roof deck plane'})),
+  ...[...nogginGroups].sort((a,b)=>b[0]-a[0]).map(([length,qty])=>({type:'Roof deck noggins',qty,section,length,cut:'Square ends; top flush with roof deck plane'})),
  ];
 }
 

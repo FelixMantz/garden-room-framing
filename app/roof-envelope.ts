@@ -9,10 +9,9 @@ export function roofEnvelope(s:Settings){
  const right=roof.length-left,width=right-left;
  const bounds=[left];let edge=left;
  while(right-edge>1220){const next=roof.rafters.filter(x=>x>edge+100&&x<=edge+1220).at(-1);if(next===undefined)throw Error('Roof OSB seam needs an additional supporting rafter.');bounds.push(next);edge=next;}bounds.push(right);
- const perimeterGap=3,upperHeight=deck.rowWidth-perimeterGap;
+ const perimeterGap=3,stripLength=deck.deckSlope-2*perimeterGap;
  const columns=bounds.slice(0,-1).map((a,i)=>({x:a+(i?gap/2:perimeterGap),w:bounds[i+1]-(i<bounds.length-2?gap/2:perimeterGap)-a-(i?gap/2:perimeterGap)}));
- const lower=deck.deckSlope-deck.rowWidth-gap-perimeterGap;
- const osb=columns.flatMap((q,i)=>[{id:`U${i+1}`,...q,y:perimeterGap,h:upperHeight,sheet:i+1},{id:`E${i+1}`,...q,y:deck.rowWidth+gap,h:lower,sheet:i+1}]);
+ const osb=columns.map((q,i)=>({id:`D${i+1}`,...q,y:perimeterGap,h:stripLength,sheet:i+1}));
  const bevel=thickness*tan,halfRidge=s.ridgeWidth/(2*cos),osbSetback=11*tan;
  // Both plumb ends have the same bevel. The rectangular blank includes the long ridge tip.
  const tip=halfRidge+bevel+osbSetback,pirEnd=deck.deckSlope-osbSetback,jointS=1200-tip,pirLower=pirEnd-jointS;
@@ -33,7 +32,7 @@ export function roofEnvelope(s:Settings){
  const intermediate=roof.rafters.slice(1).flatMap((x,i)=>x-roof.rafters[i]>=200?[(x+roof.rafters[i])/2]:[]);
  const blocking=deck.blocks.map(b=>({...b,x:b.x,y:deck.fromRidgeSlope}));
  const osbSheets=columns.length*2,pirSheets=10;
- const fits=width>4800&&width<=6000&&pirLower>0&&pirLower<=1200&&deck.rowWidth+lower+kerf<=2440&&columns.every(q=>q.w<=1220);
- return {perimeterGap,upperHeight,roof,deck,left,right,width,columns,osb,lower,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
+ const fits=width>4800&&width<=6000&&pirLower>0&&pirLower<=1200&&stripLength+kerf<=2440&&columns.every(q=>q.w<=1220);
+ return {perimeterGap,stripLength,roof,deck,left,right,width,columns,osb,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
 }
 
