@@ -18,8 +18,8 @@ const cutStart=(n:number)=>Math.ceil(n-1e-8),cutEnd=(n:number)=>Math.floor(n+1e-
 // Eaves stop in lower plate; side-wall sheets bridge the wall / gable junction.
 export function wallOsbTop(cfg:WallConfig){return cfg.isSide?gableJointAxis(cfg)-1.5:cfg.wallHeight-cfg.studFace-cfg.studFace/3;}
 export function gableJointAxis(cfg:WallConfig){return Math.max(cfg.parsedNogginRows[0],Math.ceil(gableRoofTop(cfg,cfg.width/2)-2440+1.5));}
-// Continue each roof slope through the ridge pocket: do not flatten the final diagonal.
-// The installed ridge-board pocket is marked and cut separately.
+// Continue each roof slope without flattening the final diagonal.
+// Ridge board ends flush with the gable-end rafters; gable OSB needs no ridge notch.
 export function gableRoofTop(cfg:WallConfig,x:number){const center=cfg.width/2,half=cfg.ridgeWidth/2;return cfg.wallHeight+cfg.gableRise+cfg.rafterSeatLift+cfg.rafterVerticalDepth/2-(Math.abs(x-center)-half)*Math.tan(cfg.roofPitch*Math.PI/180)-3;}
 function grid(cfg:WallConfig){return [...new Set(buildModel(cfg).filter(m=>m.shape==='rect'&&['common stud','end stud','king stud','cripple stud'].includes(m.type)).map(m=>m.x!+m.w!/2))].sort((a,b)=>a-b);}
 function splitRun(a:number,b:number,candidates:number[]){const out=[a];let left=a;while(b-left>OSB_STOCK.width){const next=candidates.filter(x=>x>left+100&&x<=left+OSB_STOCK.width).at(-1);if(next===undefined)throw Error('OSB edge needs an additional supporting stud.');out.push(next);left=next;}out.push(b);return out;}

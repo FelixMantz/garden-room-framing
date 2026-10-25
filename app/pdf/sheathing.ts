@@ -23,7 +23,6 @@ export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
    for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];c.line(X(a[0]),Y(a[1]),X(b[0]),Y(b[1]),[0,0,0],.08,[.6,.6]);}
   }
   for(const o of cfg.computedOpenings){c.rect(X(o.x),Y(o.sill+o.height),o.width*sc,o.height*sc,[255,255,255],[0,0,0],.25);c.text(o.type==='window'?'WINDOW':'DOOR',X(o.x+o.width/2),Y(o.sill+o.height/2),6,true,'center');}
-  if(cfg.gable){const x=cfg.width/2-cfg.ridgeWidth/2;c.rect(X(x),Y(cfg.ridgeTop),cfg.ridgeWidth*sc,(cfg.ridgeTop-cfg.ridgeBottom)*sc,[255,255,255],[0,0,0],.2);c.text('Cut around ridge beam',left+80,title+5,5.5);}
   c.line(X(min),base,X(cfg.isSide?cfg.width+cfg.cornerLap:cfg.width),base,[0,0,0],.15,[2,.7,.3,.7]);
   const mains=p.panels.filter(q=>q.wall===cfg.id&&!q.gable&&!q.id.startsWith('FH'));
   c.text(`Joint axes x: ${mains.filter((q,i)=>i<mains.length-1&&mains[i+1].x-q.x-q.w<=4.01).map(q=>fmt((q.x+q.w+mains[mains.indexOf(q)+1].x)/2)).join(', ')}`,left,base+9,6);
@@ -103,7 +102,7 @@ export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas
   });
  });
  c.text(`Cutting guide ${part+1} of 2`,285,11,9,true,'right');
- c.text('Gable lengths: flat base to each diagonal end BEFORE ridge pocket. Follow roof pitch; mark pocket from fitted ridge.',12,197,6.5);
+ c.text('Gable lengths: flat base to each diagonal end. Follow roof pitch.',12,197,6.5);
  c.text('Lower notches: left arm | opening | right arm. Check installed frame / openings before cutting; retain labelled offcuts.',12,201,6.5);
  footer(c,page,total,'OSB cutting plan');return c.stream();
 }

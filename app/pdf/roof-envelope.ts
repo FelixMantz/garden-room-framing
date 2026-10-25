@@ -42,14 +42,24 @@ export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas())
 export function drawRoofEnvelopeCuts(s:Settings,page:number,total:number,c=canvas()){
  const m=roofEnvelope(s);title(c,'Roof sheet nests',s);
  c.text('OSB 2440 x 1220 x 11 | kerf 3',12,33,10,true);
+ const groups:{w:number,indices:number[]}[]=[];
  m.columns.forEach((q,i)=>{
-  const x=12+i*55,sc=65/2440;
-  c.text(`Sheets ${i+1} / ${i+1+m.columns.length}`,x,42,8,true);
-  c.rect(x,46,1220*sc,2440*sc);
-  c.rect(x,46,q.w*sc,1200*sc,'timber');c.rect(x,46+1203*sc,q.w*sc,m.lower*sc,'floor');
-  c.text(`U${i+1}`,x+q.w*sc/2,46+600*sc,9,true,'center');
-  c.text(`E${i+1}`,x+q.w*sc/2,46+(1203+m.lower/2)*sc,9,true,'center');
-  c.text(`${fmt(q.w)} wide`,x,117,8);
+  const existing=groups.find(g=>Math.abs(g.w-q.w)<.001);
+  if(existing)existing.indices.push(i);else groups.push({w:q.w,indices:[i]});
+ });
+ groups.forEach((g,i)=>{
+  const cell=275/groups.length,x=12+i*cell,sc=62/2440;
+  const sheets=g.indices.flatMap(j=>[j+1,j+1+m.columns.length]).sort((a,b)=>a-b);
+  c.text(`${sheets.length} sheets - ${fmt(g.w)} mm wide`,x,41,9,true);
+  c.text(`Sheets ${sheets.join(', ')}`,x,46,7);
+  c.rect(x,50,1220*sc,2440*sc,'floor');
+  c.rect(x,50,g.w*sc,1200*sc,'timber');
+  c.rect(x,50+1203*sc,g.w*sc,m.lower*sc,[255,255,255]);
+  c.text(g.indices.map(j=>`U${j+1}`).join(' / '),x+g.w*sc/2,50+600*sc,7,true,'center');
+  c.text(g.indices.map(j=>`E${j+1}`).join(' / '),x+g.w*sc/2,50+(1203+m.lower/2)*sc,7,true,'center');
+  c.text(`${fmt(g.w)} x 1200 mm`,x+35,50+600*sc,8);
+  c.text(`${fmt(g.w)} x ${fmt(m.lower)} mm`,x+35,50+(1203+m.lower/2)*sc,8);
+  c.text('Each sheet: 1 upper + 1 eaves panel',x,118,7);
  });
  c.text(`OSB lower face: 1200 + 3 + ${fmt(m.lower)} = ${fmt(m.deck.deckSlope)}; square both ends.`,12,124,8);
  c.text('PIR 2400 x 1200 x 100 | kerf 3',12,130,10,true);
