@@ -26,7 +26,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text('Eaves - roof build-up and gutter junction',12,11,14,true);
   c.text(`Section down the roof slope | pitch ${fmt(s.roofPitch)} degrees | dimensions in mm | do not scale`,12,18,8);
   c.text(`${fmt(s.gableOverhang)} mm horizontal: outer wall framing to outer fascia; ${fmt(eavesTailRun)} mm to rafter tail.`,12,24,7.5);
-  // Set-out uses the deck-end plumb line projected onto the tile plane.
+  // Set-out uses the rafter-tail plumb line projected onto the tile plane.
   // D is the actual cleat hook-to-leg depth along the slope; not published.
   const gutterProjection=40, cleatDepthShown=80;
   const noseDownSlope=(fasciaThickness+gutterProjection)/co;
@@ -68,7 +68,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   line([wallVclX,wallBottom],[wallVclX,wallPlateBottom],.55,[2,.7]);
   line([wallVclX,wallPlateBottom],[wallInner,wallPlateBottom],.55,[2,.7]);
   line([wallInner,wallPlateBottom],[wallInner,y(wallInner,0)],.55,[2,.7]);
-  layer(0,osb,'floor');
+  layer(0,osb,'floor',left+3*co*scale);
   layer(osb,top,[255,255,255]);
   // Roof polythene VCL is on the deck, below PIR; it does not join the wall VCL.
   line([left,y(left,osb)],[right,y(right,osb)],.55,[2,.7]);
@@ -155,7 +155,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   leader('PIR insulation 100',right,y(right,osb+50),197,100);
   leader('Polythene VCL - 250 micron',right,y(right,osb),197,111);
   c.text('On OSB, below PIR; tape laps / penetrations.',197,116,6.2);
-  leader('OSB roof deck 11',right-12,y(right-12,osb/2),197,122);
+  leader('OSB roof deck 11; eaves setback 3',right-12,y(right-12,osb/2),197,122);
   leader(`Rafter ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,right,y(right,-s.studDepth/2),197,132);
   leader('Extralight starter cleat',tileEdgeX,y(tileEdgeX,cleatTop),15,79);
   leader('Vent inlet above membrane',left-1,y(left-1,top+12),15,104);
@@ -184,7 +184,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   hTechnical(c,left-fasciaThickness*scale,wallX,fasciaBottom,181,`${fmt(s.gableOverhang)} wall to outer fascia`,5.5);
   c.text('STARTER CLEAT / BATTEN SET-OUT',100,35,8,true);
   c.text(`Target: 40 mm horizontal tile projection past fascia.`,100,41,6.4);
-  c.text(`Batten start = D - ${fmt(noseDownSlope)} mm upslope of deck-end plumb datum.`,100,47,6.4);
+  c.text(`Batten start = D - ${fmt(noseDownSlope)} mm upslope of rafter-tail plumb datum.`,100,47,6.4);
   c.text(`Measure D along slope: engaged tile edge to cleat abutment leg.`,100,53,6.4);
   c.text('Dry-fit one tile + cleat; mark leg, then start every batten there.',100,59,6.4);
   c.text('Cleat parallel to roof; underside lip at 90 degrees; D schematic.',100,65,6.4);

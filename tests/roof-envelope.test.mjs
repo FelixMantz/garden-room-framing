@@ -12,6 +12,10 @@ test('roof OSB nests fit stock, joints have backing, broad end panels bridge gab
  assert.ok(m.columns[0].x<0&&m.columns[0].x+m.columns[0].w>0);
  assert.ok(m.columns.at(-1).x<m.roof.length&&m.columns.at(-1).x+m.columns.at(-1).w>m.roof.length);
  assert.ok(1200+3+m.lower<=2440);assert.equal(m.deck.fromRidgeSlope,1201.5);
+ assert.equal(m.columns[0].x-m.left,3);
+ assert.equal(m.right-m.columns.at(-1).x-m.columns.at(-1).w,3);
+ assert.equal(m.osb[0].y,3);assert.equal(m.osb[0].h,1197);
+ assert.ok(Math.abs(m.osb[1].y+m.osb[1].h-(m.deck.deckSlope-3))<1e-8);
  assert.equal(m.blocking.length,32);
  assert.ok(m.blocking.every(b=>b.y===1201.5));
 });
@@ -32,7 +36,7 @@ test('PIR covers ridge-to-eaves with staggered joints, plumb bevels and a rebate
  // Square OSB cut: its bottom corner touches x=0; its upper corner stays outside.
  assert.ok(Math.abs(world([0,-11]).x)<1e-8);assert.ok(Math.abs(world([0,-11]).z)<1e-8);
  assert.ok(world([0,0]).x<0);
- assert.ok(Math.abs(m.osb[0].h+m.lower+3-m.deck.deckSlope)<1e-8);
+ assert.ok(Math.abs(m.osb[0].h+m.lower+3+2*m.perimeterGap-m.deck.deckSlope)<1e-8);
 
 });
 test('batten overlay matches the agreed fixing counts',()=>{

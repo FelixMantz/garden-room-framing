@@ -23,8 +23,8 @@ export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas())
    for(const x of m.structural)c.line(X(x),Y(0),X(x),Y(m.deck.deckSlope),black,.12,[1,1]);
    c.line(X(m.left),Y(m.deck.fromRidgeSlope),X(m.right),Y(m.deck.fromRidgeSlope),black,.7);
    hTechnical(c,X(m.left),X(m.right),Y(0),top-2,`${fmt(m.width)}`,8);
-   vTechnical(c,Y(0),Y(1200),X(m.right),X(m.right)+9,'1200',8);
-   vTechnical(c,Y(1203),Y(m.deck.deckSlope),X(m.right),X(m.right)+9,fmt(m.lower),8);
+   vTechnical(c,Y(m.perimeterGap),Y(1200),X(m.right),X(m.right)+9,fmt(m.upperHeight),8);
+   vTechnical(c,Y(1203),Y(m.deck.deckSlope-m.perimeterGap),X(m.right),X(m.right)+9,fmt(m.lower),8);
    vTechnical(c,Y(0),Y(m.deck.deckSlope),X(m.right),X(m.right)+18,fmt(m.deck.deckSlope),8);
   }else{
    c.line(X(m.left),Y(0),X(m.right),Y(0),black,.2,[1,1]);
@@ -36,7 +36,7 @@ export function drawRoofEnvelope(s:Settings,page:number,total:number,c=canvas())
  plan('osb',40);plan('pir',123);
  c.text(`Noggin C/L ${fmt(m.deck.fromRidgeSlope)}; joints 3.`,12,109,8);
  c.text('Heavy: noggins | dotted: rafters | dashed: walls',12,193,8);
- c.text('OSB square ends; lower-corner datums.',285,193,8,false,'right');
+ c.text('OSB: 3 mm perimeter setback; 3 mm sheet joints.',285,193,8,false,'right');
  footer(c,page,total);return c.stream();
 }
 export function drawRoofEnvelopeCuts(s:Settings,page:number,total:number,c=canvas()){
@@ -53,15 +53,15 @@ export function drawRoofEnvelopeCuts(s:Settings,page:number,total:number,c=canva
   c.text(`${sheets.length} sheets - ${fmt(g.w)} mm wide`,x,41,9,true);
   c.text(`Sheets ${sheets.join(', ')}`,x,46,7);
   c.rect(x,50,1220*sc,2440*sc,'floor');
-  c.rect(x,50,g.w*sc,1200*sc,'timber');
-  c.rect(x,50+1203*sc,g.w*sc,m.lower*sc,[255,255,255]);
-  c.text(g.indices.map(j=>`U${j+1}`).join(' / '),x+g.w*sc/2,50+600*sc,7,true,'center');
-  c.text(g.indices.map(j=>`E${j+1}`).join(' / '),x+g.w*sc/2,50+(1203+m.lower/2)*sc,7,true,'center');
-  c.text(`${fmt(g.w)} x 1200 mm`,x+35,50+600*sc,8);
-  c.text(`${fmt(g.w)} x ${fmt(m.lower)} mm`,x+35,50+(1203+m.lower/2)*sc,8);
+  c.rect(x,50,g.w*sc,m.upperHeight*sc,'timber');
+  c.rect(x,50+(m.upperHeight+3)*sc,g.w*sc,m.lower*sc,[255,255,255]);
+  c.text(g.indices.map(j=>`U${j+1}`).join(' / '),x+g.w*sc/2,50+m.upperHeight/2*sc,7,true,'center');
+  c.text(g.indices.map(j=>`E${j+1}`).join(' / '),x+g.w*sc/2,50+(m.upperHeight+3+m.lower/2)*sc,7,true,'center');
+  c.text(`${fmt(g.w)} x ${fmt(m.upperHeight)} mm`,x+35,50+m.upperHeight/2*sc,8);
+  c.text(`${fmt(g.w)} x ${fmt(m.lower)} mm`,x+35,50+(m.upperHeight+3+m.lower/2)*sc,8);
   c.text('Each sheet: 1 upper + 1 eaves panel',x,118,7);
  });
- c.text(`OSB lower face: 1200 + 3 + ${fmt(m.lower)} = ${fmt(m.deck.deckSlope)}; square both ends.`,12,124,8);
+ c.text(`Slope set-out: 3 + ${fmt(m.upperHeight)} + 3 + ${fmt(m.lower)} + 3 = ${fmt(m.deck.deckSlope)} mm.`,12,124,8);
  c.text('PIR 2400 x 1200 x 100 | kerf 3',12,130,10,true);
  const sc=42/2400,top=144;
  const nests=[{label:'1-4',parts:[{id:'RU1 / RU2',w:2400,h:1200}]},{label:'5',parts:[{id:'RU3',w:m.width-4800,h:1200},{id:'RU3',w:m.width-4800,h:1200}]},{label:'6-9',parts:[{id:'RE2 / RE3',w:2400,h:m.pirLower}]},{label:'10',parts:[{id:'RE1',w:m.width-4800,h:m.pirLower},{id:'RE1',w:m.width-4800,h:m.pirLower}]}];
@@ -90,7 +90,7 @@ export function drawRoofEnvelopeDetails(s:Settings,page:number,total:number,c=ca
  const world=(q:number[])=>[X(q[0],q[1]),Y(q[0],q[1])];
  c.rect(98,96-m.ridgeAboveRafter*sc,s.ridgeWidth*sc,37,'ridge');
  c.polygon(m.pirRidgePolygon.map(world),'floor');
- c.polygon([[-150,0],[0,0],[0,-11],[-150,-11]].map(world),'timber');
+ c.polygon([[-150,0],[-3,0],[-3,-11],[-150,-11]].map(world),'timber');
  const centre=98+s.ridgeWidth*sc/2;c.line(centre,36,centre,145,black,.15,[1,1]);
  const foot=world(m.ridgeSideFoot),corner=world(m.ridgeSideTop),end=world(m.ridgeCentreTop);
  cutDimension(c,corner,end,-12,`${fmt(m.rebateWidth)} H`);
@@ -101,7 +101,7 @@ export function drawRoofEnvelopeDetails(s:Settings,page:number,total:number,c=ca
  const tip=world([m.tip,100]),radius=9;
  for(let i=0;i<18;i++){const a=(90+(90-s.roofPitch)*i/18)*Math.PI/180,b=(90+(90-s.roofPitch)*(i+1)/18)*Math.PI/180;c.line(tip[0]+radius*Math.cos(a),tip[1]+radius*Math.sin(a),tip[0]+radius*Math.cos(b),tip[1]+radius*Math.sin(b),black,.15);}
  c.textRotated(`${fmt(90-s.roofPitch)} deg`,tip[0]-7,tip[1]+15,0,7.5,true);
- c.line(X(0,-11),Y(0,-11),127,130,black,.15);c.text('OSB contact',128,131,7);
+ c.line(X(-3,-11),Y(-3,-11),114,137,black,.15);c.text('OSB: 3 mm setback',115,138,7);
  c.text('H horizontal / V vertical',12,145,7);
  c.text('Plumb cheek / horizontal shoulder',12,152,7);
  c.text('Eaves',160,34,10,true);
