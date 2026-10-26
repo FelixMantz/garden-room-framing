@@ -1,16 +1,17 @@
 import type { Settings } from '../framing';
 import { OSB_STOCK } from '../sheathing';
+import { WALL_SERVICES } from '../wall-services';
 import { canvas, fmt, hTechnical, vTechnical, type Fill } from './layout';
 
 /** Nominal junction proposal. Structural / floor datums come from the shared model. */
-export function drawLowerWall(s:Settings,page:number,total:number){
-  const c=canvas(), k=.16, ix=90, base=176;
+export function drawLowerWall(s:Settings,page:number,total:number,c=canvas()){
+  const k=.16, ix=90, base=176;
   const X=(x:number)=>ix+x*k, Y=(z:number)=>base-z*k;
   const masonry=s.brickCourses*s.courseHeight, ffl=s.layers.reduce((n,l)=>n+l.thickness,0);
   const board=12.5, upstand=30, coverDepth=25, rebateDepth=19, rebateBack=board+rebateDepth, skirtFace=board+coverDepth;
   const skirtHeight=220, skirtBottom=ffl+2, skirtTop=skirtBottom+skirtHeight, rebateTop=skirtBottom+145;
-  const socket=ffl+500, bandBottom=ffl+410, bandTop=ffl+590, top=ffl+720;
-  const mainPir=90, servicePir=70, cavity=s.studDepth-servicePir, box=35, floorGap=2;
+  const socket=ffl+WALL_SERVICES.centre, bandBottom=ffl+WALL_SERVICES.bandBottom, bandTop=ffl+WALL_SERVICES.bandTop, top=ffl+720;
+  const {mainPir,servicePir,boxDepth:box}=WALL_SERVICES, cavity=s.studDepth-servicePir, floorGap=2;
   const black=[0,0,0], white=[255,255,255];
   const line=(x1:number,z1:number,x2:number,z2:number,w=.2,dash:number[]|null=null)=>c.line(X(x1),Y(z1),X(x2),Y(z2),black,w,dash);
   const rect=(x:number,z:number,w:number,h:number,fill:Fill=white)=>c.rect(X(x),Y(z+h),w*k,h*k,fill,black,.2);
@@ -85,12 +86,12 @@ export function drawLowerWall(s:Settings,page:number,total:number){
   vTechnical(c,Y(0),Y(masonry),X(-s.brickThickness),57,`${fmt(masonry)}`,7,'left');
   vTechnical(c,Y(masonry),Y(masonry+s.studFace),X(-s.studDepth),57,`${fmt(s.studFace)}`,6,'left');
   vTechnical(c,Y(0),Y(s.courseHeight),X(-s.brickThickness),66,`${fmt(s.courseHeight)}`,6,'left');
-  vTechnical(c,Y(bandBottom),Y(bandTop),X(board),109,'180',7);
+  vTechnical(c,Y(bandBottom),Y(bandTop),X(board),109,fmt(WALL_SERVICES.bandHeight),7);
   vTechnical(c,Y(masonry+s.studFace),Y(bandBottom),X(-s.studDepth+mainPir),103,fmt(bandBottom-masonry-s.studFace),7);
   vTechnical(c,Y(skirtBottom),Y(skirtTop),X(skirtFace),111,'220',7);
   vTechnical(c,Y(deckBase),Y(masonry),X(upstand),123,`${fmt(masonry-deckBase)}`,7);
   vTechnical(c,Y(ffl),Y(socket),X(board+7),147,'500 socket C/L',7);
-  vTechnical(c,Y(ffl),Y(bandBottom),X(board),163,'410 band underside',7);
+  vTechnical(c,Y(ffl),Y(bandBottom),X(board),163,`${fmt(WALL_SERVICES.bandBottom)} band underside`,7);
   line(board,socket,360,socket,.13,[2,1]);
   c.text(`+${fmt(masonry)} slab`,132,Y(masonry)-2,6.5,true);
   c.text(`FFL +${fmt(ffl)}`,135,Y(ffl)-2,7,true);
@@ -162,7 +163,9 @@ export function drawLowerWall(s:Settings,page:number,total:number){
   c.line(gapX,gapY,240,174,black,.13);c.text('2 perimeter gap',239,171,6.2,true);
   c.line(S(35),T(ffl+1),243,179,black,.13);c.text('2 above floor',244,180,6.2,true);
   c.text('31.5 cavity = 12.5 board + 19 rebate',195,202,6.2);
-  c.text('Requested 2 mm floor gap is below typical 10 mm guidance. Socket set-out provisional; check box, seals and cable protection.',12,202,6.2);
+  c.text('70 PIR, default frame: 11 x 1200 x 125 bands; retain 11 x 1200 x 50 strips for vertical drops.',12,194,6.2);
+  c.text('83 mm box envelope: 21 mm above / below. Widen locally for bends / controls; seal VCL steps.',12,198,6.2);
+  c.text('Requested 2 mm floor gap is below typical 10 mm guidance. Check actual box, seals and cable protection.',12,202,6.2);
   c.text(`Garden room framing set | lower wall cross section | page ${page} of ${total}`,148.5,208,6.4,false,'center');
   return c.stream();
 }
