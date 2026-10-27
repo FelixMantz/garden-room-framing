@@ -88,8 +88,8 @@ test('lower-wall drawing shares the OSB base clearance and corner page contains 
  const {drawSheathingDetails}=await v.ssrLoadModule('/app/pdf/sheathing.ts');
  const s=defaultSettings(),lower=drawLowerWall(s,17,22),corner=drawSheathingDetails(s,22,22);
  assert.ok(lower.includes(`OSB base +${s.brickCourses*s.courseHeight+3} slab / 3 above DPC`));
- for(const label of ['Long-wall OSB','Side-wall OSB','Long-wall corner stud','California return stud','Side-wall end stud','Corner post - 45 x 45','Side blind vertical batten','Long-wall blind vertical batten','Breather membrane','25 mm ventilated cavity','3 mm clear'])assert.ok(corner.includes(label),label);
- assert.ok(!corner.includes('cover board'));assert.ok(corner.includes('5 mm featheredge end gap'));
+ for(const label of ['Long-wall OSB','Side-wall OSB','Long-wall corner stud','California return stud','Side-wall end stud','Brown corner face - 22 x 125','Side backing batten','Long-wall backing batten','Breather membrane','25 mm ventilated cavity','3 mm clear'])assert.ok(corner.includes(label),label);
+ assert.ok(corner.includes('Brown corner return - 22 x 100'));assert.ok(corner.includes('Featheredge extends into dead corner'));
  assert.ok(!corner.includes('BOTTOM EDGE'));assert.ok(!corner.includes('TOP EDGES'));
 });
 
@@ -101,9 +101,9 @@ test('Construction details tab renders the socket band, cill and external corner
  assert.equal((html.match(/<svg\b/g)||[]).length,3);
  for(const label of ['125 mm-high band','70 mm PIR','437.5 mm','562.5 mm','20.4 m','Widen vertical channels locally around backboxes'])assert.ok(html.includes(label),label);
  assert.ok(html.includes('Window cill depth assessment'));
- assert.ok(html.includes('37.0 mm projection'));
+ assert.ok(html.includes('20.0 mm projection'));
  assert.ok(html.includes('Window cill - wall section'));
- for(const label of ['Long-wall OSB','Side-wall OSB','California return stud','Corner post - 45 x 45','Side blind vertical batten','3 mm clear'])assert.ok(html.includes(label),label);
+ for(const label of ['Long-wall OSB','Side-wall OSB','California return stud','Brown corner face - 22 x 125','Side backing batten','3 mm clear'])assert.ok(html.includes(label),label);
  assert.ok(!html.includes('Floor build-up and dwarf wall'));assert.ok(!html.includes('Timber frame positioning'));
 });
 
@@ -138,10 +138,36 @@ test('whole-mm wall cuts preserve door-head clearance and the installed roof slo
 test('cill projection includes the frame footprint, cladding envelope and proud trims',async()=>{
  const {windowCillModel}=await v.ssrLoadModule('/app/window-cill.ts');
  const settings=defaultSettings(),m=windowCillModel(settings);
- assert.deepEqual(m.options.map(o=>o.projection),[-18,37,67]);
- assert.equal(m.frameBack,-59);assert.equal(m.requiredFrameOffset,14);
- assert.equal(windowCillModel(settings,{frameOuterOffset:0}).projection,26);
- assert.equal(windowCillModel(settings,{frameOuterOffset:14}).meetsTarget,true);
+ assert.deepEqual(m.options.map(o=>o.projection),[-35,20,50]);
+ assert.equal(m.frameBack,-59);assert.equal(m.requiredFrameOffset,31);
+ assert.equal(windowCillModel(settings,{frameOuterOffset:0}).projection,9);
+ assert.equal(windowCillModel(settings,{frameOuterOffset:31}).meetsTarget,true);
  assert.equal(windowCillModel(settings,{claddingEnvelope:22,trimProud:5}).projection,28);
- assert.equal(windowCillModel(settings,{cillDepth:180}).projection,67);
+ assert.equal(windowCillModel(settings,{cillDepth:180}).projection,50);
+});
+
+
+test('brown L corner clears the lap envelope and order reserves eight full-height legs',async()=>{
+ const {claddingCorner,CLADDING_ORDER,CLADDING_GOODS,CLADDING_DELIVERY}=await v.ssrLoadModule('/app/cladding.ts');
+ const m=claddingCorner();
+ assert.equal(m.frontEnd-m.trimOuter,125);
+ assert.equal(m.returnEnd-m.trimOuter,122);
+ assert.equal(m.claddingOuter-m.trimOuter,22);
+ assert.equal(m.frontEnd-m.frontStart,61);
+ assert.equal(m.returnEnd-m.sideStart,58);
+ assert.equal(m.claddingOuter-m.trimInner,0);
+ assert.equal(m.frontStart-m.battenOuter,10);
+ assert.equal(m.sideStart-m.battenOuter,10);
+ assert.equal(CLADDING_ORDER[1].quantity-2,5);
+ assert.equal(CLADDING_GOODS+CLADDING_DELIVERY,698);
+ const {drawSheathingDetails}=await v.ssrLoadModule('/app/pdf/sheathing.ts');
+ const rects=[];
+ const c={rect:(x,y,w,h)=>rects.push({x,y,w,h}),line:()=>{},text:()=>{},textVertical:()=>{},stream:()=>''};
+ drawSheathingDetails(defaultSettings(),8,17,c);
+ // Both featheredge runs must have actual batten backing at their first fixing.
+ const same=(a,b)=>Math.abs(a-b)<1e-7;
+ for(const r of rects.filter(r=>same(r.h,m.envelope*.48)))
+  assert.ok(rects.some(b=>b.x<=r.x+40*.48&&b.x+b.w>=r.x+40*.48&&same(b.h,25*.48)&&same(b.y,105+m.battenOuter*.48)));
+ for(const r of rects.filter(r=>same(r.w,m.envelope*.48)))
+  assert.ok(rects.some(b=>b.y<=r.y+40*.48&&b.y+b.h>=r.y+40*.48&&same(b.w,25*.48)&&same(b.x,137+m.battenOuter*.48)));
 });

@@ -1,3 +1,4 @@
+import { CLADDING } from '../cladding';
 import { roofOverhangs } from '../roof-overhangs';
 import type { Settings } from '../framing';
 import { canvas, fmt, hTechnical, vTechnical, type Fill } from './layout';
@@ -49,7 +50,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   infill.forEach((p,i)=>line(p,infill[(i+1)%4],.22,[1,1]));
   c.text('PIR',(wallX+wallInner)/2,(y((wallX+wallInner)/2,0)+plateY)/2+1,7,true,'center');
   const wallBottom=Math.max(plateY+s.topPlates*s.studFace*scale+5,174);
-  const wallOsb=11, wallBatten=25, cladding=18, claddingGap=3;
+  const wallOsb=11, wallBatten=25, cladding=CLADDING.envelope, claddingGap=3;
   // Unnotched sheathing ends 2/3 up the lower plate, below the rafter tails.
   const sheathingDrop=(s.topPlates-1+1/3)*s.studFace;
   const sheathingTop=plateY+sheathingDrop*scale;
@@ -178,7 +179,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   leader(`${s.topPlates} top plates: ${fmt(s.studFace)} x ${fmt(s.studDepth)}`,wallInner,plateY+s.studFace*scale,197,160);
   c.text('Wall below; maintain insulation continuity.',197,165,6.2);
   c.text('Roof / wall VCLs separate; no direct join.',197,170,6.2);
-  c.text('Wall: 11 OSB + 25 cavity + 18 featheredge.',197,177,6.2);
+  c.text('Wall: 11 OSB + 25 cavity + 32 lap envelope*.',197,177,6.2);
   c.text('Battens dashed; insect mesh at cavity head.',197,182,6.2);
   c.text('Cladding top: 3 mm below soffit underside.',197,187,6.2);
   hTechnical(c,left-fasciaThickness*scale,wallX,fasciaBottom,181,`${fmt(s.gableOverhang)} wall to outer fascia`,5.5);

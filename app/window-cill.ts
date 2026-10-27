@@ -1,12 +1,13 @@
 import type { Settings } from './framing';
+import { CLADDING } from './cladding';
 import { OSB_STOCK } from './sheathing';
 
 /** External stud face = 0; positive offsets are towards the garden. */
 export const WINDOW_CILL_DEFAULTS = {
   cillDepth: 150,
   frameOuterOffset: OSB_STOCK.thickness,
-  claddingEnvelope: 18,
-  trimProud: 0,
+  claddingEnvelope: CLADDING.envelope,
+  trimProud: CLADDING.trimProud,
 };
 export type WindowCillOptions = typeof WINDOW_CILL_DEFAULTS;
 export function windowCillModel(s: Settings, options: Partial<WindowCillOptions> = {}) {

@@ -2,6 +2,7 @@ import { buildModel, slopePolygon, type Settings, type WallConfig } from '../fra
 import { sheathingPlan, wallOsbTop, gableJointAxis, osbFinishedProfile, OSB_STOCK } from '../sheathing';
 import { canvas, fmt, hTechnical, vTechnical } from './layout';
 import { wallOsbLabel } from '../sheathing-progress';
+import { claddingCorner } from '../cladding';
 type C=ReturnType<typeof canvas>;
 const footer=(c:C,page:number,total:number,label:string)=>c.text(`Garden room framing set | ${label} | page ${page} of ${total}`,148.5,207,6.4,false,'center');
 export function drawSheathing(s:Settings,page:number,total:number,c:C=canvas()){
@@ -108,7 +109,7 @@ export function drawSheathingCuts(s:Settings,page:number,total:number,c:C=canvas
 }
 export function drawSheathingCutsContinued(s:Settings,page:number,total:number,c:C=canvas()){return drawSheathingCuts(s,page,total,c,1);}
 export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=canvas()){
- c.text('Featheredge cladding - corner post and concealed edge battens',12,11,14,true);
+ c.text('Featheredge cladding - brown two-piece L corner',12,11,14,true);
  c.text('Horizontal section / plan | dimensions in mm | schematic corner framing; do not scale',12,18,7.5);
  const x=137,y=105,k=.48,black=[0,0,0],X=(v:number)=>x+v*k,Y=(v:number)=>y+v*k;
  const block=(a:number,b:number,w:number,h:number,fill:'timber'|'floor')=>c.rect(X(a),Y(b),w*k,h*k,fill,black,.25);
@@ -124,34 +125,41 @@ export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=can
  // Fit the side first; the long-wall sheet covers its 11 mm edge.
  block(-OSB_STOCK.thickness,0+OSB_STOCK.gap,OSB_STOCK.thickness,137,'floor');
  block(-OSB_STOCK.thickness,-OSB_STOCK.thickness,151,OSB_STOCK.thickness,'floor');
- // Non-structural trim post sits just outside the wrapped OSB corner.
- const postSize=45,postInner=-OSB_STOCK.thickness-.8,postOuter=postInner-postSize,endGap=5,claddingStart=postInner+endGap;
- block(postOuter,postOuter,postSize,postSize,'timber');
- // Blind vertical battens: their 50 mm face supports featheredge ends behind the cladding.
- block(postInner,-36,50,25,'timber');block(-36,postInner,25,50,'timber');
- block(claddingStart,-54,140-claddingStart,18,'timber');block(-54,claddingStart,18,140-claddingStart,'timber');
+ // Factory-treated L cover boards overlap the featheredge ends.
+ const m=claddingCorner(),{trimOuter:o,trimInner:i,battenOuter:b,claddingOuter:f}=m;
+ block(o,o,m.cornerFront,m.trimThickness,'timber');
+ block(o,i,m.trimThickness,m.cornerReturn,'timber');
+ // Battens support board ends and trim fixings; the cover bears on lap high points.
+ const {frontStart,sideStart}=m;
+ block(-11,b,50,25,'timber');block(b,-11,25,50,'timber');
+ block(frontStart,f,140-frontStart,m.envelope,'timber');
+ block(f,sideStart,m.envelope,140-sideStart,'timber');
  // Continuous breather membrane: outside both sheets, turning around the overlap.
  c.line(X(-11)-.6,Y(140),X(-11)-.6,Y(-11)-.6,black,.5);
  c.line(X(-11)-.6,Y(-11)-.6,X(140),Y(-11)-.6,black,.5);
- c.text('OUTSIDE',91,57,9,true);c.text('INSIDE',191,164,9,true);
+ c.text('OUTSIDE',91,34,9,true);c.text('INSIDE',191,164,9,true);
  label('Long-wall OSB - 11 mm; overlaps side edge',115,-5.5,214,94);
  label('Long-wall corner stud - 45 x 95',s.studFace/2,s.studDepth/2,214,116);
  label('California return stud - 45 x 95',s.studFace+s.studDepth/2,s.studDepth-s.studFace/2,214,138);
  label('Side-wall end stud - 45 x 95',s.studDepth/2,s.studDepth+s.studFace/2,214,160);
  label('Side-wall OSB - 11 mm',-5.5,100,12,157);
- label('Side blind vertical batten - 25 x 50',-23.5,20,12,113);
- label('Side featheredge - nominal 18 mm',-45,90,12,135);
- label('Corner post - 45 x 45 treated timber',postOuter+postSize/2,postOuter+postSize/2,12,44);
- label('5 mm featheredge end gap to post',-45,postInner+endGap/2,12,91);
- label('Long-wall featheredge - nominal 18 mm',115,-45,214,30);
- label('Long-wall blind vertical batten - 25 x 50',20,-23.5,214,72);
+ label('Side backing batten - 25 deep',-23.5,20,12,113);
+ label('Side featheredge - 32 lap envelope*',-52,90,12,135);
+ label('Brown corner face - 22 x 125',0,o+11,12,44);
+ label('Brown corner return - 22 x 100',o+11,0,12,66);
+ label('Featheredge extends into dead corner',-52,sideStart+15,12,91);
+ label('Long-wall featheredge - 32 envelope*',115,-52,214,30);
+ label('Long-wall backing batten - 25 deep',20,-23.5,214,72);
  label('Breather membrane - continuous wrap',-12.2,130,12,179);
  label('25 mm ventilated cavity between battens',115,-23.5,214,50);
- // Small clearance enlarged by the plan scale, identified with a leader rather than a false dimension.
- label('3 mm clear at side-sheet end',-5.5,1.5,12,66);
- c.text('Fit side sheets first. Front / rear sheets extend 11 beyond each frame end; fix the overlap into corner timber.',12,190,7.5);
- c.text('Fix both blind battens through OSB into corner studs, then screw the post to both battens before fitting featheredge.',12,196,7.5);
- c.text('45 x 45 post is a working size: approx. 3 mm proud of 18 mm cladding. Leave 5 mm end gaps; keep cavity top / bottom open.',12,202,7.5);
+ label('Corner trim bears on lap high points',20,i,214,105);
+ label('Cladding ends backed by battens',frontStart+25,-23.5,214,179);
+ hTechnical(c,X(o),X(m.frontEnd),Y(o),55,'125 face',7);
+ vTechnical(c,Y(o),Y(m.returnEnd),X(o),88,'122 overall return',7,'left');
+ c.text('Side OSB first; long-wall OSB overlaps its 11 mm edge. Leave 3 mm clear at side-sheet ends; wrap membrane continuously.',12,187,7);
+ c.text('Fit featheredge first, then the L cover. Fix each trim into supported battens / framing; avoid crushing the laps when tightening.',12,193,7);
+ c.text('* Working set-out: 32 mm lap envelope + 22 mm corner trim; no added rear gap. Corner face is 22 mm beyond the maximum laps.',12,199,7);
+ c.text('Concealed cover: 61 mm long-wall / 58 mm side. Leave 10 mm clear of perpendicular boards; dry-fit laps. Keep the base open to drain.',12,203,6.7);
  footer(c,page,total,'OSB and cladding corner');return c.stream();
 }
 

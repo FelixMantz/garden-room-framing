@@ -16,7 +16,7 @@ export function drawWindowCill(s: Settings, page: number, total: number, c = can
     c.line(X(x), Y(z), end, ty - 1, black, .13); c.rect(X(x) - .4, Y(z) - .4, .8, .8, black, black, 0); c.text(label, tx, ty, 7, true);
   };
   c.text('Window cill - wall section and front elevation', 12, 11, 14, true);
-  c.text('Front and left oak-clad elevations | vertical section through lower window | dimensions in mm | do not scale', 12, 18, 7.5);
+  c.text('All four brown softwood-clad elevations | vertical section through lower window | dimensions in mm | do not scale', 12, 18, 7.5);
   c.text('Frame position is a study assumption, not a confirmed installation datum. Profiles / seals shown schematically.', 12, 24, 7.2);
   c.text('INSIDE', 27, 33, 8, true); c.text('OUTSIDE', 146, 33, 8, true);
   // Wall beneath opening: sill saddle on cripple/bay, with lining and outer weathering.
@@ -74,14 +74,14 @@ export function drawWindowCill(s: Settings, page: number, total: number, c = can
   leader('Drained cavity + mesh', m.battenOuter - 9, -19, 134, 146);
   hTechnical(c, X(-s.studDepth - 12.5), X(-s.studDepth), Y(-120), 178, '12.5', 6.5);
   leader('Breather membrane', m.osbOuter, -98, 134, 174);
-  c.text('12.5 plasterboard | timber / PIR | 11 OSB | membrane | 25 cavity | oak featheredge', 12, 196, 6.8);
+  c.text('12.5 plasterboard | timber / PIR | 11 OSB | membrane | 25 cavity | brown softwood featheredge', 12, 196, 6.8);
   // Outside elevation: the right-hand front unit, with the fixed pane towards the door.
   // Frame sightlines and trim widths are indicative; only overall order sizes are dimensioned.
   c.line(185, 30, 185, 198, black, .2);
   c.text('FRONT ELEVATION', 193, 33, 8.5, true);
   c.text('Outside view - right-hand front window', 193, 39, 7.2);
   const ek = .065, ex = 210, ey = 65, fw = 1000 * ek, fh = 1000 * ek, ch = 30 * ek;
-  const trim = 45 * ek, rim = 60 * ek, mullion = 60 * ek;
+  const trim = 100 * ek, rim = 60 * ek, mullion = 60 * ek;
   // Horizontal featheredge courses stop against the external trims.
   c.rect(202, 58, 82, 86, white, black, .15);
   for (let yy = 62; yy < 144; yy += 125 * ek) c.line(202, yy, 284, yy, black, .18);
@@ -102,7 +102,11 @@ export function drawWindowCill(s: Settings, page: number, total: number, c = can
   const gx = sashX + 2.5, gy = sashY + 2.5, gr = sashX + sashW - 2.5, gb = sashY + sashH - 2.5;
   c.line(gx, gy, gr, (gy + gb) / 2, black, .2, [1.3, .7]);
   c.line(gr, (gy + gb) / 2, gx, gb, black, .2, [1.3, .7]);
-  c.text('FIXED', (ex + rim + centre - mullion / 2) / 2, ey + fh / 2, 7, true, 'center');
+  const lx=ex+rim, lw=fw/2-mullion/2-rim;
+  c.rect(lx+2.5,sashY+2.5,lw-5,sashH-5,white,black,.18);
+  c.line(lx+lw-2.5,gy,lx+2.5,(gy+gb)/2,black,.2,[1.3,.7]);
+  c.line(lx+2.5,(gy+gb)/2,lx+lw-2.5,gb,black,.2,[1.3,.7]);
+  c.text('OPENER',lx+lw/2,ey+fh/2,7,true,'center');
   c.text('OPENER', (gx + gr) / 2, ey + fh / 2 + 10, 6.5, true, 'center');
   // Cill horns are the supplier's standard 50 mm each side, with end caps shown.
   const cx = ex - 50 * ek, cw = 1100 * ek, cy = ey + fh;
@@ -129,7 +133,7 @@ export function drawWindowCill(s: Settings, page: number, total: number, c = can
   keyedPart('2', 'Reveal lining (concealed / dashed)', ex - 5 * ek, ey + 44, 169);
   keyedPart('3', 'uPVC outer frame and mullion', centre, ey + fh - 1, 178);
   keyedPart('4', 'Cill with sealed end caps', cx + cw - 1.5, cy + ch / 2 + .7, 187);
-  c.text('* Cladding depth is the maximum installed lap / trim envelope; nominal 18 mm in existing drawings. PIR: 90 mm nominal wall specification.', 12, 202, 6.3);
+  c.text('* Cladding depth is the maximum installed lap / trim envelope; provisional 32 mm laps + 3 mm trim; verify on sample. PIR: 90 mm nominal wall specification.', 12, 202, 6.3);
   c.text(`Garden room framing set | window cill section | page ${page} of ${total}`, 148.5, 208, 6.4, false, 'center');
   return c.stream();
 }

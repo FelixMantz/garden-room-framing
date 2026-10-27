@@ -15,6 +15,8 @@ test("serves separate timber and construction PDFs with all original drawing con
   assert.match(timber,/Timber frame positioning on the dwarf wall/);
   assert.doesNotMatch(timber,/OSB wall sheet nests|Bathroom/);
   assert.match(construction,/OSB wall sheet nests/);
+  assert.doesNotMatch(construction,/proposed timber order/);
+  assert.match(construction,/Featheredge extends into dead corner/);
   assert.doesNotMatch(construction,/Front wall - dimensioned elevation/);
   assert.match(pdf, /French-door front elevation and vertical build-up/);
   assert.match(pdf, /1400 LEAF HEIGHT OMITTED/);

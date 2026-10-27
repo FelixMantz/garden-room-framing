@@ -1,3 +1,4 @@
+import { CLADDING } from '../cladding';
 import type { Settings } from '../framing';
 import { OSB_STOCK } from '../sheathing';
 import { WALL_SERVICES } from '../wall-services';
@@ -50,9 +51,9 @@ export function drawLowerWall(s:Settings,page:number,total:number,c=canvas()){
   rect(osbOuter,osbBottom,OSB_STOCK.thickness,top-osbBottom,'floor');
   line(osbOuter,masonry-23,osbOuter,top,.55);
   for(const x of [battenOuter,osbOuter])line(x,masonry-10,x,top,.17,[2,1]);
-  for(let z=masonry-25;z<top;z+=125){const zt=Math.min(z+150,top);poly([[battenOuter-18,z],[battenOuter,z],[battenOuter,zt],[battenOuter-5,zt]],'timber');}
+  for(let z=masonry-25;z<top;z+=125){const zt=Math.min(z+150,top);poly([[battenOuter-CLADDING.envelope,z],[battenOuter,z],[battenOuter,zt],[battenOuter-5,zt]],'timber');}
   // Drained cladding foot: membrane lapped onto outward-falling flashing.
-  line(osbOuter,masonry+10,osbOuter,masonry-20,.4);line(osbOuter,masonry-20,battenOuter-24,masonry-30,.4);line(battenOuter-24,masonry-30,battenOuter-24,masonry-40,.4);
+  line(osbOuter,masonry+10,osbOuter,masonry-20,.4);line(osbOuter,masonry-20,battenOuter-CLADDING.envelope-6,masonry-30,.4);line(battenOuter-CLADDING.envelope-6,masonry-30,battenOuter-CLADDING.envelope-6,masonry-40,.4);
   for(let x=battenOuter+2;x<osbOuter;x+=5)line(x,masonry-10,x+1,masonry-13,.3);
   // Continuous upper DPM and DPC lap behind the insulated brick upstand.
   line(0,0,400,0,.6);line(.8,0,.8,masonry,.6);
