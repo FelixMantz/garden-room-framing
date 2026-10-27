@@ -7,12 +7,14 @@ import { PDF_PARTS } from './framing-pdf';
 import { drawSheathingDetails } from './pdf/sheathing';
 import { svgCanvas } from './pdf/svg';
 import { drawLowerWall } from './pdf/lower-wall';
+import { wallBattenPlan } from './cladding-battens';
 import { CLADDING_ORDER, CLADDING_GOODS, CLADDING_DELIVERY } from './cladding';
 import { WALL_SERVICES } from './wall-services';
 
 export default function ConstructionDetails({settings}:{settings:Settings}){
   const [options, setOptions] = useState(WINDOW_CILL_DEFAULTS);
   const m = windowCillModel(settings, options);
+  const battens = wallBattenPlan(settings);
   return <>
     <section className="diagram-card" aria-label="Socket band and wall PIR cutting allowance">
       <h2>Socket band and wall PIR</h2>
@@ -42,10 +44,12 @@ export default function ConstructionDetails({settings}:{settings:Settings}){
       <table><thead><tr><th>Section</th><th>Stock</th><th>Quantity</th><th>Budget</th></tr></thead><tbody>
         {CLADDING_ORDER.map(item=><tr key={item.section}><td><a href={item.url}>{item.section}</a></td><td>{item.length} m</td><td>{item.quantity}</td><td>£{(item.quantity*item.unit).toFixed(2)}</td></tr>)}
       </tbody></table>
-      <p>Brown throughout. Goods £{CLADDING_GOODS.toFixed(2)} + delivery allowance £{CLADDING_DELIVERY.toFixed(2)} = <strong>£{(CLADDING_GOODS+CLADDING_DELIVERY).toFixed(2)} estimated delivered</strong>. Proposed order, not purchased; confirm selected variant prices, stock and TN12 delivery.</p>
-      <p>Two 4.8 m lengths of each corner section yield four pieces of each, up to just under 2.4 m after kerf. Measure corner heights before cutting. The remaining five 100 mm boards provide 24 m for face trims to four windows and the entrance door; concealed liners are separate.</p>
-      <p>The 125 mm face and 100 mm return form an L with approximately 125 / 122 mm outside widths. Extend the featheredge into the concealed corner, giving approximately 61 mm / 58 mm cover behind the corner boards. Leave 10 mm between each concealed end and the perpendicular cladding. The trim bears against the lap high points, with no added rear gap, and projects 22 mm beyond the laps. Avoid crushing the boards when fixing; keep drainage open. Select straight, sound boards suitable for visible trim.</p>
-      <p>Featheredge quantity remains provisional until the all-elevation cutting schedule confirms overlap, supported joints, gable cuts and waste. Battens / corner backing, fixings, preservative, head and plinth flashings, concealed liners and ventilated insect closures are additional.</p>
+      <p>Brown visible timber; concealed battens may be green treated. Goods £{CLADDING_GOODS.toFixed(2)} + delivery allowance £{CLADDING_DELIVERY.toFixed(2)} = <strong>£{(CLADDING_GOODS+CLADDING_DELIVERY).toFixed(2)} estimated delivered</strong>. Proposed order, not purchased; confirm selected variant prices, stock and TN12 delivery.</p>
+      <p>Reserve four 4.8 m gravel boards for corners: two full-width and two ripped to nominal 78 mm. Each stock length yields two corner legs up to just under 2.4 m after kerf. Measure corner heights before cutting. The remaining five 100 mm boards provide 24 m for face trims to four windows and the entrance door; concealed liners are separate.</p>
+      <p>The 100 mm face and return ripped to 78 mm form an L with equal 100 mm outside widths. Measure the actual timber: return width = face width minus thickness. Extend the featheredge into the concealed corner, giving approximately 36 mm cover on both faces behind the corner boards. Leave 10 mm between each concealed end and the perpendicular cladding. The trim bears against the lap high points, with no added rear gap, and projects 22 mm beyond the laps. Avoid crushing the boards when fixing; keep drainage open. Select straight, sound boards suitable for visible trim.</p>
+      <p>Wall batten allowance: {battens.totalMetres.toFixed(1)} m of cut pieces, packed into {battens.stockForCuts} × 4.8 m lengths with 3 mm saw kerfs. Order 30 × 4.8 m plus ten 2.4 m reserve lengths (three long packs and one short pack). Budget £145 pending variant prices. Includes gables, opening jambs and double corner backing; joins at the wall-head plates have framing behind them. Adjusted settings require recalculating the purchase quantity.</p>
+      <p>Keep all 36 received 4.8 m battens reserved for the roof: the conservative 64-run allowance uses 32 lengths, with four retained for ridge/verge details and defects. No unconfirmed roof surplus has been deducted from the wall order. Use D2D BAT2550, finished 25 × 50 mm; the landscape version finishes at 20 × 45 mm and is unsuitable for this 25 mm cavity.</p>
+      <p>Featheredge quantity remains provisional until the all-elevation cutting schedule confirms overlap, supported joints, gable cuts and waste. Fixings, preservative, head and plinth flashings, concealed liners and ventilated insect closures are additional. Ripping exposes core wood: protect the ripped edge with compatible preservative and brown exterior finish; this does not restore factory impregnation. Keep the cut edge concealed.</p>
     </section>
   </>;
 }
