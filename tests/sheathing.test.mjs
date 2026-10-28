@@ -165,6 +165,10 @@ test('brown L corner clears the lap envelope and order reserves eight full-heigh
  const rects=[];
  const c={rect:(x,y,w,h)=>rects.push({x,y,w,h}),line:()=>{},text:()=>{},textVertical:()=>{},stream:()=>''};
  drawSheathingDetails(defaultSettings(),8,17,c);
+ const front=m.frontBatten,side=m.sideBatten;
+ assert.equal(front.w,50);assert.equal(front.h,25);assert.equal(side.w,25);assert.equal(side.h,50);
+ assert.ok(Math.min(front.x+front.w,side.x+side.w)<=Math.max(front.x,side.x)||Math.min(front.y+front.h,side.y+side.h)<=Math.max(front.y,side.y));
+ assert.equal(front.x,0);assert.equal(side.y,3);
  // Both featheredge runs must have actual batten backing at their first fixing.
  const same=(a,b)=>Math.abs(a-b)<1e-7;
  for(const r of rects.filter(r=>same(r.h,m.envelope*.48)))
@@ -176,11 +180,11 @@ test('brown L corner clears the lap envelope and order reserves eight full-heigh
 test('wall batten purchase allocation fits kerfs and retains a separate defect reserve',async()=>{
  const {wallBattenPlan}=await v.ssrLoadModule('/app/cladding-battens.ts');
  const p=wallBattenPlan(defaultSettings());
- assert.equal(p.stockForCuts,64);assert.equal(p.orderLengths,74);assert.equal(p.shortReserveLengths,0);
+ assert.equal(p.stockForCuts,56);assert.equal(p.orderLengths,74);assert.equal(p.shortReserveLengths,0);
  assert.equal(p.roofSurplusDeducted,0);
  assert.ok(p.bins.every(b=>b.remaining>=0&&b.pieces.reduce((sum,q)=>sum+q.length+3,0)<=2100));
  assert.equal(p.bins.flatMap(b=>b.pieces).length,p.pieces.length);
- assert.equal(p.pieces.filter(q=>q.purpose==='Additional corner backing').length,8);
+ assert.equal(p.pieces.filter(q=>q.purpose==='Additional corner backing').length,0);
  assert.equal(p.pieces.filter(q=>q.purpose==='Opening jamb / face-trim backing').length,10);
  assert.ok(p.byWall.every(w=>w.metres>0));
  assert.throws(()=>wallBattenPlan({...defaultSettings(),wallHeight:2300}),/exceeds stock length/);

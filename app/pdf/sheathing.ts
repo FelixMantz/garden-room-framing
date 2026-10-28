@@ -129,9 +129,9 @@ export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=can
  const m=claddingCorner(),{trimOuter:o,trimInner:i,battenOuter:b,claddingOuter:f}=m;
  block(o,o,m.cornerFront,m.trimThickness,'timber');
  block(o,i,m.trimThickness,m.cornerReturn,'timber');
- // Battens support board ends and trim fixings; the cover bears on lap high points.
+ // One 25 x 50 batten on each face, against its OSB; no corner overlap.
  const {frontStart,sideStart}=m;
- block(b,b,100,25,'timber');block(b,-11,25,100,'timber');
+ for(const v of [m.frontBatten,m.sideBatten])block(v.x,v.y,v.w,v.h,'timber');
  block(frontStart,f,140-frontStart,m.envelope,'timber');
  block(f,sideStart,m.envelope,140-sideStart,'timber');
  // Continuous breather membrane: outside both sheets, turning around the overlap.
@@ -144,7 +144,7 @@ export function drawSheathingDetails(s:Settings,page:number,total:number,c:C=can
  label('Long-wall featheredge - 32 envelope*',115,-52,214,44);
  hTechnical(c,X(o),X(m.frontEnd),Y(o),55,'100 face',7);
  vTechnical(c,Y(o),Y(m.returnEnd),X(o),88,'100 overall return',7,'left');
- c.text('Featheredge extends into dead corner; trim bears on lap high points. Concealed backing shown without structural labels.',12,187,7);
+ c.text('Featheredge extends into dead corner. Single 25 x 50 battens on each face, without overlap; confirm separate trim-fixing support.',12,187,7);
  c.text('Fit featheredge first, then the L cover. Fix each trim into supported battens / framing; avoid crushing the laps when tightening.',12,193,7);
  c.text('* Working set-out: 32 mm lap envelope + 22 mm corner trim; no added rear gap. Corner face is 22 mm beyond the maximum laps.',12,199,7);
  c.text('Concealed cover: 36 mm both faces. Keep 10 mm clear of perpendicular boards. Rip return to actual face width minus thickness; protect cut edge.',12,203,6.7);

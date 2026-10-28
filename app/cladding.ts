@@ -16,7 +16,9 @@ export function claddingCorner() {
     sideStart: battenOuter + c.concealedEndClearance,
     frontEnd: trimOuter + c.cornerFront,
     returnEnd: trimInner + c.cornerReturn,
-    returnOverall: c.cornerReturn + c.trimThickness };
+    returnOverall: c.cornerReturn + c.trimThickness,
+    frontBatten: { x: 0, y: battenOuter, w: 50, h: c.cavity },
+    sideBatten: { x: battenOuter, y: 3, w: c.cavity, h: 50 } };
 }
 export const CLADDING_ORDER = [
   { section: '175 mm heavy featheredge (nominal 32 mm)', quantity: 60, length: 4.8, unit: 10, purpose: 'All four elevations and both gables; ordered D2D 25136', url: 'https://d2dtimber.co.uk/product/32mm-x-175mm-treated-featheredge-cladding-7/' },

@@ -6,7 +6,6 @@ export function wallBattenPlan(s:Settings=defaultSettings()) {
   const c=configForWall(s,id),members=buildModel(c);
   const add=(purpose:string,length:number)=>{if(length>0)pieces.push({wall:id,purpose,length:Math.ceil(length)});};
   for(const m of members.filter(m=>['end stud','common stud','king stud'].includes(m.type))) add('Full-height framing / corner line',c.wallHeight);
-  for(let n=0;n<2;n++)add('Additional corner backing',c.wallHeight);
   for(const o of c.computedOpenings){
    for(let n=0;n<2;n++)add('Opening jamb / face-trim backing',o.height);
    for(const x of wallStudCentres(c).filter(x=>x>=o.x&&x<o.x+o.width)){
