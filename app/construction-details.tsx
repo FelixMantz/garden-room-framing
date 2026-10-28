@@ -21,7 +21,7 @@ export default function ConstructionDetails({settings}:{settings:Settings}){
       <p>The {WALL_SERVICES.bandHeight} mm-high band uses {WALL_SERVICES.servicePir} mm PIR, leaving a {settings.studDepth-WALL_SERVICES.servicePir} mm warm-side recess. Its underside is {WALL_SERVICES.bandBottom} mm and top {WALL_SERVICES.bandTop} mm above FFL, centred on the {WALL_SERVICES.centre} mm socket height. Retain {WALL_SERVICES.mainPir} mm PIR elsewhere.</p>
       <p>An {WALL_SERVICES.boxEnvelopeHeight} mm-high box envelope leaves 21 mm above and below. Check the actual box and cable bend radius; widen pockets locally for cable entries, switches and controls, and maintain the sealed VCL.</p>
       <p>Default-frame cutting allowance for the one 2400 × 1200 × 70 mm board: cut thirteen 1200 × 180 mm blanks with 3 mm kerfs. Trim eleven blanks to 125 mm, retaining a 1200 × 50 mm strip from each for drops (13.2 m total). Reserve the other two blanks; each can yield three further 1200 × 50 mm strips (7.2 m combined). Nominal total for vertical strips: 20.4 m. Measure the completed bays and retain offcuts; adjusted framing may change this allowance. Widen vertical channels locally around backboxes.</p>
-      <div className="shared-drawing" dangerouslySetInnerHTML={{__html:drawLowerWall(settings,4,PDF_PARTS[1].pageCount,svgCanvas())}}/>
+      <div className="shared-drawing" dangerouslySetInnerHTML={{__html:drawLowerWall(settings,1,PDF_PARTS[1].pageCount,svgCanvas())}}/>
     </section>
     <section className="diagram-card" aria-label="Window cill depth assessment">
       <h2>Window cill and wall section</h2>
@@ -34,11 +34,11 @@ export default function ConstructionDetails({settings}:{settings:Settings}){
       </div>
       <p role="status"><strong>{m.projection.toFixed(1)} mm projection beyond the finished face.</strong> {m.meetsTarget?'Meets':'Below'} the master-spec 40 mm target. Frame offsets: 0 = flush with studs; {m.osb} = flush with OSB. The PDF uses the provisional 32 mm lap envelope and 3 mm trim projection. Measure an overlapping sample before installation.</p>
       <button onClick={()=>setOptions(WINDOW_CILL_DEFAULTS)}>Reset cill assessment</button>
-      <div className="shared-drawing" dangerouslySetInnerHTML={{__html:drawWindowCill(settings,16,PDF_PARTS[1].pageCount,svgCanvas(),options)}}/>
+      <div className="shared-drawing" dangerouslySetInnerHTML={{__html:drawWindowCill(settings,13,PDF_PARTS[1].pageCount,svgCanvas(),options)}}/>
       <p>Supplier dimensions: <a href="https://www.modernupvcwindows.co.uk/img/extras/diagram-cill150.jpg" target="_blank" rel="noreferrer">150 mm cill section</a>. The frame and cill profiles are schematic; confirm the drip line and solid support before installation.</p>
     </section>
     <section className="diagram-card shared-drawing" aria-label="Labelled external corner construction detail"
-    dangerouslySetInnerHTML={{__html:drawSheathingDetails(settings,8,PDF_PARTS[1].pageCount,svgCanvas())}}/>
+    dangerouslySetInnerHTML={{__html:drawSheathingDetails(settings,5,PDF_PARTS[1].pageCount,svgCanvas())}}/>
     <section className="diagram-card" aria-label="D2D cladding timber order">
       <h2>D2D brown cladding and trim order — 25136</h2>
       <table><thead><tr><th>Section</th><th>Stock</th><th>Quantity</th><th>Budget</th></tr></thead><tbody>

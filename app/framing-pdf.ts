@@ -31,12 +31,13 @@ export function generateFramingPdf(settings:Settings,part?:PdfPart){
   pages.push((p,t)=>drawTieConnection(settings,p,t));
   pages.push((p,t)=>drawWindowCill(settings,p,t));
   pages.push((p,t)=>drawCladding(settings,p,t),(p,t)=>drawCladdingCuts(settings,p,t),(p,t)=>drawCladdingStock(settings,p,t));
-  // Original drawing order is retained for regression comparisons. Each published
+  // Full-set order is retained for regression comparisons. Construction groups
+  // run wall sections, cladding, bathroom, joinery, roof, then floor. Each published
   // part has its own numbering; include the material key in both for standalone use.
   const selected=part==='timber'
     ? [...pages.slice(0,13),pages[30],pages[17],pages[18]]
     : part==='construction'
-      ? [...pages.slice(13,17),...pages.slice(19,30),pages[31],...pages.slice(32),pages[17]]
+      ? [pages[16],...pages.slice(19,22),pages[22],...pages.slice(32),pages[24],pages[25],pages[13],pages[14],pages[31],pages[15],...pages.slice(26,30),pages[23],pages[17]]
       : pages;
   const label=PDF_PARTS.find(item=>item.id===part)?.label;
   return buildPdf(selected.map((draw,i)=>{

@@ -41,7 +41,7 @@ test("serves separate timber and construction PDFs with all original drawing con
   const floorSchedule = pdf.slice(pdf.indexOf("FLOOR COMPONENTS - TOP DOWN"), pdf.indexOf("DOOR ASSEMBLY"));
   assert.match(floorSchedule, /parquet/i);
   assert.doesNotMatch(floorSchedule, /Tie beam|Door lintel|Brick threshold course/);
-  assert.match(pdf, /door front elevation \| page 1 of 20/);
+  assert.match(pdf, /door front elevation \| page 11 of 20/);
   assert.doesNotMatch(pdf, /colour PDF/);
 });
 
