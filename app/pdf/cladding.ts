@@ -1,5 +1,5 @@
-import type { Settings, WallId } from '../framing';
-import { CLADDING_LAYOUT, claddingLayout, type CladdingOptions } from '../cladding-layout';
+import type { Settings } from '../framing';
+import { CLADDING_LAYOUT, claddingLayout, claddingCutSummary, type CladdingOptions } from '../cladding-layout';
 import { canvas, fmt } from './layout';
 const footer=(c:ReturnType<typeof canvas>,page:number,total:number,label:string)=>c.text(`Garden room framing set | ${label} | page ${page} of ${total}`,148.5,207,6.4,false,'center');
 export function drawCladding(s:Settings,page:number,total:number,c=canvas(),o:CladdingOptions=CLADDING_LAYOUT){
@@ -23,36 +23,36 @@ export function drawCladding(s:Settings,page:number,total:number,c=canvas(),o:Cl
  c.text('Corners hide board ends. Gables continue the same gauge; cut diagonal tops to the roof line. Measure installed terminations before cutting.',12,201,6.8);
  footer(c,page,total,'All-elevation cladding layout');return c.stream();
 }
-export function drawCladdingCuts(s:Settings,wall:WallId,page:number,total:number,c=canvas(),o:CladdingOptions=CLADDING_LAYOUT){
- const p=claddingLayout(s,o),w=p.walls.find(v=>v.id===wall)!;
- c.text(`${w.cfg.name} - featheredge cutting schedule`,12,11,14,true);
- c.text(`${o.boardWidth} mm blanks | lengths rounded UP to mm | x / z measured from left frame edge / sole underside | stock references S1-S${p.bins.length}`,12,18,7.2);
- const rows=w.pieces;
- const half=Math.ceil(rows.length/2),step=Math.min(7.5,151/Math.max(1,half));
- rows.forEach((v,i)=>{
-  const col=Math.floor(i/half),row=i%half,x=12+col*141,y=33+row*step;
-  if(row===0){c.text('Piece / course base z',x,26,7,true);c.text('Length / stock / finish',x+68,26,7,true);}
-  c.text(`${v.id}  z ${fmt(v.bottom)}`,x,y,7);
-  c.text(`${v.length}  S${v.stock}${v.bevel?'  slope/rip':''}${v.notches.length?'  notch*':''}`,x+68,y,7,true);
-  c.text(`Top L/R ${fmt(v.points.at(-1)![1]-v.bottom)} / ${fmt(v.points[2][1]-v.bottom)}${v.bevel&&v.x<w.peak&&v.end>w.peak?` / apex ${fmt(v.top-v.bottom)}`:''}`,x,y+2.8,6.2);
+export function drawCladdingCuts(s:Settings,page:number,total:number,c=canvas(),o:CladdingOptions=CLADDING_LAYOUT){
+ const p=claddingLayout(s,o),{cuts}=claddingCutSummary(p);
+ c.text('Featheredge cutting list - quantity x length',12,11,14,true);
+ c.text(`All four elevations combined | ${o.boardWidth} mm-wide blanks | cut lengths in mm | ${p.pieces.length} pieces`,12,19,8);
+ c.text('QUANTITY',18,31,8,true);c.text('CUT LENGTH',64,31,8,true);c.text('FINISH AFTER CROSS-CUTTING',115,31,8,true);
+ cuts.forEach((g,i)=>{const y=41+i*7.8;
+  c.text(`${g.quantity} x`,24,y,10,true);c.text(`${g.length} mm`,64,y,10,true);
+  const slope=g.pieces.filter(v=>v.bevel).length,notch=g.pieces.filter(v=>v.notches.length).length;
+  c.text([slope?`${slope} slope / top rip`:'',notch?`${notch} opening notch`:''].filter(Boolean).join('; ')||'Square blanks',115,y,8);
+  c.line(16,y+2.5,280,y+2.5,[0,0,0],.1);
  });
- c.text(`Common gauge ${fmt(p.gauge)}; lap ${fmt(p.lap)}. Mark bases from datum: z = ${fmt(o.bottom)} + (course - 1) x ${p.gauge.toFixed(4)}; do not accumulate rounded steps.`,12,188,6.8);
- c.text('* Notch the full blank around openings: allow 5 mm around structural apertures. See app for x / z notch extents and diagonal end heights.',12,193,6.8);
- c.text('Opening positions are structural datums, not measured trim / cill limits. Adjust notches to fitted liners, flashings and cills before batch cutting.',12,198,6.8);
- c.text('Keep thick edges down; retain the thick edge when ripping the top. Fit a starter packer; support top rips and preserve insect-protected airflow.',12,203,6.8);
- footer(c,page,total,`${w.cfg.name} cladding cuts`);return c.stream();
+ c.text(`Total ${p.pieces.length} blanks / ${fmt(p.totalMetres)} linear m; allocate ${p.bins.length} of ${o.ordered} ordered 4.8 m boards.`,12,182,8,true);
+ c.text('Use the nesting patterns on the next page before cutting. Quantities include full-width blanks for gable slopes and opening notches.',12,190,7.5);
+ c.text('Label blanks by length, then match piece IDs on the elevation / app installation details. Equal lengths can have different final profiles.',12,196,7.2);
+ c.text('Measure fitted corners, cills and flashings before final shaping. Protect cut ends; preserve the thick lower edge.',12,202,7.2);
+ footer(c,page,total,'Cladding quantity x length');return c.stream();
 }
 export function drawCladdingStock(s:Settings,page:number,total:number,c=canvas(),o:CladdingOptions=CLADDING_LAYOUT){
- const p=claddingLayout(s,o);
- c.text('Featheredge stock allocation and finishing',12,11,14,true);
- c.text(`${p.bins.length} of ${o.ordered} ordered 4.8 m boards allocated; ${p.spare} unallocated | ${fmt(p.totalMetres)} linear m of blanks | 3 mm kerf + 5 mm end trim each end`,12,18,8);
- const half=Math.ceil(p.bins.length/2),step=Math.min(4.5,142/half);
- p.bins.forEach((b,i)=>{const col=Math.floor(i/half),row=i%half,x=12+col*141,y=29+row*step;c.text(`S${i+1}: ${b.pieces.map(v=>v.id).join(' + ')} | rem ${Math.floor(b.remaining)}`,x,y,6.4);});
- c.text('Exact-fit eaves: H = eaves top - base; gauge = (H - board width) / (courses - 1). Choose a course count giving 35-40 mm lap.',12,177,7);
- c.text(`Default: H ${fmt(p.eavesTop-o.bottom)}, ${p.courses} courses, gauge ${fmt(p.gauge)}, lap ${fmt(p.lap)}. Full-width top board; no narrow eaves sliver.`,12,182,7);
- c.text('Joint axes alternate by course on long runs. Provide 100 mm-wide backing (two adjacent 50 mm battens), fixed into sound framing.',12,187,7);
- c.text(`Allow ${fmt(p.jointBackingMetres)} m ADDITIONAL 25 x 50 backing at joint axes, before cutting waste; use reserved wall stock and check usable offcuts.`,12,192,7);
- c.text('5 mm provisional butt gaps; protect cut ends, keep each board independently fixed. Confirm overlap / joint gaps with supplier and dry-laid sample.',12,197,7);
- c.text('Gable tips / thin upper edges need packing and a weathered verge cover; retain ventilation. Allocation excludes defect losses and reuses no notch waste.',12,202,6.8);
- footer(c,page,total,'Cladding stock and setting-out');return c.stream();
+ const p=claddingLayout(s,o),{patterns}=claddingCutSummary(p);
+ c.text('4.8 m stock - repeated nesting patterns',12,11,14,true);
+ c.text(`${p.bins.length} boards used; ${p.spare} whole boards spare | each bar = one 4800 mm board | 3 mm kerf per cut + 5 mm end trims + 10 mm minimum offcut`,12,19,8);
+ patterns.forEach((g,i)=>{const y=29+i*8.35,k=184/o.stockLength;
+  c.text(`${g.stocks.length} x`,12,y+3.6,8.5,true);
+  let x=32+o.endTrim*k;
+  c.rect(32,y,184,5.2,[255,255,255],[0,0,0],.2);
+  g.lengths.forEach(length=>{c.rect(x,y,length*k,5.2,'timber',[0,0,0],.12);c.text(String(length),x+length*k/2,y+3.6,7,true,'center');x+=(length+o.kerf)*k;});
+  c.text(`${Math.floor(g.remaining)} mm left`,222,y+3.6,7);
+ });
+ c.text('Repeat each pattern the stated number of times. Blank lengths are printed inside the bars; remaining space is offcut / trimming allowance.',12,191,7.2);
+ c.text('Stock labels S1 onward and piece assignments remain available in the app. Cross-cut blanks first; shape gable ends / notches afterwards.',12,197,7.2);
+ c.text('Eight whole boards are a default reserve for defects and site adjustments; offcuts shown exclude any reuse of slope / notch waste.',12,202,7);
+ footer(c,page,total,'Cladding stock nesting');return c.stream();
 }

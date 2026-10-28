@@ -14,10 +14,10 @@ import {drawRoofEnvelope,drawRoofEnvelopeCuts,drawRoofEnvelopeDetails,drawRoofBa
 import { drawTieConnection } from './pdf/tie-connection';
 import { drawWindowCill } from './pdf/window-cill';
 import { drawCladding, drawCladdingCuts, drawCladdingStock } from "./pdf/cladding";
-export const FRAMING_PDF_PAGE_COUNT=38;
+export const FRAMING_PDF_PAGE_COUNT=35;
 export const PDF_PARTS = [
   {id:'timber', label:'Part 1 - Timber framing', filename:'garden-room-timber-framing.pdf', pageCount:16},
-  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:23},
+  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:20},
 ] as const;
 export type PdfPart = typeof PDF_PARTS[number]['id'];
 export function generateFramingPdf(settings:Settings,part?:PdfPart){
@@ -30,7 +30,7 @@ export function generateFramingPdf(settings:Settings,part?:PdfPart){
     (p,t)=>drawDoorVertical(settings,p,t),(p,t)=>drawDoorVertical(settings,p,t,true),(p,t)=>drawEaves(settings,p,t),(p,t)=>drawLowerWall(settings,p,t),drawPatternKey,(p,t)=>drawFramePosition(settings,p,t),(p,t)=>drawSheathing(settings,p,t),(p,t)=>drawSheathingCuts(settings,p,t),(p,t)=>drawSheathingCutsContinued(settings,p,t),(p,t)=>drawSheathingDetails(settings,p,t),(p,t)=>drawFloor(settings,p,t),(p,t)=>drawBathroom(settings,p,t),(p,t)=>drawBathroomDoor(settings,p,t),(p,t)=>drawRoofEnvelope(settings,p,t),(p,t)=>drawRoofEnvelopeCuts(settings,p,t),(p,t)=>drawRoofEnvelopeDetails(settings,p,t),(p,t)=>drawRoofBattens(settings,p,t));
   pages.push((p,t)=>drawTieConnection(settings,p,t));
   pages.push((p,t)=>drawWindowCill(settings,p,t));
-  pages.push((p,t)=>drawCladding(settings,p,t),...wallOrder.map(id=>(p:number,t:number)=>drawCladdingCuts(settings,id,p,t)),(p,t)=>drawCladdingStock(settings,p,t));
+  pages.push((p,t)=>drawCladding(settings,p,t),(p,t)=>drawCladdingCuts(settings,p,t),(p,t)=>drawCladdingStock(settings,p,t));
   // Original drawing order is retained for regression comparisons. Each published
   // part has its own numbering; include the material key in both for standalone use.
   const selected=part==='timber'

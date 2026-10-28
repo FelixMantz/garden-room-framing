@@ -97,7 +97,7 @@ test('last sheet shows the centred timber bearing and measured masonry datums',a
  assert.match(last,/5005 x 3015/);assert.match(last,/5000 x 3010/);
  assert.match(last,/2\.5 mm internal timber overhang/);
  assert.match(last,/92\.5 mm timber bearing on brick/);
- assert.match(last,/page 19 of 38/);
+ assert.match(last,/page 19 of 35/);
 });
 
 test('enlarged rafter tail dimensions the flat cut and final plan identifies butt joints',async()=>{

@@ -18,7 +18,7 @@ test('every blank is allocated exactly once with kerfs and trimming inside order
  const p=claddingLayout(),allocated=p.bins.flatMap(v=>v.pieces);
  assert.equal(p.bins.length,52);assert.equal(p.spare,8);
  assert.equal(allocated.length,p.pieces.length);assert.equal(new Set(allocated.map(v=>v.id)).size,p.pieces.length);
- for(const b of p.bins){assert.ok(b.remaining>=0);assert.equal(b.pieces.reduce((n,v)=>n+v.length+3,0)+b.remaining,4790);}
+ for(const b of p.bins){assert.ok(b.remaining>=10);assert.equal(b.pieces.reduce((n,v)=>n+v.length+3,0)+b.remaining,4790);}
 });
 test('long-wall joints are on framing and have an independent fixing gap',()=>{
  const p=claddingLayout();
@@ -56,4 +56,11 @@ test('layout recalculates measured inputs and rejects invalid overlap before dra
  assert.equal(p.errors.length,0);assert.ok(p.lap>=35&&p.lap<=40);
  assert.equal(claddingLayout(undefined,{...CLADDING_LAYOUT,minLap:180}).errors.length,1);
  assert.equal(claddingLayout(undefined,{...CLADDING_LAYOUT,boardWidth:NaN}).pieces.length,0);
+});
+test('grouped quantities and repeated stock patterns preserve every required cut',async()=>{
+ const {claddingCutSummary}=await v.ssrLoadModule('/app/cladding-layout.ts'),p=claddingLayout(),summary=claddingCutSummary(p);
+ assert.equal(summary.cuts.reduce((n,g)=>n+g.quantity,0),122);
+ assert.equal(summary.patterns.reduce((n,g)=>n+g.stocks.length,0),52);
+ for(const cut of summary.cuts)assert.equal(summary.patterns.reduce((n,g)=>n+g.stocks.length*g.lengths.filter(x=>x===cut.length).length,0),cut.quantity);
+ for(const g of summary.patterns)assert.equal(g.lengths.reduce((n,l)=>n+l+3,10)+g.remaining,4800);
 });

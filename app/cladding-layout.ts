@@ -4,7 +4,7 @@ import { gableRoofTop } from './sheathing';
 import { roofOverhangs } from './roof-overhangs';
 import { rafterTailCut } from './rafter-dimensions';
 
-export const CLADDING_LAYOUT = { boardWidth:175, minLap:35, maxLap:40, bottom:-25, topAdjustment:0, buttGap:5, openingGap:5, topGap:3, stockLength:4800, kerf:3, endTrim:5, ordered:60 };
+export const CLADDING_LAYOUT = { boardWidth:175, minLap:35, maxLap:40, bottom:-25, topAdjustment:0, buttGap:5, openingGap:5, topGap:3, stockLength:4800, kerf:3, endTrim:5, minOffcut:10, ordered:60 };
 export type CladdingOptions = typeof CLADDING_LAYOUT;
 export type CladdingPiece = {id:string;wall:WallId;course:number;x:number;end:number;bottom:number;top:number;length:number;points:number[][];notches:{x:number;end:number;bottom:number;top:number}[];bevel:boolean;stock?:number};
 /** Same horizontal soffit datum as the eaves drawing, from sole underside. */
@@ -59,10 +59,20 @@ export function claddingLayout(s:Settings=defaultSettings(),o:CladdingOptions=CL
  const bins:{remaining:number;pieces:CladdingPiece[]}[]=[];
  for(const piece of [...pieces].sort((a,b)=>b.length-a.length)){
   const needed=piece.length+o.kerf;
-  let bin=bins.find(v=>v.remaining>=needed);
+  let bin=bins.find(v=>v.remaining-needed>=o.minOffcut);
   if(!bin){bin={remaining:o.stockLength-2*o.endTrim,pieces:[]};bins.push(bin);}
-  if(needed>bin.remaining)errors.push(`${piece.id} exceeds usable stock length.`);
+  if(needed+o.minOffcut>bin.remaining)errors.push(`${piece.id} exceeds usable stock length.`);
   bin.pieces.push(piece);bin.remaining-=needed;piece.stock=bins.indexOf(bin)+1;
  }
  return {errors:[...new Set(errors)],walls,pieces,bins,gauge,lap,courses,eavesTop:top,totalMetres:pieces.reduce((n,v)=>n+v.length,0)/1000,spare:o.ordered-bins.length,jointBackingMetres:walls.reduce((n,w)=>n+w.joints.length*(top-o.bottom)/1000,0),options:o};
+}
+
+/** Workshop summaries; piece identities stay attached for installation. */
+export function claddingCutSummary(p:ReturnType<typeof claddingLayout>){
+ const lengths=new Map<number,CladdingPiece[]>();
+ for(const piece of p.pieces){const group=lengths.get(piece.length)||[];group.push(piece);lengths.set(piece.length,group);}
+ const cuts=[...lengths].sort(([a],[b])=>b-a).map(([length,pieces])=>({length,quantity:pieces.length,pieces}));
+ const groups=new Map<string,{lengths:number[];stocks:number[];remaining:number}>();
+ p.bins.forEach((b,i)=>{const lengths=b.pieces.map(v=>v.length).sort((a,b)=>b-a),key=lengths.join('+');const group=groups.get(key)||{lengths,stocks:[],remaining:b.remaining};group.stocks.push(i+1);groups.set(key,group);});
+ return {cuts,patterns:[...groups.values()]};
 }
