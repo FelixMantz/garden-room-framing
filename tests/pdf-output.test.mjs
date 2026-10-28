@@ -7,7 +7,7 @@ test("serves separate timber and construction PDFs with all original drawing con
   const construction = (await readFile(new URL('../dist/garden-room-construction-details.pdf', import.meta.url))).toString('latin1');
   const pdf=timber+construction;
   assert.equal((timber.match(/\/Type \/Page\b/g) ?? []).length, 16);
-  assert.equal((construction.match(/\/Type \/Page\b/g) ?? []).length, 17);
+  assert.equal((construction.match(/\/Type \/Page\b/g) ?? []).length, 20);
   assert.match(timber,/Roof framing/);
   assert.match(timber,/M10 x 180 A2 coach bolt/);
   assert.match(timber,/28 dia. counterbore/);
@@ -41,7 +41,7 @@ test("serves separate timber and construction PDFs with all original drawing con
   const floorSchedule = pdf.slice(pdf.indexOf("FLOOR COMPONENTS - TOP DOWN"), pdf.indexOf("DOOR ASSEMBLY"));
   assert.match(floorSchedule, /parquet/i);
   assert.doesNotMatch(floorSchedule, /Tie beam|Door lintel|Brick threshold course/);
-  assert.match(pdf, /door front elevation \| page 1 of 17/);
+  assert.match(pdf, /door front elevation \| page 1 of 20/);
   assert.doesNotMatch(pdf, /colour PDF/);
 });
 

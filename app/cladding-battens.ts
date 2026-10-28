@@ -17,7 +17,7 @@ export function wallBattenPlan(s:Settings=defaultSettings()) {
   }
   for(const m of members.filter(m=>['gable stud','gable apex stud','ridge support stud'].includes(m.type))) add('Gable extension',m.h!+c.rafterVerticalDepth+20);
  }
- const stockLength=4800,kerf=3,bins:{remaining:number;pieces:typeof pieces}[]=[];
+ const stockLength=2100,kerf=3,bins:{remaining:number;pieces:typeof pieces}[]=[];
  for(const piece of [...pieces].sort((a,b)=>b.length-a.length)){
   if(piece.length>stockLength)throw Error('Wall batten exceeds stock length');
   let bin=bins.find(b=>b.remaining>=piece.length+kerf);
@@ -25,8 +25,8 @@ export function wallBattenPlan(s:Settings=defaultSettings()) {
   bin.pieces.push(piece);bin.remaining-=piece.length+kerf;
  }
  const stockForCuts=bins.length,reserveLengths=Math.max(2,Math.ceil(stockForCuts*.1));
- const orderLengths=Math.ceil(stockForCuts/10)*10;
- const shortReserveLengths=orderLengths-stockForCuts>=reserveLengths?0:10;
+ const orderLengths=74;
+ const shortReserveLengths=0;
  return {pieces,bins,stockLength,stockForCuts,reserveLengths,orderLengths,shortReserveLengths,totalMetres:pieces.reduce((sum,p)=>sum+p.length,0)/1000,
   byWall:wallOrder.map(wall=>({wall,metres:pieces.filter(p=>p.wall===wall).reduce((sum,p)=>sum+p.length,0)/1000})),roofSurplusDeducted:0};
 }
