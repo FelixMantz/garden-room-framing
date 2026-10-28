@@ -44,7 +44,7 @@ export function drawCladdingStock(s:Settings,page:number,total:number,c=canvas()
  const p=claddingLayout(s,o),{patterns}=claddingCutSummary(p);
  c.text('4.8 m stock - repeated nesting patterns',12,11,14,true);
  c.text(`${p.bins.length} boards used; ${p.spare} whole boards spare | each bar = one 4800 mm board | 3 mm kerf per cut + 5 mm end trims + 10 mm minimum offcut`,12,19,8);
- patterns.forEach((g,i)=>{const y=29+i*8.35,k=184/o.stockLength;
+ patterns.forEach((g,i)=>{const y=29+i*Math.min(8.35,154/Math.max(1,patterns.length-1)),k=184/o.stockLength;
   c.text(`${g.stocks.length} x`,12,y+3.6,8.5,true);
   let x=32+o.endTrim*k;
   c.rect(32,y,184,5.2,[255,255,255],[0,0,0],.2);
