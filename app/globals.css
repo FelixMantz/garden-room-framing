@@ -20,3 +20,5 @@
 .clearance-note{border-left:3px solid var(--teal);background:#eef7f5;padding:12px 16px;line-height:1.5;color:var(--ink);font-size:.9rem}
 
 .pdf-part{display:grid;gap:8px;font-size:.85rem}.pdf-part strong{color:var(--muted)}
+
+.cladding-page{display:grid;gap:12px}.cladding-page>.diagram-card:not(.shared-drawing){padding:18px}.cladding-page h2{margin-top:0}.cladding-page p{line-height:1.5}.cladding-page .schedule>p{padding:0 15px}
