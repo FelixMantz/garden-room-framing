@@ -9,6 +9,7 @@ import { svgCanvas } from './pdf/svg';
 import { drawLowerWall } from './pdf/lower-wall';
 import { wallBattenPlan } from './cladding-battens';
 import { CLADDING_ORDER, CLADDING_GOODS, CLADDING_DELIVERY } from './cladding';
+import { drawWiringWall, drawWiringCeiling, drawWiringBathroom } from './pdf/wiring';
 import { WALL_SERVICES } from './wall-services';
 
 export default function ConstructionDetails({settings}:{settings:Settings}){
@@ -16,6 +17,12 @@ export default function ConstructionDetails({settings}:{settings:Settings}){
   const m = windowCillModel(settings, options);
   const battens = wallBattenPlan(settings);
   return <>
+    <section className="diagram-card" aria-label="Wiring diagrams">
+      <h2>Electrical and network wiring</h2>
+      <p>Internal wall elevations, vaulted ceiling, separate bathroom ceiling, with electrical and network routes and a key on each page. One line per cable. Proposed fitting positions need confirming before first fix.</p>
+      {(['front','rear','left','right'] as const).map(id=><details key={id}><summary>{id} wall — internal wiring view</summary><div className="shared-drawing" dangerouslySetInnerHTML={{__html:drawWiringWall(settings,id,1,1,svgCanvas())}}/></details>)}
+      {[['Vaulted ceiling',drawWiringCeiling],['Bathroom ceiling and partitions',drawWiringBathroom]].map(([label,draw])=><details key={String(label)}><summary>{String(label)}</summary><div className="shared-drawing" dangerouslySetInnerHTML={{__html:(draw as typeof drawWiringCeiling)(settings,1,1,svgCanvas())}}/></details>)}
+    </section>
     <section className="diagram-card" aria-label="Socket band and wall PIR cutting allowance">
       <h2>Socket band and wall PIR</h2>
       <p>The {WALL_SERVICES.bandHeight} mm-high band uses {WALL_SERVICES.servicePir} mm PIR, leaving a {settings.studDepth-WALL_SERVICES.servicePir} mm warm-side recess. Its underside is {WALL_SERVICES.bandBottom} mm and top {WALL_SERVICES.bandTop} mm above FFL, centred on the {WALL_SERVICES.centre} mm socket height. Retain {WALL_SERVICES.mainPir} mm PIR elsewhere.</p>

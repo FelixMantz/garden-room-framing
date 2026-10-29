@@ -1,6 +1,6 @@
 # Garden Room Framing Designer
 
-Garden-room wall elevations, cutting schedules, roof and construction details, and two technical PDFs: timber framing (16 pages) and sheathing, insulation and interiors (17 pages).
+Garden-room wall elevations, cutting schedules, roof and construction details, wiring diagrams, and two technical PDFs: timber framing (16 pages) and sheathing, insulation and interiors (26 pages).
 
 ## Keep the app and master spec in sync
 

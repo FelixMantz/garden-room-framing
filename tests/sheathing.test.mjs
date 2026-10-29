@@ -99,7 +99,7 @@ test('Construction details tab renders the socket band, cill and external corner
  const {createElement}=await import('react');
  const {default:ConstructionDetails}=await v.ssrLoadModule('/app/construction-details.tsx');
  const html=renderToStaticMarkup(createElement(ConstructionDetails,{settings:defaultSettings()}));
- assert.equal((html.match(/<svg\b/g)||[]).length,3);
+ assert.equal((html.match(/<svg\b/g)||[]).length,9);
  for(const label of ['125 mm-high band','70 mm PIR','437.5 mm','562.5 mm','20.4 m','Widen vertical channels locally around backboxes'])assert.ok(html.includes(label),label);
  assert.ok(html.includes('Window cill depth assessment'));
  assert.ok(html.includes('20.0 mm projection'));

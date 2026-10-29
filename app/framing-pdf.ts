@@ -14,10 +14,11 @@ import {drawRoofEnvelope,drawRoofEnvelopeCuts,drawRoofEnvelopeDetails,drawRoofBa
 import { drawTieConnection } from './pdf/tie-connection';
 import { drawWindowCill } from './pdf/window-cill';
 import { drawCladding, drawCladdingCuts, drawCladdingStock } from "./pdf/cladding";
-export const FRAMING_PDF_PAGE_COUNT=35;
+import { drawWiringWall, drawWiringCeiling, drawWiringBathroom } from './pdf/wiring';
+export const FRAMING_PDF_PAGE_COUNT=41;
 export const PDF_PARTS = [
   {id:'timber', label:'Part 1 - Timber framing', filename:'garden-room-timber-framing.pdf', pageCount:16},
-  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:20},
+  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:26},
 ] as const;
 export type PdfPart = typeof PDF_PARTS[number]['id'];
 export function generateFramingPdf(settings:Settings,part?:PdfPart){
@@ -34,11 +35,12 @@ export function generateFramingPdf(settings:Settings,part?:PdfPart){
   // Full-set order is retained for regression comparisons. Construction groups
   // run wall sections, cladding, bathroom, joinery, roof, then floor. Each published
   // part has its own numbering; include the material key in both for standalone use.
+  const wiringPages:((p:number,t:number)=>string)[]=[...wallOrder.map(id=>(p:number,t:number)=>drawWiringWall(settings,id,p,t)),(p,t)=>drawWiringCeiling(settings,p,t),(p,t)=>drawWiringBathroom(settings,p,t)];
   const selected=part==='timber'
     ? [...pages.slice(0,13),pages[30],pages[17],pages[18]]
     : part==='construction'
-      ? [pages[16],...pages.slice(19,22),pages[22],...pages.slice(32),pages[24],pages[25],pages[13],pages[14],pages[31],pages[15],...pages.slice(26,30),pages[23],pages[17]]
-      : pages;
+      ? [pages[16],...pages.slice(19,22),pages[22],...pages.slice(32),pages[24],pages[25],pages[13],pages[14],pages[31],pages[15],...pages.slice(26,30),pages[23],...wiringPages,pages[17]]
+      : [...pages,...wiringPages];
   const label=PDF_PARTS.find(item=>item.id===part)?.label;
   return buildPdf(selected.map((draw,i)=>{
     const stream=draw(i+1,selected.length);
