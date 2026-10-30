@@ -18,6 +18,10 @@ export const MAIN_LIGHT_GROUPS=['main room','feature','external'] as const;
 export function networkSwitch(s:Settings){return {x:consumerUnit(s).x,z:WIRING.network};}
 export type Point={id:string,x:number,z:number,kind:string};
 export type Run={id:string,points:number[][],type:'ring'|'light'|'heater'|'aircon'|'data'|'spur'|'supply'};
+export function serviceEntry(s:Settings){
+ const outsideFront=s.internalDepth+(s.brickInternalDepth-s.internalDepth)/2+s.brickThickness;
+ return {setback:200,x:outsideFront-200,swaHeight:250,dataHeight:350};
+}
 function baseWiringWall(s:Settings,id:WallId){
  const cfg=configForWall(s,id),w=cfg.width,cu=consumerUnit(s),entry=cfg.frameBase-cfg.ffl+cfg.studFace+62;
  const points:Point[]=[],runs:Run[]=[];
@@ -31,8 +35,7 @@ function baseWiringWall(s:Settings,id:WallId){
   p('CU',cu.x,cu.z,'cu');p('NET',cu.x,WIRING.network,'network');
   r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,500],[300,500]]);
   r('R: CU / right wall',[[cu.x-105,cu.bottom],[cu.x-105,500],[0,500]]);
-  p('SWA-IN',cu.x-70,entry,'supply');p('DATA-IN',cu.x+70,entry,'data');
-  r('SWA: front entry / CU',[[cu.x-70,entry],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[w-300,500],[w,500]]);
+  r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[w-300,500],[w,500]]);
   r('PSU: S1 / NET USB-C',[[300,500],[300,WIRING.network],[cu.x,WIRING.network]],'spur');
   p('N2',440,500,'data');p('N3',w-440,500,'data');
  }else if(id==='rear'){
@@ -45,13 +48,17 @@ function baseWiringWall(s:Settings,id:WallId){
   r('R: front / S3 / F-L / S4 / rear',[[0,500],[450,500],[w-650,500],[w-450,500],[w,500]]);
   for(const [i,z] of [[1,650],[2,800]]){p(`OUT-L${i}`,w-650,z,'external');r(`F-L ch${i}`,[[w-650,500],[w-650+(i-1)*50,500],[w-650+(i-1)*50,z],[w-650,z]],'spur');}
  }else{
+  const gr=leftGableFeature(s);p('G2',gr.x,gr.z,'feature');
   p('S7',w-1305,500);p('S8',w-505,500);p('F-R',w-905,500,'fcu');p('AP',w*.44,2450,'ap');const bath=bathroomModel(s);p('AC',(w+bath.frontOuter-bath.dy)/2,cfg.wallHeight+cfg.frameBase-cfg.ffl,'aircon');
   r('R: front CU / S8 / F-R / S7 / rear',[[w,500],[w-505,500],[w-905,500],[w-1305,500],[0,500]]);
+  const incoming=serviceEntry(s);p('SWA-IN',incoming.x,incoming.swaHeight,'supply');p('DATA-IN',incoming.x,incoming.dataHeight,'data');
+  r('SWA: right entry / front corner',[[incoming.x,250],[w,250]],'supply');
+  for(let i=0;i<2;i++)r(`HOUSE DATA right ${i+1}`,[[incoming.x,350],[incoming.x,350+i*30],[w,350+i*30]],'data');
   for(const [i,z] of [[1,650],[2,800]]){p(`OUT-R${i}`,w-905,z,'external');r(`F-R ch${i}`,[[w-905,500],[w-905+(i-1)*50,500],[w-905+(i-1)*50,z],[w-905,z]],'spur');}
  }
  if(id==='front'){
   r('N2: single front-right RJ45',[[cu.x,WIRING.network],[cu.x+35,WIRING.network],[cu.x+35,535],[440,535],[440,500]],'data');
-  for(let i=0;i<2;i++)r(`HOUSE DATA ${i+1}`,[[cu.x+70,entry],[cu.x+80+i*30,entry],[cu.x+80+i*30,WIRING.network],[cu.x,WIRING.network]],'data');
+  for(let i=0;i<2;i++)r(`HOUSE DATA ${i+1}`,[[0,350+i*30],[cu.x+80+i*30,350+i*30],[cu.x+80+i*30,WIRING.network],[cu.x,WIRING.network]],'data');
  }
  return {cfg,w,points,runs,cu};
 }
@@ -92,9 +99,9 @@ export function framingConnections(s:Settings){
  add('RE','front',dr+85,[[f.w-300,500],[dr+85,500]],'ring','DOOR');
  // Separate projected risers in the front-right bay; outlets remain at the previously agreed positions.
  add('LC','front',cu.x-85,[[cu.x-85,cu.top]],'light','CU/NET');
- add('HC','front',cu.x-50,[[cu.x-50,cu.top]],'heater','CU/NET');
  add('AC','front',cu.x-15,[[cu.x-15,cu.top]],'aircon','CU/NET');
- for(let i=0;i<5;i++)add(i===4?'SP':`SW${i}`,'front',sw.x+(i-2)*30,[[sw.x,sw.z]],'light','SW-M');
+ add('SP','front',cu.x-115,[[cu.x-115,cu.top]],'light','CU/NET');
+ for(let i=0;i<4;i++)add(`SW${i}`,'front',sw.x+(i-1.5)*30,[[sw.x,sw.z]],'light','SW-M');
  for(const [id,offset] of [['X1A',-20],['X1B',20],['X2',0]] as const){const a=point(f,id==='X2'?'EXT-L2':'EXT-L1');add(id,'front',a.x+offset,[[a.x,a.z]],'light',id==='X2'?'LANTERN 2':'LANTERN 1');}
  const net=point(f,'NET');
  for(const [id,dx] of [['N1A',20],['N3A',55],['N4A',90]] as const)add(id,'front',cu.x+dx,[[net.x,net.z]],'data','CU/NET');
@@ -102,11 +109,11 @@ export function framingConnections(s:Settings){
  add('N3B','front',drop,[[nl.x,nl.z],[nl.x,535],[drop,535]],'data','DOOR DATA');
  const ac=point(rr,'AC');add('AD','right',ac.x+80,[[ac.x,ac.z]],'aircon','AIRCON');
  const ap=point(rr,'AP');add('N1B','right',g.x-145,[[ap.x,ap.z]],'data','AP');
- const wh=point(back,'WH-ISO');add('HW','rear',wh.x,[[wh.x,wh.z]],'heater','HEATER');
+ const rg=point(rr,'G2');add('FG2','right',rg.x+125,[[rg.x,rg.z]],'light','G2');
  add('FG','left',g.x-125,[[g.x,g.z]],'light','G1');
  const get=(id:string)=>ports.find(p=>p.id===id)!;
  // Roof lanes lie INSIDE the walls, crossing rafters at engineered bores. Offsets are schematic, not hole set-out or segregation distances.
- const lane=(n:number)=>600+n*45,front=(n:number)=>D-lane(n),rear=(n:number)=>lane(n),right=(n:number)=>L-70-n*15,left=(n:number)=>70+n*15;
+ const lane=(n:number)=>600+n*45,front=(n:number)=>D-lane(n),rear=(n:number)=>lane(n),right=(n:number)=>L-Math.max(40,70+n*15),left=(n:number)=>Math.max(40,70+n*15);
  const roofLane=(p:FramingPort,n:number):number[]=>p.wall==='front'?[p.plan[0],front(n)]:p.wall==='rear'?[p.plan[0],rear(n)]:p.wall==='right'?[right(n),p.plan[1]]:[left(n),p.plan[1]];
  const link=(id:string,a:string,b:string,n:number,type:Run['type'])=>{
   const p=get(a),q=get(b),aa=roofLane(p,n),bb=roofLane(q,n);let middle:number[][]=[];
@@ -117,16 +124,16 @@ export function framingConnections(s:Settings){
   else if(p.wall==='front'&&q.wall==='left')middle=[[bb[0],aa[1]]];
   roofRuns.push({id,from:a,to:b,type,points:[p.plan,aa,...middle,bb,q.plan]});
  };
- link('R door bypass','RD','RE',0,'ring');link('Lighting permanent','LC','SW0',1,'light');
- link('Heater radial','HC','HW',6,'heater');link('Aircon radial','AC','AD',7,'aircon');
+ link('R door bypass','RD','RE',-10,'ring');link('Lighting permanent','LC','SW0',1,'light');
+link('Aircon radial','AC','AD',7,'aircon');
  link('Lantern feed','SW3','X1A',8,'light');link('Lantern loop','X1B','X2',9,'light');
- link('N1 AP','N1A','N1B',10,'data');
+ link('N1 AP','N1A','N1B',-8,'data');
  // N3 follows the ring over the door, then drops beside its far jamb and follows the low ring to N3.
- const np=get('N3A'),nq=get('N3B'),nrY=front(0)-45;
+ const np=get('N3A'),nq=get('N3B'),nrY=front(-10)-45;
  roofRuns.push({id:'N3 socket',from:'N3A',to:'N3B',type:'data',points:[np.plan,[np.plan[0],nrY],[nq.plan[0],nrY],nq.plan]});
  // Only the short front-right exit reaches the retained future camera.
- const cam=get('N4A'),camLane=roofLane(cam,12);
- roofRuns.push({id:'N4 CAM',from:'N4A',type:'data',points:[cam.plan,camLane,[right(12),camLane[1]],[right(12),D],[L,D]]});
+ const cam=get('N4A'),camLane=[cam.plan[0],D-60];
+ roofRuns.push({id:'N4 CAM',from:'N4A',type:'data',points:[cam.plan,camLane,[L-30,camLane[1]],[L-30,D],[L,D]]});
  return {ports,roofRuns,top,stub,get,lane,front,rear,left,right};
 }
 
@@ -138,6 +145,9 @@ export function wiringWall(s:Settings,id:WallId){
  const bath=bathroomWiring(s);
  if(id==='front')runs.push({id:'BL: CU / right wall',type:'light',points:[[m.cu.x-35,m.cu.bottom],[m.cu.x-35,bath.low],[0,bath.low]]});
  if(id==='right')runs.push({id:'BL: right wall / partition',type:'light',points:[[m.w,bath.low],[bath.partitionY,bath.low]]});
+ if(id==='front')runs.push({id:'H: CU / right channel',type:'heater',points:[[m.cu.x+60,m.cu.bottom],[m.cu.x+60,470],[0,470]]});
+ if(id==='right')runs.push({id:'H: front / rear channel',type:'heater',points:[[m.w,470],[0,470]]});
+ if(id==='rear'){const wh=m.points.find(p=>p.id==='WH-ISO')!;runs.push({id:'H: channel / WH-ISO',type:'heater',points:[[m.w,470],[wh.x,470],[wh.x,wh.z]]});}
  const points=m.points;
  return {...m,points,runs,ports:connections.ports.filter(p=>p.wall===id),stub:connections.stub};
 }
@@ -161,11 +171,12 @@ export function ceilingLighting(s:Settings){
   const pts=i===0?[last.point,[last.point[0],yy],[next.point[0],yy],next.point]:[last.point,[last.point[0]-25,last.point[1]],[last.point[0]-25,yy],[next.point[0],yy],next.point];
   runs.push({from:last.id,to:next.id,group:'feature',points:pts});last=next;
  });
- const fg=c.get('FG');
+ const fg=c.get('FG'),fg2=c.get('FG2'),first=feature.at(-1)!;
+ const rightGableContinuation={from:'T3',to:'G2',points:[first.point,[first.point[0]+25,first.point[1]],[first.point[0]+25,c.front(-1)],[c.right(-1),c.front(-1)],[c.right(-1),fg2.plan[1]],fg2.plan]};
  const gableContinuation={from:'T1',to:'G1',points:[last.point,[last.point[0]-25,last.point[1]],[last.point[0]-25,c.front(-1)],[c.left(-1),c.front(-1)],[c.left(-1),fg.plan[1]],fg.plan]};
  const smoke={id:'SM',point:[2200,s.internalDepth/2-250]},sp=c.get('SP');
  const smokeRun={from:'SP',to:'SM',points:[sp.plan,[sp.plan[0],c.front(2)],[smoke.point[0],c.front(2)],smoke.point]};
- return {...b,runs,gableContinuation,smoke,smokeRun,ports:c.ports,roofRuns:c.roofRuns,connections:c};
+ return {...b,runs,gableContinuation,rightGableContinuation,smoke,smokeRun,ports:c.ports,roofRuns:c.roofRuns,connections:c};
 }
 
 /** Bathroom feed follows the low right-wall channel then rises in the attached short partition. */

@@ -15,7 +15,7 @@ test('door bypass rises beside jambs and crosses only inside roof framing, clear
  for(const run of m.runs)for(let i=1;i<run.points.length;i++){const a=run.points[i-1],b=run.points[i];if(a[1]===b[1])assert.ok(!(Math.min(a[0],b[0])<right&&Math.max(a[0],b[0])>left),'wall cable crosses doorway/lintel: '+run.id);}
  const {framingConnections}=await v.ssrLoadModule('/app/wiring.ts'),c=framingConnections(s),run=c.roofRuns.find(r=>r.id==='R door bypass');
  assert.deepEqual(run.points[0],rd.plan);assert.deepEqual(run.points.at(-1),re.plan);
- assert.ok(run.points.some(p=>p[1]<s.internalDepth-300));
+ assert.ok(run.points.some(p=>p[1]<s.internalDepth-100));
 });
 test('ring rejoins the right/rear wall at socket height through the bathroom',()=>{
  const s=defaultSettings(),right=wiringWall(s,'right'),rear=wiringWall(s,'rear');
@@ -93,10 +93,10 @@ test('main and feature lighting each have one feed and loop through every fittin
  }
 });
 
-test('service entries are on front wall under CU and feature loop continues to left-gable centroid',async()=>{
+test('service entries are on right wall near front corner and feature loop continues to left-gable centroid',async()=>{
  const s=defaultSettings(),front=wiringWall(s,'front'),right=wiringWall(s,'right'),left=wiringWall(s,'left');
- for(const id of ['SWA-IN','DATA-IN']){const p=front.points.find(p=>p.id===id);assert.ok(p);assert.ok(p.z<front.cu.bottom);assert.ok(!right.points.some(p=>p.id===id));}
- assert.ok(!right.runs.some(r=>r.id.startsWith('HOUSE DATA')||r.type==='supply'));
+ for(const id of ['SWA-IN','DATA-IN']){const p=right.points.find(p=>p.id===id);assert.ok(p);assert.ok(p.z<front.cu.bottom);assert.ok(!front.points.some(p=>p.id===id));}
+ assert.ok(right.runs.some(r=>r.id.startsWith('HOUSE DATA')));assert.ok(right.runs.some(r=>r.type==='supply'));
  const {configForWall}=await v.ssrLoadModule('/app/framing.ts');const cfg=configForWall(s,'left'),g=left.points.find(p=>p.id==='G1');
  assert.equal(g.x,cfg.width/2);assert.ok(Math.abs(g.z-(cfg.wallHeight+cfg.frameBase-cfg.ffl+(cfg.ridgeBottom-cfg.wallHeight)/3))<.51);
  const {ceilingLighting}=await v.ssrLoadModule('/app/wiring.ts');const lighting=ceilingLighting(s);
@@ -106,7 +106,7 @@ test('service entries are on front wall under CU and feature loop continues to l
 
 test('every wall continuation has exactly one roof connection and all transport stays inside the frame',async()=>{
  const s=defaultSettings(),{framingConnections,ceilingLighting}=await v.ssrLoadModule('/app/wiring.ts'),c=framingConnections(s),lighting=ceilingLighting(s);
- const endpoints=c.roofRuns.flatMap(r=>[r.from,r.to]).filter(Boolean).concat(['SW1','SW2','FG','SP']);
+ const endpoints=c.roofRuns.flatMap(r=>[r.from,r.to]).filter(Boolean).concat(['SW1','SW2','FG','FG2','SP']);
  for(const p of c.ports){
   assert.equal(endpoints.filter(id=>id===p.id).length,1,p.id+' continuation count');
   const wall=wiringWall(s,p.wall),run=wall.runs.find(r=>r.id===p.id);
@@ -116,7 +116,7 @@ test('every wall continuation has exactly one roof connection and all transport 
   assert.deepEqual(r.points[0],c.get(r.from).plan);
   if(r.to)assert.deepEqual(r.points.at(-1),c.get(r.to).plan);
  }
- const paths=[...c.roofRuns,...lighting.runs,lighting.gableContinuation];
+ const paths=[...c.roofRuns,...lighting.runs,lighting.gableContinuation,lighting.rightGableContinuation];
  for(const r of paths){for(const p of r.points){assert.ok(p[0]>=0&&p[0]<=s.internalLength,r.id||r.to);assert.ok(p[1]>=0&&p[1]<=s.internalDepth,r.id||r.to);}for(let i=1;i<r.points.length;i++){const [a,b]=[r.points[i-1],r.points[i]];assert.ok(a[0]===b[0]||a[1]===b[1],r.id||r.to);}}
 });
 
@@ -149,10 +149,9 @@ test('N3 roof bypass follows the ring and drops beside its far door riser before
  assert.ok(horizontal(n).some(([a])=>horizontal(r).some(([b])=>Math.abs(a[1]-b[1])<=60)));
 });
 
-test('incoming entries clear the sole plate at the low front-wall service level',()=>{
- const m=wiringWall(defaultSettings(),'front'),soleTop=m.cfg.frameBase-m.cfg.ffl+m.cfg.studFace;
- for(const id of ['SWA-IN','DATA-IN']){const p=m.points.find(p=>p.id===id);assert.equal(p.z,soleTop+62);assert.equal(p.z,250);}
- for(const r of m.runs.filter(r=>r.type==='supply'||r.id.startsWith('HOUSE DATA')))assert.equal(r.points[0][1],250);
+test('right-wall entries are 200mm behind the outside front brick face',()=>{
+ const s=defaultSettings(),m=wiringWall(s,'right'),outside=s.internalDepth+(s.brickInternalDepth-s.internalDepth)/2+s.brickThickness;
+ for(const id of ['SWA-IN','DATA-IN']){const p=m.points.find(p=>p.id===id);assert.equal(outside-p.x,200);assert.equal(m.w-p.x,102.5);assert.equal(p.z,id==='SWA-IN'?250:350);}
 });
 
 test('gable service drops start inside the sloping rafters and clear the central gable stud group vertically',async()=>{
@@ -168,7 +167,7 @@ test('gable service drops start inside the sloping rafters and clear the central
 });
 
 test('heater isolator and rear drop share the heater bay and its enclosure clears studs and noggins',async()=>{
- const s=defaultSettings(),m=wiringWall(s,'rear'),iso=m.points.find(p=>p.id==='WH-ISO'),wh=m.points.find(p=>p.id==='WH'),drop=m.ports.find(p=>p.id==='HW');
+ const s=defaultSettings(),m=wiringWall(s,'rear'),iso=m.points.find(p=>p.id==='WH-ISO'),wh=m.points.find(p=>p.id==='WH'),drop={x:m.runs.find(r=>r.id==='H: channel / WH-ISO').points.at(-1)[0]};
  assert.equal(drop.x,iso.x);assert.ok(iso.x<m.w-450);assert.equal(iso.z,850);
  const {buildModel}=await v.ssrLoadModule('/app/framing.ts'),members=buildModel(m.cfg);
  for(const b of members){if(!b.w||!b.h||(!/stud|noggin/.test(b.type)))continue;
@@ -213,4 +212,26 @@ test('bathroom permanent lighting feed follows socket zones and enters the suppo
  const s1=front.points.find(p=>p.id==='S1'),verticalX=f.points[0][0];assert.ok(Math.abs(verticalX-s1.x)<73);assert.ok(Math.abs(525-s1.z)<41.5);
  for(const id of ['S8','F-R','S7']){const p=right.points.find(p=>p.id===id);assert.ok(p.x>b.partitionY&&p.x<right.w);assert.ok(Math.abs(525-p.z)<41.5);}
  assert.deepEqual(b.feed.points[0],[s.internalLength,b.partitionY]);assert.deepEqual(b.feed.points.at(-1),b.pull.point);
+});
+
+
+test('main switch has exactly one incoming and three direct switched outgoing cables',async()=>{
+ const s=defaultSettings(),m=wiringWall(s,'front'),ports=m.ports.filter(p=>p.group==='SW-M');
+ assert.deepEqual(ports.map(p=>p.id),['SW0','SW1','SW2','SW3']);
+ const {ceilingLighting}=await v.ssrLoadModule('/app/wiring.ts'),c=ceilingLighting(s);
+ assert.equal(c.roofRuns.find(r=>r.id==='Lighting permanent').to,'SW0');
+ assert.equal(c.runs.find(r=>r.group==='main').from,'SW1');assert.equal(c.runs.find(r=>r.group==='feature').from,'SW2');
+ assert.equal(c.roofRuns.find(r=>r.id==='Lantern feed').from,'SW3');
+ assert.equal(m.ports.find(p=>p.id==='SP').group,'CU/NET');
+});
+
+test('heater stays in low wall channel and feature circuit branches to right gable',async()=>{
+ const s=defaultSettings(),{ceilingLighting}=await v.ssrLoadModule('/app/wiring.ts'),m=ceilingLighting(s);
+ assert.ok(!m.roofRuns.some(r=>r.type==='heater'));assert.ok(!m.ports.some(p=>p.id==='HC'||p.id==='HW'));
+ for(const id of ['front','right','rear'])assert.ok(wiringWall(s,id).runs.some(r=>r.type==='heater'&&r.points.some(p=>p[1]===470)));
+ assert.equal(m.rightGableContinuation.from,'T3');assert.equal(m.rightGableContinuation.to,'G2');
+ assert.ok(wiringWall(s,'right').points.some(p=>p.id==='G2'&&p.kind==='feature'));
+ const ring=m.roofRuns.find(r=>r.type==='ring');assert.ok(ring.points.some(p=>p[1]===s.internalDepth-150));
+ const n3=m.roofRuns.find(r=>r.id==='N3 socket');assert.ok(n3.points.some(p=>p[1]===s.internalDepth-195));
+ const cam=m.roofRuns.find(r=>r.id==='N4 CAM');assert.ok(cam.points.every(p=>p[1]>=s.internalDepth-60));
 });
