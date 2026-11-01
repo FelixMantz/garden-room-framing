@@ -3,6 +3,7 @@ import { bathroomModel } from './bathroom';
 import { configForWall, type Settings, type WallId } from './framing';
 /** Proposed accessory layout. Coordinates in each INTERNAL elevation, from its left end; z above FFL. */
 export const WIRING = {socket:500,switch:1200,high:2100,network:1700,bathCeiling:2100} as const;
+export const NETWORK_SOCKET = {id:'S-NET',height:1560} as const;
 export const BATHROOM_FAN = {id:'BF',model:'Xpelair Contour C4TSR',height:1950,width:180,overrun:30,flow:21} as const;
 /** CU fits the 298mm clear bay between the front-right king and California corner framing. */
 export function consumerUnit(s:Settings){
@@ -18,7 +19,7 @@ export function leftGableFeature(s:Settings){
 export const MAIN_LIGHT_GROUPS=['main room','feature','external'] as const;
 export function networkSwitch(s:Settings){return {x:consumerUnit(s).x,z:WIRING.network};}
 export type Point={id:string,x:number,z:number,kind:string};
-export type Run={id:string,points:number[][],type:'ring'|'light'|'heater'|'aircon'|'data'|'spur'|'supply'};
+export type Run={id:string,points:number[][],type:'ring'|'light'|'heater'|'aircon'|'data'|'spur'|'supply'|'usb'};
 export function serviceEntry(s:Settings){
  const outsideFront=s.internalDepth+(s.brickInternalDepth-s.internalDepth)/2+s.brickThickness;
  return {setback:200,x:outsideFront-200,swaHeight:250,dataHeight:350};
@@ -34,10 +35,12 @@ function baseWiringWall(s:Settings,id:WallId){
   p('S1',300,500);p('S2',w-300,500);p('SW-M',dl-160,1200,'switch3');
   p('EXT-L1',dl-240,1800,'light');p('EXT-L2',dr+240,1800,'light');
   p('CU',cu.x,cu.z,'cu');p('NET',cu.x,WIRING.network,'network');
+  p(NETWORK_SOCKET.id,cu.x,NETWORK_SOCKET.height);
   r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,500],[300,500]]);
   r('R: CU / right wall',[[cu.x-105,cu.bottom],[cu.x-105,500],[0,500]]);
   r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[w-300,500],[w,500]]);
-  r('PSU: S1 / NET USB-C',[[300,500],[300,WIRING.network],[cu.x,WIRING.network]],'spur');
+  r('S-NET: S1 / internal single socket',[[300,500],[300,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
+  r('USB-C: S-NET PSU / NET',[[cu.x,NETWORK_SOCKET.height],[cu.x,WIRING.network]],'usb');
   p('N2',440,500,'data');p('N3',w-440,500,'data');
  }else if(id==='rear'){
   p('S5',500,500);p('S6',w-2100,500);

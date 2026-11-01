@@ -7,7 +7,7 @@ import { canvas, wrapText } from './layout';
 type C=ReturnType<typeof canvas>;
 const footer=(c:C,p:number,t:number)=>c.text(`Garden room framing set | wiring proposal | page ${p} of ${t}`,148.5,205,6.4,false,'center');
 function text(c:C,v:string,x:number,y:number,w=85,size=7){const lines=wrapText(v,w,size);lines.forEach((l,i)=>c.text(l,x,y+i*3.6,size));return lines.length*3.6;}
-function wire(c:C,pts:number[][],type:Run['type']='ring'){for(let i=1;i<pts.length;i++)c.line(...[...pts[i-1],...pts[i]] as [number,number,number,number],[0,0,0],type==='ring'?.65:.4,type==='data'?[2,1]:null);}
+function wire(c:C,pts:number[][],type:Run['type']='ring'){for(let i=1;i<pts.length;i++)c.line(...[...pts[i-1],...pts[i]] as [number,number,number,number],[0,0,0],type==='ring'?.65:type==='usb'?.2:.4,type==='data'?[2,1]:null);}
 function box(c:C,id:string,x:number,y:number,kind='socket'){
  if(kind==='fan'){
   c.rect(x-3.5,y-3.5,7,7,[255,255,255],[0,0,0],.3);
@@ -19,9 +19,9 @@ function box(c:C,id:string,x:number,y:number,kind='socket'){
  if(kind==='switch3')for(const dx of [-2,0,2])c.line(x+dx,y-1.8,x+dx,y-1);
  if(kind==='socket'){c.line(x-1,y-1.7,x-1,y-.7);c.line(x+1,y-1.7,x+1,y-.7);}
 }
-function key(c:C,items:string[],y=176){
+function key(c:C,items:string[],y=176,rowHeight=5){
  c.text('KEY',12,y-5,7.2,true);
- items.forEach((item,i)=>c.text(item,12+(i%3)*92,y+Math.floor(i/3)*5,6.8));
+ items.forEach((item,i)=>c.text(item,12+(i%3)*92,y+Math.floor(i/3)*rowHeight,6.8));
 }
 function cableNotes(c:C,types:Set<string>,y=33){
  const notes:string[]=[];
@@ -29,7 +29,7 @@ function cableNotes(c:C,types:Set<string>,y=33){
  if(types.has('light'))notes.push('All lighting / BL / SW / SP / FG / X / M / T: 1.5mm2 T&E, B6; Iz >=6.6A.');
  if(types.has('heater'))notes.push('H channel: 10mm2 T&E, B32, heater 26A; Iz >=35.3A. Appliance lead: supplied flex.');
  if(types.has('aircon'))notes.push('AC-AD: 2.5mm2 T&E internal radial, 15A manufacturer basis; Iz 19.7A, no grouping.');
- if(types.has('spur'))notes.push('F-L/F-R ring links: 4mm2; after 13A FCU / S1-PSU spur: 2.5mm2; Iz >=15.8A.');
+ if(types.has('spur'))notes.push('F-L/F-R ring links: 4mm2; after 13A FCU / S1-S-NET single-socket spur: 2.5mm2; Iz >=15.8A.');
  notes.push('Basis: 35C; wall cables against plasterboard (method 102), clear of PIR; ring + heater: max 2 grouped loaded circuits; keep lighting lightly loaded.');
  notes.push('mm2 = line/neutral area, not diameter. CPC: 1.5=1; 2.5/4=1.5; 10=4mm2. No long insulation burial.');
  notes.push('Approx. flat W x H (mm): 1.5=8.6x4.7; 2.5=9.9x5.3; 4=11.4x6.1; 10=16.8x8.4. Exterior tails: suitable flex, not exposed T&E.');
@@ -77,11 +77,11 @@ export function drawWiringWall(s:Settings,id:WallId,p:number,t:number,c=canvas()
  text(c,positions,12,166,273,6.1);
  c.text('Set-out above: horizontal distance from LEFT end of this view / height above FFL. OUT symbols project exterior fittings.',12,171,6.2);
  const keys:Record<WallId,string[]>={
- front:['CU = consumer unit; NET = Flex Mini','SW-M = 3-gang: main / feature / outside','S1/S2 = mains; N2/N3 = single RJ45s','RD / RE = ring door-bypass risers','LC / AC = lighting / aircon roof feeds','SW0 = feed; SW1-SW3 = switched groups','X1A/B = lantern 1 in/out; X2 = lantern 2','N1A / N3A = AP / left socket feeds','N4A = future front-right camera','N3B = drop beside RE, then low to N3','Incoming SWA/data turn from RIGHT wall','R/L/H/A = ring / lights / heater / aircon','FFL = finished floor; heights in mm','Solid = mains; dashed = data','SP = CU smoke feed; BL = bathroom feed'],
+ front:['CU = consumer unit; NET = Flex Mini','SW-M = 3-gang: main / feature / outside','S1/S2 = mains; N2/N3 = single RJ45s','RD / RE = ring door-bypass risers','LC / AC = lighting / aircon roof feeds','SW0 = feed; SW1-SW3 = switched groups','X1A/B = lantern 1 in/out; X2 = lantern 2','N1A / N3A = AP / left socket feeds','N4A = future front-right camera','N3B = drop beside RE, then low to N3','Incoming SWA/data turn from RIGHT wall','R/L/H/A = ring / lights / heater / aircon','FFL = finished floor; heights in mm','Solid = mains; dashed = data','SP = CU smoke feed; BL = bathroom feed','S-NET = internal single 13A socket','S1 > S-NET: unfused spur; 2.5mm2 T&E','S-NET PSU > NET: thin USB-C lead'],
  rear:['S5 / S6 = double mains sockets','WH / WH-ISO = heater / isolator','H = heater feed in low cable channel','R = ring at +500 throughout bathroom','FFL = finished floor level','H rises from +470 to WH-ISO'],
  left:['S3 / S4 = double mains sockets','F-L = fused spur + Shelly','OUT-L1 / L2 = outside single sockets','G1 = centred gable feature-light end','FG = feature loop from T1 via roof','R = socket ring; FFL = finished floor'],
  right:['S7/S8 = mains; F-R = fused spur','OUT-R1/R2 = outside single sockets','AD = AC supply exits behind indoor unit','AC = indoor head; outdoor isolation','N1B / AP = U7 Lite data connection','BF = Xpelair C4TSR above WC','N4 camera is on the roof plan','Solid = mains; dashed = data','BL = lighting via socket boxes to partition','G2 / FG2 = right-gable feature branch','H = +470 channel; separate B32 radial','SWA/DATA-IN: 200mm from FRONT outer brick','SWA +250 / data +350 FFL; separate entries','BF-P = permanent L/N from B-F, 3A','BF-T = switched-live trigger from SW-B']};
- key(c,keys[id].filter(item=>m.runs.some(r=>r.type==='data')||!item.toLowerCase().includes('dashed')),180);
+ key(c,keys[id].filter(item=>m.runs.some(r=>r.type==='data')||!item.toLowerCase().includes('dashed')),180,id==='front'?4:5);
  footer(c,p,t);return c.stream();
 }
 function plan(c:C,s:Settings,title:string){
