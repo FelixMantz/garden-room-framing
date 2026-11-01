@@ -3,6 +3,7 @@ import { bathroomModel } from './bathroom';
 import { configForWall, type Settings, type WallId } from './framing';
 /** Proposed accessory layout. Coordinates in each INTERNAL elevation, from its left end; z above FFL. */
 export const WIRING = {socket:500,switch:1200,high:2100,network:1700,bathCeiling:2100} as const;
+export const BATHROOM_FAN = {id:'BF',model:'Xpelair Contour C4TSR',height:1950,width:180,overrun:30,flow:21} as const;
 /** CU fits the 298mm clear bay between the front-right king and California corner framing. */
 export function consumerUnit(s:Settings){
  const cfg=configForWall(s,'front'),width=244,height=270;
@@ -144,7 +145,11 @@ export function wiringWall(s:Settings,id:WallId){
  for(const p of connections.ports.filter(p=>p.wall===id))runs.push({id:p.id,points:p.path,type:p.type});
  const bath=bathroomWiring(s);
  if(id==='front')runs.push({id:'BL: CU / right wall',type:'light',points:[[m.cu.x-35,m.cu.bottom],[m.cu.x-35,bath.low],[0,bath.low]]});
- if(id==='right')runs.push({id:'BL: right wall / partition',type:'light',points:[[m.w,bath.low],[bath.partitionY,bath.low]]});
+ if(id==='right'){
+  runs.push({id:'BL: right wall / partition',type:'light',points:[[m.w,bath.low],[bath.partitionY,bath.low]]});
+  m.points.push({id:bath.fan.id,x:bath.fan.point[1],z:bath.fan.z,kind:'fan'});
+  for(const [id,offset] of [['BF-P',-25],['BF-T',25]] as const)runs.push({id,type:'light',points:[[bath.fan.point[1]+offset,2160],[bath.fan.point[1]+offset,bath.fan.z],[bath.fan.point[1],bath.fan.z]]});
+ }
  if(id==='front')runs.push({id:'H: CU / right channel',type:'heater',points:[[m.cu.x+60,m.cu.bottom],[m.cu.x+60,470],[0,470]]});
  if(id==='right')runs.push({id:'H: front / rear channel',type:'heater',points:[[m.w,470],[0,470]]});
  if(id==='rear'){const wh=m.points.find(p=>p.id==='WH-ISO')!;runs.push({id:'H: channel / WH-ISO',type:'heater',points:[[m.w,470],[wh.x,470],[wh.x,wh.z]]});}
@@ -183,10 +188,14 @@ export function ceilingLighting(s:Settings){
 export function bathroomWiring(s:Settings){
  const b=bathroomModel(s),bx=b.leftOuter-b.dx,by=b.frontOuter-b.dy,partitionY=by-b.partition/2,low=525,riseX=s.internalLength-100;
  const pull={id:'SW-B',point:[bx+220,by-180]},light={id:'B1',point:[bx+(s.internalLength-bx)/2,by/2]};
- return {bx,by,partitionY,low,riseX,pull,light,
+ const branch={id:'B-F',fuse:3,point:[riseX,pull.point[1]]};
+ const fan={...BATHROOM_FAN,z:BATHROOM_FAN.height,point:[s.internalLength,b.rearFinish-b.dy+b.toiletRear+b.toiletWidth/2]};
+ return {bx,by,partitionY,low,riseX,pull,light,branch,fan,
   feed:{from:'BL',to:'SW-B',points:[[s.internalLength,partitionY],[riseX,partitionY],[riseX,pull.point[1]],pull.point]},
   rise:[[s.internalLength-bx,low],[riseX-bx,low],[riseX-bx,2160],[220,2160],[220,2100]],
-  switched:{from:'SW-B',to:'B1',points:[pull.point,[pull.point[0],light.point[1]],light.point]}};
+  switched:{from:'SW-B',to:'B1',points:[pull.point,[pull.point[0],light.point[1]],light.point]},
+  fanSupply:{from:'B-F',to:'BF',type:'light' as const,points:[branch.point,[riseX,fan.point[1]-25],[s.internalLength,fan.point[1]-25]]},
+  fanTrigger:{from:'SW-B',to:'BF',type:'light' as const,points:[pull.point,[pull.point[0],pull.point[1]-50],[s.internalLength-50,pull.point[1]-50],[s.internalLength-50,fan.point[1]+25],[s.internalLength,fan.point[1]+25]]}};
 }
 
 /** The prescriptive joist rules do not approve holes in rafters (LABC TT 7.1). */

@@ -2,13 +2,18 @@ import { buildModel, type Settings, type WallId } from '../framing';
 import { rafterDimensions } from '../rafter-dimensions';
 import { bathroomModel } from '../bathroom';
 import { roofModel } from '../roof';
-import { wiringWall, ceilingLighting, bathroomWiring, rafterDrillingAssessment, WIRING, type Run } from '../wiring';
+import { wiringWall, ceilingLighting, bathroomWiring, rafterDrillingAssessment, WIRING, BATHROOM_FAN, type Run } from '../wiring';
 import { canvas, wrapText } from './layout';
 type C=ReturnType<typeof canvas>;
 const footer=(c:C,p:number,t:number)=>c.text(`Garden room framing set | wiring proposal | page ${p} of ${t}`,148.5,205,6.4,false,'center');
 function text(c:C,v:string,x:number,y:number,w=85,size=7){const lines=wrapText(v,w,size);lines.forEach((l,i)=>c.text(l,x,y+i*3.6,size));return lines.length*3.6;}
 function wire(c:C,pts:number[][],type:Run['type']='ring'){for(let i=1;i<pts.length;i++)c.line(...[...pts[i-1],...pts[i]] as [number,number,number,number],[0,0,0],type==='ring'?.65:.4,type==='data'?[2,1]:null);}
 function box(c:C,id:string,x:number,y:number,kind='socket'){
+ if(kind==='fan'){
+  c.rect(x-3.5,y-3.5,7,7,[255,255,255],[0,0,0],.3);
+  c.rect(x-2.8,y-2.8,5.6,5.6,[255,255,255],[0,0,0],.2);
+  c.text(id,x,y+.7,5.3,true,'center');return;
+ }
  const w=kind==='cu'?10:kind==='network'?8:kind==='socket'?8:kind==='feature'?4:Math.max(6,id.length*.95),h=kind==='cu'?11:5;
  c.rect(x-w/2,y-h/2,w,h,[255,255,255],[0,0,0],.3);c.text(id,x,y+.7,kind==='network'?5:5.3,true,'center');
  if(kind==='switch3')for(const dx of [-2,0,2])c.line(x+dx,y-1.8,x+dx,y-1);
@@ -75,7 +80,7 @@ export function drawWiringWall(s:Settings,id:WallId,p:number,t:number,c=canvas()
  front:['CU = consumer unit; NET = Flex Mini','SW-M = 3-gang: main / feature / outside','S1/S2 = mains; N2/N3 = single RJ45s','RD / RE = ring door-bypass risers','LC / AC = lighting / aircon roof feeds','SW0 = feed; SW1-SW3 = switched groups','X1A/B = lantern 1 in/out; X2 = lantern 2','N1A / N3A = AP / left socket feeds','N4A = future front-right camera','N3B = drop beside RE, then low to N3','Incoming SWA/data turn from RIGHT wall','R/L/H/A = ring / lights / heater / aircon','FFL = finished floor; heights in mm','Solid = mains; dashed = data','SP = CU smoke feed; BL = bathroom feed'],
  rear:['S5 / S6 = double mains sockets','WH / WH-ISO = heater / isolator','H = heater feed in low cable channel','R = ring at +500 throughout bathroom','FFL = finished floor level','H rises from +470 to WH-ISO'],
  left:['S3 / S4 = double mains sockets','F-L = fused spur + Shelly','OUT-L1 / L2 = outside single sockets','G1 = centred gable feature-light end','FG = feature loop from T1 via roof','R = socket ring; FFL = finished floor'],
- right:['S7/S8 = mains; F-R = fused spur','OUT-R1/R2 = outside single sockets','AD = AC supply exits behind indoor unit','AC = indoor head; outdoor unit supplied','N1B / AP = U7 Lite data connection','Outdoor AC isolation; no indoor switch','N4 camera is on the roof plan','Solid = mains; dashed = data','BL = lighting via socket boxes to partition','G2 / FG2 = right-gable feature branch','H = +470 channel; separate B32 radial','SWA/DATA-IN: 200mm from FRONT outer brick','SWA +250 / data +350 FFL; separate entries']};
+ right:['S7/S8 = mains; F-R = fused spur','OUT-R1/R2 = outside single sockets','AD = AC supply exits behind indoor unit','AC = indoor head; outdoor isolation','N1B / AP = U7 Lite data connection','BF = Xpelair C4TSR above WC','N4 camera is on the roof plan','Solid = mains; dashed = data','BL = lighting via socket boxes to partition','G2 / FG2 = right-gable feature branch','H = +470 channel; separate B32 radial','SWA/DATA-IN: 200mm from FRONT outer brick','SWA +250 / data +350 FFL; separate entries','BF-P = permanent L/N from B-F, 3A','BF-T = switched-live trigger from SW-B']};
  key(c,keys[id].filter(item=>m.runs.some(r=>r.type==='data')||!item.toLowerCase().includes('dashed')),180);
  footer(c,p,t);return c.stream();
 }
@@ -146,10 +151,11 @@ export function drawWiringBathroom(s:Settings,p:number,t:number,c=canvas()){
  c.line(xx,Z(2100),xx+ww,Z(2100),undefined,.65);
  const px=xx+220*sc,lx=xx+ww/2;
  wire(c,bw.rise.map(([a,z])=>[xx+a*sc,Z(z)]),'light');c.text('BL +525',xx+ww+2,Z(525)+1,6,true);
+ box(c,'B-F',xx+(bw.riseX-bw.bx)*sc,Z(2160),'fcu');
  wire(c,[[px+25*sc,Z(2100)],[px+25*sc,Z(2185)],[lx,Z(2185)],[lx,Z(2100)]],'light');
  box(c,'SW-B',px,Z(2100),'pull');box(c,'B1',lx,Z(2100),'light');
  c.line(px,Z(2100)+2.5,px,Z(1400),undefined,.18,[.5,.7]);c.rect(px-.6,Z(1400),1.2,1.8,undefined,undefined,.15);
- text(c,'Flat MR-plasterboard ceiling over the bathroom only; its timber support design remains to be set. One separate light B1 at the centre. Keep its connections accessible via the fitting or a hatch; do not bury non-maintenance-free junctions.',115,155,90,7);
+ text(c,'Flat MR-plasterboard ceiling over the bathroom only. B-F is a double-pole switched FCU fitted with a 3A fuse, BEFORE both the light and fan branches. OFF disconnects B1 and BF, including its trigger. Keep the FCU accessible through a hatch. Timber ceiling supports remain to be set.',115,155,90,7);
  const cs=.04,cx=214,cy=49,CX=(v:number)=>cx+(v-bw.bx)*cs,CY=(v:number)=>cy+v*cs;
  c.text('BATHROOM / CEILING PLAN',214,43,7.5,true);
  c.rect(cx,cy,(s.internalLength-bw.bx)*cs,bw.by*cs,undefined,undefined,.3);
@@ -157,10 +163,18 @@ export function drawWiringBathroom(s:Settings,p:number,t:number,c=canvas()){
  wire(c,bw.feed.points.map(([a,b])=>[CX(a),CY(b)]),'light');
  c.text('BL RISE',CX(bw.riseX)-2,CY(bw.partitionY)-2,6,true,'right');
  wire(c,bw.switched.points.map(([a,b])=>[CX(a),CY(b)]),'light');
+ wire(c,bw.fanSupply.points.map(([a,b])=>[CX(a),CY(b)]),'light');
+ wire(c,bw.fanTrigger.points.map(([a,b])=>[CX(a),CY(b)]),'light');
+ box(c,'B-F',CX(bw.branch.point[0]),CY(bw.branch.point[1]),'fcu');
+ box(c,'BF',CX(bw.fan.point[0]),CY(bw.fan.point[1]),'fan');
  box(c,'SW-B',CX(pcx),CY(pcy),'pull');box(c,'B1',CX(lxPlan),CY(lyPlan),'light');
+ c.text('P',CX(bw.fan.point[0])-7,CY(bw.fan.point[1]-25)-1,5.5,true);
+ c.text('T',CX(bw.fan.point[0])-7,CY(bw.fan.point[1]+25)+3,5.5,true);
  c.text('REAR',cx,cy-2,6,true);c.text('ENTRANCE SIDE',cx,cy+bw.by*cs+5,6,true);
- text(c,'BL: permanent feed from the 6A lighting circuit at the CU. Follow the front/right wall socket zone at +525 FFL through the socket backboxes; no connection to the ring. Enter the attached short partition, rise 100mm from the right-wall junction, then run in the bathroom ceiling void to SW-B.',214,100,70,6.7);
- text(c,'B1 has its own pull-cord control. Use continuous T&E on its own 6A, 30mA RCBO; pass through socket backboxes, with no ring live/neutral connection. No roof feed enters at the free-standing door end.',214,147,70,6.7);
- key(c,['SW-B = ceiling pull-cord light switch','B1 = bathroom light, separate control','FFL = finished floor level','MR = moisture-resistant plasterboard','T&E = twin-and-earth cable','Fine dots = mechanical pull cord','VCL = vapour-control layer','WC = toilet'],187);
+ c.text('B-F OFF = BATHROOM LIGHT + FAN OFF',214,94,7,true);
+ text(c,'BL: same 6A lighting RCBO as B1. B-F is a common 3A fused supply: its LOAD side feeds SW-B/B1 and fan L/N. SW-B supplies B1 and fan T from that SAME fused feed. Xpelair maximum fuse: 5A. No ring connection.',214,100,70,6.7);
+ text(c,`BF: ${BATHROOM_FAN.model}, solid square cover, right external wall above WC; centre +${bw.fan.z} FFL, ${bw.fan.point[1]} from rear stud face. Select 21 L/s and 30-min overrun. 100mm rigid sleeve through cladding to outside grille; seal membranes.`,214,125,70,6.7);
+ text(c,'P: 1.5mm2 T&E, permanent L/N from B-F. T: 1.5mm2 T&E, switched live from SW-B; insulate spare. Ceiling void, then drop to BF; retain CPCs (fan Class II). Leave B-F ON normally; SW-B controls light/fan and overrun. Secure isolation against reconnection.',214,157,70,6.7);
+ key(c,['SW-B = ceiling pull-cord light switch','B1 = bathroom light, separate control','BF = Xpelair C4TSR above toilet','B-F = common 3A DP switched FCU','P = permanent supply; T = trigger','Fine dots = mechanical pull cord','FFL = finished floor level','VCL = vapour-control layer','WC = toilet'],190);
  footer(c,p,t);return c.stream();
 }

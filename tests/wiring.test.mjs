@@ -214,6 +214,29 @@ test('bathroom permanent lighting feed follows socket zones and enters the suppo
  assert.deepEqual(b.feed.points[0],[s.internalLength,b.partitionY]);assert.deepEqual(b.feed.points.at(-1),b.pull.point);
 });
 
+test('WC fan is above the toilet on the right wall and receives permanent and switched lighting feeds',async()=>{
+ const {bathroomWiring}=await v.ssrLoadModule('/app/wiring.ts'),{bathroomModel}=await v.ssrLoadModule('/app/bathroom.ts');
+ const s=defaultSettings(),b=bathroomWiring(s),bath=bathroomModel(s),right=wiringWall(s,'right');
+ const fan=right.points.find(p=>p.id==='BF');
+ assert.equal(fan.x,bath.rearFinish-bath.dy+bath.toiletRear+bath.toiletWidth/2);
+ assert.equal(fan.z,1950);assert.ok(fan.z+b.fan.width/2<2100);
+ assert.equal(b.fan.point[0],s.internalLength);assert.equal(b.fanSupply.from,b.branch.id);
+ assert.equal(b.branch.fuse,3);assert.ok(b.feed.points.some(p=>p[0]===b.branch.point[0]&&p[1]===b.branch.point[1]));
+ assert.equal(b.fanTrigger.from,'SW-B');assert.equal(b.fanSupply.to,'BF');assert.equal(b.fanTrigger.to,'BF');
+ assert.deepEqual(b.fanTrigger.points[0],b.pull.point);
+ for(const id of ['BF-P','BF-T']){
+  const run=right.runs.find(r=>r.id===id);assert.equal(run.type,'light');assert.deepEqual(run.points.at(-1),[fan.x,fan.z]);
+ }
+});
+
+test('fan drawings identify the fused feed, independent trigger, external outlet and overrun',async()=>{
+ const {drawWiringBathroom,drawWiringWall,drawWiringCeiling}=await v.ssrLoadModule('/app/pdf/wiring.ts'),s=defaultSettings();
+ const bath=drawWiringBathroom(s,1,1),right=drawWiringWall(s,'right',1,1),roof=drawWiringCeiling(s,1,1);
+ for(const text of ['C4TSR','double-pole','switched FCU','B-F OFF = BATHROOM LIGHT + FAN OFF','SAME fused feed','switched live from SW-B','30-min overrun','through cladding'])assert.ok(bath.includes(text),text);
+ assert.match(right,/\(BF\)/);assert.match(right,/BF-P = permanent/);assert.match(right,/BF-T = switched/);
+ assert.doesNotMatch(roof,/\(BF\)|BF-P|BF-T|B-F/);
+});
+
 
 test('main switch has exactly one incoming and three direct switched outgoing cables',async()=>{
  const s=defaultSettings(),m=wiringWall(s,'front'),ports=m.ports.filter(p=>p.group==='SW-M');
