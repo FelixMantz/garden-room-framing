@@ -189,13 +189,17 @@ export function ceilingLighting(s:Settings){
 /** Bathroom feed follows the low right-wall channel then rises in the attached short partition. */
 export function bathroomWiring(s:Settings){
  const b=bathroomModel(s),bx=b.leftOuter-b.dx,by=b.frontOuter-b.dy,partitionY=by-b.partition/2,low=525,riseX=s.internalLength-100;
- const pull={id:'SW-B',point:[bx+220,by-180]},light={id:'B1',point:[bx+(s.internalLength-bx)/2,by/2]};
+ const pull={id:'SW-B',point:[bx+220,by-180]};
+ // Quarter points of the finished clear length; both on the finished-width centreline.
+ const lights=[.25,.75].map((fraction,i)=>({id:`B${i+1}`,point:[b.leftFinish-b.dx+b.width*fraction,b.rearFinish-b.dy+b.depth/2]}));
+ const [first,second]=lights;
  const branch={id:'B-F',fuse:3,point:[riseX,pull.point[1]]};
  const fan={...BATHROOM_FAN,z:BATHROOM_FAN.height,point:[s.internalLength,b.rearFinish-b.dy+b.toiletRear+b.toiletWidth/2]};
- return {bx,by,partitionY,low,riseX,pull,light,branch,fan,
+ return {bx,by,partitionY,low,riseX,pull,lights,branch,fan,
   feed:{from:'BL',to:'SW-B',points:[[s.internalLength,partitionY],[riseX,partitionY],[riseX,pull.point[1]],pull.point]},
   rise:[[s.internalLength-bx,low],[riseX-bx,low],[riseX-bx,2160],[220,2160],[220,2100]],
-  switched:{from:'SW-B',to:'B1',points:[pull.point,[pull.point[0],light.point[1]],light.point]},
+  switched:{from:'SW-B',to:first.id,points:[pull.point,[pull.point[0],first.point[1]],first.point]},
+  lightLoop:{from:first.id,to:second.id,points:[first.point,second.point]},
   fanSupply:{from:'B-F',to:'BF',type:'light' as const,points:[branch.point,[riseX,fan.point[1]-25],[s.internalLength,fan.point[1]-25]]},
   fanTrigger:{from:'SW-B',to:'BF',type:'light' as const,points:[pull.point,[pull.point[0],pull.point[1]-50],[s.internalLength-50,pull.point[1]-50],[s.internalLength-50,fan.point[1]+25],[s.internalLength,fan.point[1]+25]]}};
 }

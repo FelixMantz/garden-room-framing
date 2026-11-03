@@ -25,11 +25,11 @@ test('ring rejoins the right/rear wall at socket height through the bathroom',()
  for(const run of [r,b])assert.ok(run.points.every(p=>p[1]===500));
  assert.equal(right.points.filter(p=>p.kind==='cu').length,0);
 });
-test('construction output has six wiring pages with local keys, eight main lights and separate B1',()=>{
+test('construction output has six wiring pages with local keys, eight main lights and separate bathroom LEDs',()=>{
  const pdf=new TextDecoder().decode(generateFramingPdf(defaultSettings(),'construction'));
  assert.equal((pdf.match(/\/Type \/Page\b/g)||[]).length,26);
  for(let i=1;i<=8;i++)assert.ok(pdf.includes(`(M${i})`));
- assert.ok(pdf.includes('(B1)'));assert.ok(pdf.includes('(SW-B)'));
+ assert.ok(pdf.includes('(B1)'));assert.ok(pdf.includes('(B2)'));assert.ok(pdf.includes('(SW-B)'));
  assert.match(pdf,/KEY/);assert.match(pdf,/separate control/);
  assert.doesNotMatch(pdf,/network home runs \(reference\)|cable register and structural crossings/);
  assert.doesNotMatch(pdf,/NaN|Infinity/);
@@ -134,7 +134,12 @@ test('lighting loops use the switch bank with no separate junction enclosure, an
  assert.equal(m.roofRuns.find(r=>r.id==='Lighting permanent').to,'SW0');
  assert.equal(m.roofRuns.find(r=>r.id==='Lantern feed').from,'SW3');
  assert.equal(m.smokeRun.from,'SP');assert.equal(m.smokeRun.to,'SM');
- assert.equal(bath.feed.from,'BL');assert.deepEqual(bath.feed.points[0],[s.internalLength,bath.partitionY]);assert.deepEqual(bath.feed.points.at(-1),bath.pull.point);assert.deepEqual(bath.switched.points.at(-1),bath.light.point);
+ assert.equal(bath.feed.from,'BL');assert.deepEqual(bath.feed.points[0],[s.internalLength,bath.partitionY]);assert.deepEqual(bath.feed.points.at(-1),bath.pull.point);assert.deepEqual(bath.switched.points.at(-1),bath.lights[0].point);
+ const {bathroomModel}=await v.ssrLoadModule('/app/bathroom.ts'),b=bathroomModel(s);
+ assert.deepEqual(bath.lights.map(a=>a.point[0]-(b.leftFinish-b.dx)),[375,1125]);
+ assert.ok(bath.lights.every(a=>a.point[1]-(b.rearFinish-b.dy)===400));
+ assert.equal(bath.lightLoop.from,'B1');assert.equal(bath.lightLoop.to,'B2');
+ assert.deepEqual(bath.lightLoop.points,[bath.lights[0].point,bath.lights[1].point]);
  for(const id of ['front','rear','left','right'])assert.ok(!wiringWall(s,id).points.some(p=>p.id==='JB-L'||p.id==='AC-ISO'));
  const {drawWiringCeiling,drawWiringBathroom}=await v.ssrLoadModule('/app/pdf/wiring.ts');
  const roof=drawWiringCeiling(s,1,1),page=drawWiringBathroom(s,1,1);
@@ -232,7 +237,8 @@ test('WC fan is above the toilet on the right wall and receives permanent and sw
 test('fan drawings identify the fused feed, independent trigger, external outlet and overrun',async()=>{
  const {drawWiringBathroom,drawWiringWall,drawWiringCeiling}=await v.ssrLoadModule('/app/pdf/wiring.ts'),s=defaultSettings();
  const bath=drawWiringBathroom(s,1,1),right=drawWiringWall(s,'right',1,1),roof=drawWiringCeiling(s,1,1);
- for(const text of ['C4TSR','double-pole','switched FCU','B-F OFF = BATHROOM LIGHT + FAN OFF','SAME fused feed','switched live from SW-B','30-min overrun','through cladding'])assert.ok(bath.includes(text),text);
+ for(const text of ['C4TSR','double-pole','switched FCU','B-F OFF = BOTH LIGHTS + FAN OFF','switched live from SW-B','30-min overrun','through cladding'])assert.ok(bath.includes(text),text);
+ assert.match(bath,/SAME[\s\S]*fused feed/);
  assert.match(right,/\(BF\)/);assert.match(right,/BF-P = permanent/);assert.match(right,/BF-T = switched/);
  assert.doesNotMatch(roof,/\(BF\)|BF-P|BF-T|B-F/);
 });
