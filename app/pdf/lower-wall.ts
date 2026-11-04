@@ -91,7 +91,7 @@ export function drawLowerWall(s:Settings,page:number,total:number,c=canvas()){
   vTechnical(c,Y(masonry+s.studFace),Y(bandBottom),X(-s.studDepth+mainPir),103,fmt(bandBottom-masonry-s.studFace),7);
   vTechnical(c,Y(skirtBottom),Y(skirtTop),X(skirtFace),111,'220',7);
   vTechnical(c,Y(deckBase),Y(masonry),X(upstand),123,`${fmt(masonry-deckBase)}`,7);
-  vTechnical(c,Y(ffl),Y(socket),X(board+7),147,'500 socket C/L',7);
+  vTechnical(c,Y(ffl),Y(socket),X(board+7),147,`${fmt(WALL_SERVICES.centre)} socket C/L`,7);
   vTechnical(c,Y(ffl),Y(bandBottom),X(board),163,`${fmt(WALL_SERVICES.bandBottom)} band underside`,7);
   line(board,socket,360,socket,.13,[2,1]);
   c.text(`+${fmt(masonry)} slab`,132,Y(masonry)-2,6.5,true);

@@ -1,8 +1,9 @@
+import { WALL_SERVICES } from './wall-services';
 import { roofModel } from './roof';
 import { bathroomModel } from './bathroom';
 import { configForWall, type Settings, type WallId } from './framing';
 /** Proposed accessory layout. Coordinates in each INTERNAL elevation, from its left end; z above FFL. */
-export const WIRING = {socket:500,switch:1200,high:2100,network:1700,bathCeiling:2100} as const;
+export const WIRING = {socket:WALL_SERVICES.centre,switch:1200,high:2100,network:1700,bathCeiling:2100} as const;
 export const NETWORK_SOCKET = {id:'S-NET',height:1560} as const;
 export const BATHROOM_FAN = {id:'BF',model:'Xpelair Contour C4TSR',height:1950,width:180,overrun:30,flow:21} as const;
 /** CU fits the 298mm clear bay between the front-right king and California corner framing. */
@@ -32,35 +33,35 @@ function baseWiringWall(s:Settings,id:WallId){
  if(id==='front'){
   const door=cfg.computedOpenings.find(o=>o.type==='door')!;
   const dl=w-door.x-door.width,dr=w-door.x;
-  p('S1',300,500);p('S2',w-300,500);p('SW-M',dl-160,1200,'switch3');
+  p('S1',300,WIRING.socket);p('S2',w-300,WIRING.socket);p('SW-M',dl-160,1200,'switch3');
   p('EXT-L1',dl-240,1800,'light');p('EXT-L2',dr+240,1800,'light');
   p('CU',cu.x,cu.z,'cu');p('NET',cu.x,WIRING.network,'network');
   p(NETWORK_SOCKET.id,cu.x,NETWORK_SOCKET.height);
-  r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,500],[300,500]]);
-  r('R: CU / right wall',[[cu.x-105,cu.bottom],[cu.x-105,500],[0,500]]);
-  r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[w-300,500],[w,500]]);
-  r('S-NET: S1 / internal single socket',[[300,500],[300,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
-  p('N2',440,500,'data');p('N3',w-440,500,'data');
+  r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,WIRING.socket],[300,WIRING.socket]]);
+  r('R: CU / right wall',[[cu.x-105,cu.bottom],[cu.x-105,WIRING.socket],[0,WIRING.socket]]);
+  r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[w-300,WIRING.socket],[w,WIRING.socket]]);
+  r('S-NET: S1 / internal single socket',[[300,WIRING.socket],[300,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
+  p('N2',440,WIRING.socket,'data');p('N3',w-440,WIRING.socket,'data');
  }else if(id==='rear'){
-  p('S5',500,500);p('S6',w-2100,500);
-  r('R: left / S5 / S6',[[0,500],[500,500],[w-2100,500],[w,500]]);
+  p('S5',500,WIRING.socket);p('S6',w-2100,WIRING.socket);
+  r('R: left / S5 / S6',[[0,WIRING.socket],[500,WIRING.socket],[w-2100,WIRING.socket],[w,WIRING.socket]]);
   p('WH-ISO',w-570,850,'isolator');p('WH',w-650,450,'heater');r('H: lead',[[w-570,850],[w-570,450],[w-650,450]],'heater');
  }else if(id==='left'){
   const g=leftGableFeature(s);p(g.id,g.x,g.z,'feature');
-  p('S3',450,500);p('S4',w-450,500);p('F-L',w-650,500,'fcu');
-  r('R: front / S3 / F-L / S4 / rear',[[0,500],[450,500],[w-650,500],[w-450,500],[w,500]]);
-  for(const [i,z] of [[1,650],[2,800]]){p(`OUT-L${i}`,w-650,z,'external');r(`F-L ch${i}`,[[w-650,500],[w-650+(i-1)*50,500],[w-650+(i-1)*50,z],[w-650,z]],'spur');}
+  p('S3',450,WIRING.socket);p('S4',w-450,WIRING.socket);p('F-L',w-650,WIRING.socket,'fcu');
+  r('R: front / S3 / F-L / S4 / rear',[[0,WIRING.socket],[450,WIRING.socket],[w-650,WIRING.socket],[w-450,WIRING.socket],[w,WIRING.socket]]);
+  for(const [i,z] of [[1,650],[2,800]]){p(`OUT-L${i}`,w-650,z,'external');r(`F-L ch${i}`,[[w-650,WIRING.socket],[w-650+(i-1)*50,WIRING.socket],[w-650+(i-1)*50,z],[w-650,z]],'spur');}
  }else{
   const gr=leftGableFeature(s);p('G2',gr.x,gr.z,'feature');
-  p('S7',w-1305,500);p('S8',w-505,500);p('F-R',w-905,500,'fcu');p('AP',w*.44,2450,'ap');const bath=bathroomModel(s);p('AC',(w+bath.frontOuter-bath.dy)/2,cfg.wallHeight+cfg.frameBase-cfg.ffl,'aircon');
-  r('R: front CU / S8 / F-R / S7 / rear',[[w,500],[w-505,500],[w-905,500],[w-1305,500],[0,500]]);
+  p('S7',w-1305,WIRING.socket);p('S8',w-505,WIRING.socket);p('F-R',w-905,WIRING.socket,'fcu');p('AP',w*.44,2450,'ap');const bath=bathroomModel(s);p('AC',(w+bath.frontOuter-bath.dy)/2,cfg.wallHeight+cfg.frameBase-cfg.ffl,'aircon');
+  r('R: front CU / S8 / F-R / S7 / rear',[[w,WIRING.socket],[w-505,WIRING.socket],[w-905,WIRING.socket],[w-1305,WIRING.socket],[0,WIRING.socket]]);
   const incoming=serviceEntry(s);p('SWA-IN',incoming.x,incoming.swaHeight,'supply');p('DATA-IN',incoming.x,incoming.dataHeight,'data');
   r('SWA: right entry / front corner',[[incoming.x,250],[w,250]],'supply');
   for(let i=0;i<2;i++)r(`HOUSE DATA right ${i+1}`,[[incoming.x,350],[incoming.x,350+i*30],[w,350+i*30]],'data');
-  for(const [i,z] of [[1,650],[2,800]]){p(`OUT-R${i}`,w-905,z,'external');r(`F-R ch${i}`,[[w-905,500],[w-905+(i-1)*50,500],[w-905+(i-1)*50,z],[w-905,z]],'spur');}
+  for(const [i,z] of [[1,650],[2,800]]){p(`OUT-R${i}`,w-905,z,'external');r(`F-R ch${i}`,[[w-905,WIRING.socket],[w-905+(i-1)*50,WIRING.socket],[w-905+(i-1)*50,z],[w-905,z]],'spur');}
  }
  if(id==='front'){
-  r('N2: single front-right RJ45',[[cu.x,WIRING.network],[cu.x+35,WIRING.network],[cu.x+35,535],[440,535],[440,500]],'data');
+  r('N2: single front-right RJ45',[[cu.x,WIRING.network],[cu.x+35,WIRING.network],[cu.x+35,WIRING.socket+35],[440,WIRING.socket+35],[440,WIRING.socket]],'data');
   for(let i=0;i<2;i++)r(`HOUSE DATA ${i+1}`,[[0,350+i*30],[cu.x+80+i*30,350+i*30],[cu.x+80+i*30,WIRING.network],[cu.x,WIRING.network]],'data');
  }
  return {cfg,w,points,runs,cu};
@@ -98,8 +99,8 @@ export function framingConnections(s:Settings){
   const p={id,wall,x,z,type,group,path,plan};ports.push(p);return p;
  };
  const sw=point(f,'SW-M'),door=f.cfg.computedOpenings.find(o=>o.type==='door')!,dl=f.w-door.x-door.width,dr=f.w-door.x;
- add('RD','front',dl-85,[[300,500],[dl-85,500]],'ring','DOOR');
- add('RE','front',dr+85,[[f.w-300,500],[dr+85,500]],'ring','DOOR');
+ add('RD','front',dl-85,[[300,WIRING.socket],[dl-85,WIRING.socket]],'ring','DOOR');
+ add('RE','front',dr+85,[[f.w-300,WIRING.socket],[dr+85,WIRING.socket]],'ring','DOOR');
  // Separate projected risers in the front-right bay; outlets remain at the previously agreed positions.
  add('LC','front',cu.x-85,[[cu.x-85,cu.top]],'light','CU/NET');
  add('AC','front',cu.x-15,[[cu.x-15,cu.top]],'aircon','CU/NET');
@@ -109,7 +110,7 @@ export function framingConnections(s:Settings){
  const net=point(f,'NET');
  for(const [id,dx] of [['N1A',20],['N3A',55],['N4A',90]] as const)add(id,'front',cu.x+dx,[[net.x,net.z]],'data','CU/NET');
  const nl=point(f,'N3'),drop=dr+110;
- add('N3B','front',drop,[[nl.x,nl.z],[nl.x,535],[drop,535]],'data','DOOR DATA');
+ add('N3B','front',drop,[[nl.x,nl.z],[nl.x,WIRING.socket+35],[drop,WIRING.socket+35]],'data','DOOR DATA');
  const ac=point(rr,'AC');add('AD','right',ac.x+80,[[ac.x,ac.z]],'aircon','AIRCON');
  const ap=point(rr,'AP');add('N1B','right',g.x-145,[[ap.x,ap.z]],'data','AP');
  const rg=point(rr,'G2');add('FG2','right',rg.x+125,[[rg.x,rg.z]],'light','G2');
@@ -142,7 +143,7 @@ link('Aircon radial','AC','AD',7,'aircon');
 
 export function wiringWall(s:Settings,id:WallId){
  const m=baseWiringWall(s,id),connections=framingConnections(s);
- // Keep local entries, supplies and the 500mm socket ring. All long high-level routes are on the roof drawing.
+ // Keep local entries, supplies and the 400mm socket ring. All long high-level routes are on the roof drawing.
  const runs=[...m.runs];
  for(const p of connections.ports.filter(p=>p.wall===id))runs.push({id:p.id,points:p.path,type:p.type});
  const bath=bathroomWiring(s);
@@ -152,9 +153,9 @@ export function wiringWall(s:Settings,id:WallId){
   m.points.push({id:bath.fan.id,x:bath.fan.point[1],z:bath.fan.z,kind:'fan'});
   for(const [id,offset] of [['BF-P',-25],['BF-T',25]] as const)runs.push({id,type:'light',points:[[bath.fan.point[1]+offset,2160],[bath.fan.point[1]+offset,bath.fan.z],[bath.fan.point[1],bath.fan.z]]});
  }
- if(id==='front')runs.push({id:'H: CU / right channel',type:'heater',points:[[m.cu.x+60,m.cu.bottom],[m.cu.x+60,470],[0,470]]});
- if(id==='right')runs.push({id:'H: front / rear channel',type:'heater',points:[[m.w,470],[0,470]]});
- if(id==='rear'){const wh=m.points.find(p=>p.id==='WH-ISO')!;runs.push({id:'H: channel / WH-ISO',type:'heater',points:[[m.w,470],[wh.x,470],[wh.x,wh.z]]});}
+ if(id==='front')runs.push({id:'H: CU / right channel',type:'heater',points:[[m.cu.x+60,m.cu.bottom],[m.cu.x+60,WIRING.socket-30],[0,WIRING.socket-30]]});
+ if(id==='right')runs.push({id:'H: front / rear channel',type:'heater',points:[[m.w,WIRING.socket-30],[0,WIRING.socket-30]]});
+ if(id==='rear'){const wh=m.points.find(p=>p.id==='WH-ISO')!;runs.push({id:'H: channel / WH-ISO',type:'heater',points:[[m.w,WIRING.socket-30],[wh.x,WIRING.socket-30],[wh.x,wh.z]]});}
  const points=m.points;
  return {...m,points,runs,ports:connections.ports.filter(p=>p.wall===id),stub:connections.stub};
 }
@@ -188,7 +189,7 @@ export function ceilingLighting(s:Settings){
 
 /** Bathroom feed follows the low right-wall channel then rises in the attached short partition. */
 export function bathroomWiring(s:Settings){
- const b=bathroomModel(s),bx=b.leftOuter-b.dx,by=b.frontOuter-b.dy,partitionY=by-b.partition/2,low=525,riseX=s.internalLength-100;
+ const b=bathroomModel(s),bx=b.leftOuter-b.dx,by=b.frontOuter-b.dy,partitionY=by-b.partition/2,low=WIRING.socket+25,riseX=s.internalLength-100;
  const pull={id:'SW-B',point:[bx+220,by-180]};
  // Quarter points of the finished clear length; both on the finished-width centreline.
  const lights=[.25,.75].map((fraction,i)=>({id:`B${i+1}`,point:[b.leftFinish-b.dx+b.width*fraction,b.rearFinish-b.dy+b.depth/2]}));

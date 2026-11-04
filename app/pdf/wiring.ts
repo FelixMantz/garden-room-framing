@@ -79,9 +79,9 @@ export function drawWiringWall(s:Settings,id:WallId,p:number,t:number,c=canvas()
  c.text('Set-out above: horizontal distance from LEFT end of this view / height above FFL. OUT symbols project exterior fittings.',12,171,6.2);
  const keys:Record<WallId,string[]>={
  front:['CU = consumer unit','SW-M = 3-gang: main / feature / outside','S1/S2 = mains; N2/N3 = single RJ45s','RD / RE = ring door-bypass risers','LC / AC = lighting / aircon roof feeds','SW0 = feed; SW1-SW3 = switched groups','X1A/B = lantern 1 in/out; X2 = lantern 2','N1A / N3A = AP / left socket feeds','N4A = future front-right camera','N3B = drop beside RE, then low to N3','Incoming SWA/data turn from RIGHT wall','R/L/H/A = ring / lights / heater / aircon','FFL = finished floor; heights in mm','Solid = mains; dashed = data','SP = CU smoke feed; BL = bathroom feed','S-NET = internal single 13A socket','S1 > S-NET: unfused spur; 2.5mm2 T&E'],
- rear:['S5 / S6 = double mains sockets','WH / WH-ISO = heater / isolator','H = heater feed in low cable channel','R = ring at +500 throughout bathroom','FFL = finished floor level','H rises from +470 to WH-ISO'],
+ rear:['S5 / S6 = double mains sockets','WH / WH-ISO = heater / isolator','H = heater feed in low cable channel','R = ring at +400 throughout bathroom','FFL = finished floor level','H rises from +370 to WH-ISO'],
  left:['S3 / S4 = double mains sockets','F-L = fused spur + Shelly','OUT-L1 / L2 = outside single sockets','G1 = centred gable feature-light end','FG = feature loop from T1 via roof','R = socket ring; FFL = finished floor'],
- right:['S7/S8 = mains; F-R = fused spur','OUT-R1/R2 = outside single sockets','AD = AC supply exits behind indoor unit','AC = indoor head; outdoor isolation','N1B / AP = U7 Lite data connection','BF = Xpelair C4TSR above WC','N4 camera is on the roof plan','Solid = mains; dashed = data','BL = lighting via socket boxes to partition','G2 / FG2 = right-gable feature branch','H = +470 channel; separate B32 radial','SWA/DATA-IN: 200mm from FRONT outer brick','SWA +250 / data +350 FFL; separate entries','BF-P = permanent L/N from B-F, 3A','BF-T = switched-live trigger from SW-B']};
+ right:['S7/S8 = mains; F-R = fused spur','OUT-R1/R2 = outside single sockets','AD = AC supply exits behind indoor unit','AC = indoor head; outdoor isolation','N1B / AP = U7 Lite data connection','BF = Xpelair C4TSR above WC','N4 camera is on the roof plan','Solid = mains; dashed = data','BL = lighting via socket boxes to partition','G2 / FG2 = right-gable feature branch','H = +370 channel; separate B32 radial','SWA/DATA-IN: 200mm from FRONT outer brick','SWA +250 / data +350 FFL; separate entries','BF-P = permanent L/N from B-F, 3A','BF-T = switched-live trigger from SW-B']};
  key(c,keys[id].filter(item=>m.runs.some(r=>r.type==='data')||!item.toLowerCase().includes('dashed')),180,id==='front'?4:5);
  footer(c,p,t);return c.stream();
 }
@@ -151,7 +151,7 @@ export function drawWiringBathroom(s:Settings,p:number,t:number,c=canvas()){
  c.rect(xx,Z(2220),ww,2220*sc,undefined,undefined,.2);for(let a=0;a<b.frontLength;a+=400)c.rect(xx+a*sc,Z(2220),47*sc,2220*sc,undefined,undefined,.1);
  c.line(xx,Z(2100),xx+ww,Z(2100),undefined,.65);
  const px=xx+220*sc;
- wire(c,bw.rise.map(([a,z])=>[xx+a*sc,Z(z)]),'light');c.text('BL +525',xx+ww+2,Z(525)+1,6,true);
+ wire(c,bw.rise.map(([a,z])=>[xx+a*sc,Z(z)]),'light');c.text(`BL +${bw.low}`,xx+ww+2,Z(bw.low)+1,6,true);
  box(c,'B-F',xx+(bw.riseX-bw.bx)*sc,Z(2160),'fcu');
  const sectionLights=bw.lights.map(a=>({...a,x:xx+(a.point[0]-bw.bx)*sc}));
  wire(c,[[px+25*sc,Z(2100)],[px+25*sc,Z(2185)],[sectionLights[0].x,Z(2185)],[sectionLights[0].x,Z(2100)]],'light');

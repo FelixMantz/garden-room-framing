@@ -11,7 +11,7 @@ test('door bypass rises beside jambs and crosses only inside roof framing, clear
  const left=m.w-door.x-door.width,right=m.w-door.x;
  const rd=m.ports.find(p=>p.id==='RD'),re=m.ports.find(p=>p.id==='RE');
  assert.ok(rd.x<left);assert.ok(re.x>right);
- for(const p of [rd,re]){assert.equal(p.path[0][1],500);assert.ok(p.z>2220);}
+ for(const p of [rd,re]){assert.equal(p.path[0][1],400);assert.ok(p.z>2220);}
  for(const run of m.runs)for(let i=1;i<run.points.length;i++){const a=run.points[i-1],b=run.points[i];if(a[1]===b[1])assert.ok(!(Math.min(a[0],b[0])<right&&Math.max(a[0],b[0])>left),'wall cable crosses doorway/lintel: '+run.id);}
  const {framingConnections}=await v.ssrLoadModule('/app/wiring.ts'),c=framingConnections(s),run=c.roofRuns.find(r=>r.id==='R door bypass');
  assert.deepEqual(run.points[0],rd.plan);assert.deepEqual(run.points.at(-1),re.plan);
@@ -21,8 +21,8 @@ test('ring rejoins the right/rear wall at socket height through the bathroom',()
  const s=defaultSettings(),right=wiringWall(s,'right'),rear=wiringWall(s,'rear');
  const r=right.runs.find(r=>r.id==='R: front CU / S8 / F-R / S7 / rear');
  const b=rear.runs.find(r=>r.id==='R: left / S5 / S6');
- assert.deepEqual(r.points.at(-1),[0,500]);assert.deepEqual(b.points.at(-1),[rear.w,500]);
- for(const run of [r,b])assert.ok(run.points.every(p=>p[1]===500));
+ assert.deepEqual(r.points.at(-1),[0,400]);assert.deepEqual(b.points.at(-1),[rear.w,400]);
+ for(const run of [r,b])assert.ok(run.points.every(p=>p[1]===400));
  assert.equal(right.points.filter(p=>p.kind==='cu').length,0);
 });
 test('construction output has six wiring pages with local keys, eight main lights and separate bathroom LEDs',()=>{
@@ -64,9 +64,9 @@ test('single front-corner outlets retain single cables and switch/network equipm
  assert.deepEqual(front.points.filter(p=>/^N[23]$/.test(p.id)).map(p=>p.id),['N2','N3']);
  assert.equal(front.runs.filter(r=>r.id.startsWith('N2:')).length,1);
  assert.equal(front.ports.filter(p=>p.id==='N3B').length,1);
- const near=front.runs.find(r=>r.id.startsWith('N2:'));assert.ok(near.points.some(p=>p[1]===535));
- const far=front.ports.find(p=>p.id==='N3B'),outlet=front.points.find(p=>p.id==='N3');assert.deepEqual(far.path[0],[outlet.x,outlet.z]);assert.ok(far.x>front.w-door.x);assert.ok(far.path.some(p=>p[1]===535));
- assert.deepEqual(right.runs.find(r=>r.type==='ring').points[0],[right.w,500]);
+ const near=front.runs.find(r=>r.id.startsWith('N2:'));assert.ok(near.points.some(p=>p[1]===435));
+ const far=front.ports.find(p=>p.id==='N3B'),outlet=front.points.find(p=>p.id==='N3');assert.deepEqual(far.path[0],[outlet.x,outlet.z]);assert.ok(far.x>front.w-door.x);assert.ok(far.path.some(p=>p[1]===435));
+ assert.deepEqual(right.runs.find(r=>r.type==='ring').points[0],[right.w,400]);
 });
 
 test('three-gang lighting has separate main, feature and external returns, and bathroom has a ceiling pull cord',async()=>{
@@ -148,7 +148,7 @@ test('lighting loops use the switch bank with no separate junction enclosure, an
 
 test('N3 roof bypass follows the ring and drops beside its far door riser before following the low ring',async()=>{
  const s=defaultSettings(),front=wiringWall(s,'front'),ring=front.ports.find(p=>p.id==='RE'),data=front.ports.find(p=>p.id==='N3B');
- assert.ok(Math.abs(data.x-ring.x)<=35);assert.ok(data.path.some(p=>p[0]===data.x&&p[1]===535));
+ assert.ok(Math.abs(data.x-ring.x)<=35);assert.ok(data.path.some(p=>p[0]===data.x&&p[1]===435));
  const {framingConnections}=await v.ssrLoadModule('/app/wiring.ts'),c=framingConnections(s),r=c.roofRuns.find(p=>p.id==='R door bypass'),n=c.roofRuns.find(p=>p.id==='N3 socket');
  const horizontal=p=>p.points.slice(1).map((b,i)=>[p.points[i],b]).filter(([a,b])=>a[1]===b[1]&&Math.abs(a[0]-b[0])>500);
  assert.ok(horizontal(n).some(([a])=>horizontal(r).some(([b])=>Math.abs(a[1]-b[1])<=60)));
@@ -210,12 +210,12 @@ test('AC is centred between the bathroom partition and front wall at the upper p
 test('bathroom permanent lighting feed follows socket zones and enters the supported partition end',async()=>{
  const s=defaultSettings(),front=wiringWall(s,'front'),right=wiringWall(s,'right'),{bathroomWiring}=await v.ssrLoadModule('/app/wiring.ts'),b=bathroomWiring(s);
  const f=front.runs.find(r=>r.id==='BL: CU / right wall'),r=right.runs.find(r=>r.id==='BL: right wall / partition');
- assert.equal(f.type,'light');assert.deepEqual(f.points.at(-1),[0,525]);assert.deepEqual(r.points[0],[right.w,525]);
- assert.deepEqual(r.points.at(-1),[b.partitionY,525]);assert.equal(b.riseX,s.internalLength-100);
- assert.ok(b.low>=437.5&&b.low<=562.5);
+ assert.equal(f.type,'light');assert.deepEqual(f.points.at(-1),[0,425]);assert.deepEqual(r.points[0],[right.w,425]);
+ assert.deepEqual(r.points.at(-1),[b.partitionY,425]);assert.equal(b.riseX,s.internalLength-100);
+ assert.ok(b.low>=337.5&&b.low<=462.5);
  // The continuous lighting cable passes through the socket/FCU backbox envelopes, without joining the ring.
- const s1=front.points.find(p=>p.id==='S1'),verticalX=f.points[0][0];assert.ok(Math.abs(verticalX-s1.x)<73);assert.ok(Math.abs(525-s1.z)<41.5);
- for(const id of ['S8','F-R','S7']){const p=right.points.find(p=>p.id===id);assert.ok(p.x>b.partitionY&&p.x<right.w);assert.ok(Math.abs(525-p.z)<41.5);}
+ const s1=front.points.find(p=>p.id==='S1'),verticalX=f.points[0][0];assert.ok(Math.abs(verticalX-s1.x)<73);assert.ok(Math.abs(425-s1.z)<41.5);
+ for(const id of ['S8','F-R','S7']){const p=right.points.find(p=>p.id===id);assert.ok(p.x>b.partitionY&&p.x<right.w);assert.ok(Math.abs(425-p.z)<41.5);}
  assert.deepEqual(b.feed.points[0],[s.internalLength,b.partitionY]);assert.deepEqual(b.feed.points.at(-1),b.pull.point);
 });
 
@@ -257,7 +257,7 @@ test('main switch has exactly one incoming and three direct switched outgoing ca
 test('heater stays in low wall channel and feature circuit branches to right gable',async()=>{
  const s=defaultSettings(),{ceilingLighting}=await v.ssrLoadModule('/app/wiring.ts'),m=ceilingLighting(s);
  assert.ok(!m.roofRuns.some(r=>r.type==='heater'));assert.ok(!m.ports.some(p=>p.id==='HC'||p.id==='HW'));
- for(const id of ['front','right','rear'])assert.ok(wiringWall(s,id).runs.some(r=>r.type==='heater'&&r.points.some(p=>p[1]===470)));
+ for(const id of ['front','right','rear'])assert.ok(wiringWall(s,id).runs.some(r=>r.type==='heater'&&r.points.some(p=>p[1]===370)));
  assert.equal(m.rightGableContinuation.from,'T3');assert.equal(m.rightGableContinuation.to,'G2');
  assert.ok(wiringWall(s,'right').points.some(p=>p.id==='G2'&&p.kind==='feature'));
  const ring=m.roofRuns.find(r=>r.type==='ring');assert.ok(ring.points.some(p=>p[1]===s.internalDepth-150));
