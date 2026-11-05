@@ -43,3 +43,18 @@ test('batten overlay matches the agreed fixing counts',()=>{
  const m=roofEnvelope(defaultSettings());assert.equal(m.structural.length,17);assert.equal(m.intermediate.length,13);assert.equal(m.longScrews,98);assert.equal(m.shortScrews,52);
 });
 
+test('measured cleat, square cuts and gutter projection determine the 2 m batten ridge gap',()=>{
+ const s=defaultSettings(),m=roofEnvelope(s),p=s.roofPitch*Math.PI/180;
+ assert.equal(m.battenCount,60);assert.equal(m.batten.cutLength,2000);
+ assert.ok(Math.abs(m.battenEnd-m.battenStart-2000)<1e-8);
+ assert.ok(Math.abs(m.pirTopRun-2016.974835863435)<1e-8);
+ assert.ok(Math.abs(m.eavesSetback-8.248260478200468)<1e-8);
+ assert.ok(Math.abs(m.ridgeSetback-8.726575385234355)<1e-8);
+ // Project the upper batten-end corner and 65 mm tile offset back to horizontal.
+ const tileX=m.eavesSetback*Math.cos(p)-m.batten.depth*Math.sin(p)-m.batten.cleatOffset*Math.cos(p);
+ assert.ok(Math.abs(tileX+22+40)<1e-8);
+ assert.equal(m.stockForSlope,30);assert.equal(m.stockForRidge,4);assert.equal(m.battenStockReserve,2);
+ assert.ok(Math.abs(m.ridgeSupportMetres-11.292)<1e-8);
+ assert.equal(m.batten.ridgeCapHorizontalWidth,150);
+ assert.ok(m.battenStart<0);assert.ok(m.battenEnd<m.pirTopEaves);
+});
