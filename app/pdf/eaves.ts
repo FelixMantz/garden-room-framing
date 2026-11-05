@@ -3,6 +3,7 @@ import { roofOverhangs } from '../roof-overhangs';
 import type { Settings } from '../framing';
 import { canvas, fmt, hTechnical, vTechnical, type Fill } from './layout';
 import { rafterTailCut } from '../rafter-dimensions';
+import { ROOF_BATTENS, roofEnvelope } from '../roof-envelope';
 
 /** Eaves junction: dimensions in mm; proprietary profiles remain schematic. */
 export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
@@ -28,14 +29,14 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.text(`Section down the roof slope | pitch ${fmt(s.roofPitch)} degrees | dimensions in mm | do not scale`,12,18,8);
   c.text(`${fmt(s.gableOverhang)} mm horizontal: outer wall framing to outer fascia; ${fmt(eavesTailRun)} mm to rafter tail.`,12,24,7.5);
   // Set-out uses the rafter-tail plumb line projected onto the tile plane.
-  // D is the actual cleat hook-to-leg depth along the slope; not published.
-  const gutterProjection=40, cleatDepthShown=80;
+  // Measured engaged tile-edge to abutment leg: 65 mm along the slope.
+  const gutterProjection=ROOF_BATTENS.tileProjection, cleatDepthShown=ROOF_BATTENS.cleatOffset;
   const noseDownSlope=(fasciaThickness+gutterProjection)/co;
   const fasciaOuter=left-fasciaThickness*scale;
   const tileEdgeX=fasciaOuter-gutterProjection*scale;
-  const battenStartX=tileEdgeX+cleatDepthShown*scale*co;
+  const battenStartX=left+(cleatDepthShown-noseDownSlope)*scale*co;
   // The batten's square eaves cut and the cleat lip share a roof-normal plane.
-  const cleatTop=top+batten,cleatFoot=top+2;
+  const cleatTop=top+batten,cleatFoot=top;
   const battenFootX=battenStartX+(cleatTop-cleatFoot)*scale*si;
   // Single eaves-to-ridge batten layer shown beyond the section; air channel in front.
   // The wall follows the actual eaves projection. Fit longer projections to this sheet.
@@ -123,7 +124,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   arrow([left-11,y(left-11,top+12)],[left+24,y(left+24,top+12)],[1.5,1]);
   arrow([left+32,y(left+32,top)+2],[left+5,y(left+5,top)+2]);
   // Cleat leg butts the batten end; flange bears on top and is fixed there.
-  // Hook-to-leg depth is schematic until the delivered profile is measured.
+  // Measured hook-to-leg offset; roof-normal lip bears on square batten end.
   line([battenStartX+8,y(battenStartX+8,cleatTop)], [battenStartX,y(battenStartX,cleatTop)],.4);
   // Continuous roof-parallel plate with a perpendicular lip below it.
   line([battenStartX,y(battenStartX,cleatTop)], [tileEdgeX,y(tileEdgeX,cleatTop)],.4);
@@ -142,7 +143,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   const da=[tileEdgeX,y(tileEdgeX,cleatTop)-7],db=[battenStartX,y(battenStartX,cleatTop)-7];
   line(da,db,.13);
   for(const p of [da,db])line([p[0]-1,p[1]-1],[p[0]+1,p[1]+1],.13);
-  c.textRotated('D: cleat hook to leg', (da[0]+db[0])/2,(da[1]+db[1])/2-2,-s.roofPitch,5.6,true);
+  c.textRotated('65 along slope: tile edge to leg', (da[0]+db[0])/2,(da[1]+db[1])/2-2,-s.roofPitch,5.6,true);
   leader('Perpendicular underside lip / batten end',battenFootX,y(battenFootX,cleatFoot),65,85);
   // Leaders stay short or outside the roof, avoiding longitudinal dimension lines.
   leader('Extralight Shingle roof tiles',right-27,y(right-27,tileN),197,39);
@@ -185,10 +186,10 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   hTechnical(c,left-fasciaThickness*scale,wallX,fasciaBottom,181,`${fmt(s.gableOverhang)} wall to outer fascia`,5.5);
   c.text('STARTER CLEAT / BATTEN SET-OUT',100,35,8,true);
   c.text(`Target: 40 mm horizontal tile projection past fascia.`,100,41,6.4);
-  c.text(`Batten start = D - ${fmt(noseDownSlope)} mm upslope of rafter-tail plumb datum.`,100,47,6.4);
-  c.text(`Measure D along slope: engaged tile edge to cleat abutment leg.`,100,53,6.4);
-  c.text('Dry-fit one tile + cleat; mark leg, then start every batten there.',100,59,6.4);
-  c.text('Cleat parallel to roof; underside lip at 90 degrees; D schematic.',100,65,6.4);
+  c.text(`65 mm measured offset, parallel to roof: tile edge to batten end.`,100,47,6.4);
+  c.text(`Square-cut underside ends ${fmt(roofEnvelope(s).eavesSetback)} mm upslope of PIR edge.`,100,53,6.4);
+  c.text('Slope battens: 60 x 2000 mm; set eaves first, ridge gap follows.',100,59,6.4);
+  c.text('Cleat parallel to roof; underside lip at 90 degrees to batten.',100,65,6.4);
   c.text('FASCIA SECTION',15,35,8,true);
   const fx=40,fy=43,fs=.14,fw=fasciaThickness*fs,fh=fasciaHeight*fs;
   c.rect(fx,fy,fw,fh,'timber',[0,0,0],.25);
@@ -201,7 +202,7 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
 
   c.line(12,190,285,190,[0,0,0],.2);
   c.text('Solid arrow: drainage. Dashed arrow: air inlet ABOVE membrane. Soffit closes the overhang; it does not ventilate the roof.',12,195,7);
-  c.text('Membrane-only eaves: exposed tail requires permanent UV suitability. Set-out adapted from SupaLite guide pp. 26 / 30; dry-fit actual cleat.',12,200,6.5);
+  c.text('Membrane-only eaves: exposed tail requires permanent UV suitability. Set-out adapted from SupaLite guide pp. 26 / 30; 65 mm cleat offset measured on actual tile / cleat.',12,200,6.5);
   c.text(`Garden room framing set | eaves cross section | page ${page} of ${total}`,148.5,207,6.4,false,'center');
   return c.stream();
 }
