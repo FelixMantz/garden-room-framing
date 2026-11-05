@@ -11,12 +11,21 @@ import { wallBattenPlan } from './cladding-battens';
 import { CLADDING_ORDER, CLADDING_GOODS, CLADDING_DELIVERY } from './cladding';
 import { drawWiringWall, drawWiringCeiling, drawWiringBathroom } from './pdf/wiring';
 import { WALL_SERVICES } from './wall-services';
+import { roofEnvelope } from './roof-envelope';
 
 export default function ConstructionDetails({settings}:{settings:Settings}){
   const [options, setOptions] = useState(WINDOW_CILL_DEFAULTS);
   const m = windowCillModel(settings, options);
   const battens = wallBattenPlan(settings);
+  const roof = roofEnvelope(settings);
   return <>
+    <section className="diagram-card" aria-label="Roof batten cutting and ridge supports">
+      <h2>Roof battens, starter cleat and ridge caps</h2>
+      <p>Cut {roof.battenCount} slope battens, 25 × 50 × 2000 mm, square at both ends: 30 per slope for the default framing. One layer only, directly above the roof membrane. The measured engaged tile edge to starter-cleat abutment leg is 65 mm parallel to the roof slope; the leg butts against the square batten end.</p>
+      <p>Set the eaves for 40 mm horizontal tile projection beyond the 22 mm fascia (62 mm beyond the PIR plumb face). Upper PIR run {roof.pirTopRun.toFixed(1)} mm; batten underside ends {roof.eavesSetback.toFixed(1)} mm upslope of the PIR eaves edge. With 2000 mm cuts, ridge setback is approximately {roof.ridgeSetback.toFixed(1)} mm per slope; place the eaves first and absorb fitting differences at the ridge.</p>
+      <p>Ridge caps approximately 150 mm wide horizontally, extending 75 mm each side. Fit two longitudinal 25 × 50 mm support battens, one per slope, laid flat (50 mm along slope, 25 mm deep) on top of the tiles. Screw through the tiles into the upper ends of the slope battens; fix cap to these supports. Fit support positions to the actual cap profile, retain sound timber beyond fixings, and splice only over supporting slope battens. Preserve drainage and the ventilation outlet through the purchased Rooftec ridge roll; use compatible weatherproof accessory fixings.</p>
+      <p>Received stock is 36 × 4.8 m, rather than the catalogue's 4.2 m. Two 2000 mm cuts per length use {roof.stockForSlope} lengths (120 m installed at default). Reserve {roof.stockForRidge} further lengths for the two full ridge support runs ({roof.ridgeSupportMetres.toFixed(3)} m combined before splice cuts), leaving {roof.battenStockReserve} full lengths plus offcuts for verges, defects and fitting. Preserve the separate wall-stock allocation.</p>
+    </section>
     <section className="diagram-card" aria-label="Wiring diagrams">
       <h2>Electrical and network wiring</h2>
       <p>Internal wall elevations, vaulted ceiling, separate bathroom ceiling, with electrical and network routes and a key on each page. One line per cable. Proposed fitting positions need confirming before first fix.</p>
@@ -58,7 +67,7 @@ export default function ConstructionDetails({settings}:{settings:Settings}){
       <p>Reserve four 4.8 m gravel boards for corners: two full-width and two ripped to nominal 78 mm. Each stock length yields two corner legs up to just under 2.4 m after kerf. Measure corner heights before cutting. The remaining five 100 mm boards provide 24 m for face trims to four windows and the entrance door; concealed liners are separate.</p>
       <p>The 100 mm face and return ripped to 78 mm form an L with equal 100 mm outside widths. Measure the actual timber: return width = face width minus thickness. Extend the featheredge into the concealed corner, giving approximately 36 mm cover on both faces behind the corner boards. Leave 10 mm between each concealed end and the perpendicular cladding. The trim bears against the lap high points, with no added rear gap, and projects 22 mm beyond the laps. Avoid crushing the boards when fixing; keep drainage open. Select straight, sound boards suitable for visible trim.</p>
       <p>Wall batten allowance: {battens.totalMetres.toFixed(1)} m of cut pieces, packed into {battens.stockForCuts} × 2.1 m lengths with 3 mm saw kerfs. Ordered 74 reclaimed painted lengths for £74, leaving {battens.orderLengths-battens.stockForCuts} before the additional butt-joint backing shown on the Cladding layout page. Includes gables, opening jambs and single 50 mm-wide corner battens; joins at the wall-head plates have framing behind them. Adjusted settings require recalculating the purchase quantity.</p>
-      <p>Keep all 36 received 4.8 m battens reserved for the roof: the conservative 64-run allowance uses 32 lengths, with four retained for ridge/verge details and defects. No unconfirmed roof surplus has been deducted from the wall order. Check the reclaimed stock for old metal, sound condition, actual 25 × 50 mm section and suitable exterior-cavity durability/treatment. Paint alone does not establish treatment; use true 25 × 50 mm treated stock if unsuitable.</p>
+      <p>Keep all 36 received 4.8 m battens reserved for the roof: 60 × 2000 mm slope pieces use 30 lengths, four further lengths are reserved for the two ridge support runs, and two remain for verge details and defects, alongside offcuts. No unconfirmed roof surplus has been deducted from the wall order. Check the reclaimed stock for old metal, sound condition, actual 25 × 50 mm section and suitable exterior-cavity durability/treatment. Paint alone does not establish treatment; use true 25 × 50 mm treated stock if unsuitable.</p>
       <p>The Cladding layout page allocates the 60 ordered featheredge lengths, including overlap, supported joints, gable cuts and saw kerfs. Fixings, preservative, head and plinth flashings, concealed liners and ventilated insect closures are additional. Ripping exposes core wood: protect the ripped edge with compatible preservative and brown exterior finish; this does not restore factory impregnation. Keep the cut edge concealed.</p>
     </section>
   </>;
