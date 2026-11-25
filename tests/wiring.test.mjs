@@ -27,7 +27,7 @@ test('ring rejoins the right/rear wall at socket height through the bathroom',()
 });
 test('construction output has six wiring pages with local keys, eight main lights and separate bathroom LEDs',()=>{
  const pdf=new TextDecoder().decode(generateFramingPdf(defaultSettings(),'construction'));
- assert.equal((pdf.match(/\/Type \/Page\b/g)||[]).length,26);
+ assert.equal((pdf.match(/\/Type \/Page\b/g)||[]).length,27);
  for(let i=1;i<=8;i++)assert.ok(pdf.includes(`(M${i})`));
  assert.ok(pdf.includes('(B1)'));assert.ok(pdf.includes('(B2)'));assert.ok(pdf.includes('(SW-B)'));
  assert.match(pdf,/KEY/);assert.match(pdf,/separate control/);

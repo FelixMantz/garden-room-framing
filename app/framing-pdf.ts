@@ -15,10 +15,11 @@ import { drawTieConnection } from './pdf/tie-connection';
 import { drawWindowCill } from './pdf/window-cill';
 import { drawCladding, drawCladdingCuts, drawCladdingStock } from "./pdf/cladding";
 import { drawWiringWall, drawWiringCeiling, drawWiringBathroom } from './pdf/wiring';
-export const FRAMING_PDF_PAGE_COUNT=41;
+import { drawFascia } from './pdf/fascia';
+export const FRAMING_PDF_PAGE_COUNT=42;
 export const PDF_PARTS = [
   {id:'timber', label:'Part 1 - Timber framing', filename:'garden-room-timber-framing.pdf', pageCount:16},
-  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:26},
+  {id:'construction', label:'Part 2 - Sheathing, insulation & interiors', filename:'garden-room-construction-details.pdf', pageCount:27},
 ] as const;
 export type PdfPart = typeof PDF_PARTS[number]['id'];
 export function generateFramingPdf(settings:Settings,part?:PdfPart){
@@ -39,8 +40,8 @@ export function generateFramingPdf(settings:Settings,part?:PdfPart){
   const selected=part==='timber'
     ? [...pages.slice(0,13),pages[30],pages[17],pages[18]]
     : part==='construction'
-      ? [pages[16],...pages.slice(19,22),pages[22],...pages.slice(32),pages[24],pages[25],pages[13],pages[14],pages[31],pages[15],...pages.slice(26,30),pages[23],...wiringPages,pages[17]]
-      : [...pages,...wiringPages];
+      ? [pages[16],...pages.slice(19,22),pages[22],...pages.slice(32),pages[24],pages[25],pages[13],pages[14],pages[31],pages[15],...pages.slice(26,30),pages[23],...wiringPages,(p,t)=>drawFascia(settings,p,t),pages[17]]
+      : [...pages,...wiringPages,(p,t)=>drawFascia(settings,p,t)];
   const label=PDF_PARTS.find(item=>item.id===part)?.label;
   return buildPdf(selected.map((draw,i)=>{
     const stream=draw(i+1,selected.length);
