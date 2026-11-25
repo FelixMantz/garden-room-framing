@@ -134,14 +134,37 @@ export function drawRoofEnvelopeDetails(s:Settings,page:number,total:number,c=ca
 }
 export function drawRoofBattens(s:Settings,page:number,total:number,c=canvas()){
  const m=roofEnvelope(s);title(c,'Batten overlay / fixing schedule',s);
- const scale=Math.min(247/m.width,115/(m.deck.deckSlope+m.tip)),X=(x:number)=>25+(x-m.left)*scale,Y=(v:number)=>40+(v+m.tip)*scale;
+ const scale=Math.min(170/m.width,92/(m.deck.deckSlope+m.tip)),X=(x:number)=>25+(x-m.left)*scale,Y=(v:number)=>40+(v+m.tip)*scale;
  [...m.upper,...m.eaves].forEach(q=>{c.rect(X(q.x),Y(q.y),q.w*scale,q.h*scale,'floor');c.text(q.id,X(q.x+q.w/2),Y(q.y+q.h/2),8,true,'center');});
  const start=100,end=m.deck.deckSlope-100,mid=(start+end)/2;
- for(const x of m.structural){c.rect(X(x-25),Y(m.battenStart),50*scale,m.batten.cutLength*scale,'timber',black,.35);for(const y of [start,...(m.roof.rafters.includes(x)?[mid]:[]),end])c.rect(X(x)-.75,Y(y)-.75,1.5,1.5,'ridge');}
+ for(const b of m.slopeBattens){
+  c.rect(X(b.x),Y(m.battenStart),m.batten.width*scale,m.batten.cutLength*scale,'timber',black,b.verge?.6:.35);
+  for(const y of [start,...(m.roof.rafters.includes(b.fixingX)?[mid]:[]),end])c.rect(X(b.fixingX)-.75,Y(y)-.75,1.5,1.5,'ridge');
+  const extra=(mid+end)/2;c.line(X(b.fixingX)-1,Y(extra)-1,X(b.fixingX)+1,Y(extra)+1,black,.25);c.line(X(b.fixingX)-1,Y(extra)+1,X(b.fixingX)+1,Y(extra)-1,black,.25);
+ }
  for(const x of m.intermediate){c.line(X(x),Y(m.battenStart),X(x),Y(m.battenEnd),black,.5,[2,1]);for(const y of [start,end]){c.line(X(x)-1,Y(y)-1,X(x)+1,Y(y)+1,black,.25);c.line(X(x)-1,Y(y)+1,X(x)+1,Y(y)-1,black,.25);}}
  hTechnical(c,X(m.left),X(m.right),Y(0),33,fmt(m.width),8);
- vTechnical(c,Y(0),Y(m.deck.deckSlope),X(m.right),283,fmt(m.deck.deckSlope),8);
+ vTechnical(c,Y(0),Y(m.deck.deckSlope),X(m.right),203,fmt(m.deck.deckSlope),8);
  c.text('Ridge',12,Y(0)+2,7,true);c.text('Eaves',12,Y(m.deck.deckSlope)-1,7,true);
+ // Cross-section across the left verge, looking up the slope; right verge mirrors it.
+ c.text('Gable edge section',211,40,8,true);
+ const vs=.24,VX=(x:number)=>224+x*vs,VY=(n:number)=>111-n*vs;
+ const block=(x:number,n:number,w:number,h:number,fill:'timber'|'floor')=>c.rect(VX(x),VY(n+h),w*vs,h*vs,fill);
+ block(0,-s.studDepth,s.studFace,s.studDepth,'timber');
+ block(3,0,177,11,'timber');block(0,11,180,100,'floor');block(0,111,50,25,'timber');
+ // Outer board is separate from, and outside, the nominal roof edge.
+ block(-m.roof.fasciaThickness,-s.studDepth,m.roof.fasciaThickness,206,'timber');
+ c.line(VX(0),VY(111),VX(180),VY(111),black,.55);
+ // Soaker base on the batten; 30 mm tall outer leg, 10 mm inner upstand.
+ c.line(VX(0),VY(166),VX(0),VY(136),black,.65);
+ c.line(VX(0),VY(136),VX(60),VY(136),black,.65);c.line(VX(60),VY(136),VX(60),VY(146),black,.65);
+ c.line(VX(0),VY(-s.studDepth-8),VX(0),VY(176),black,.18,[1,1]);
+ c.text('Soaker outer leg',211,48,6.5);c.line(232,49,VX(0),VY(161),black,.15);
+ c.text('25 x 50 batten',242,74,6.5);c.line(243,76,VX(40),VY(123),black,.15);
+ c.text('100 PIR',244,91,6.5);c.text('11 OSB',244,109,6.5);
+ c.text('Fly rafter',241,125,6.5);c.text('Board outside',211,140,6.5);
+ c.text('Outer batten / soaker flush with PIR edge.',12,130,7.5,true);
+ c.text('Four verge runs included in 60; screw axes stay over fly rafters. OSB setback 3 mm.',12,136,7);
  c.text(`${m.battenCount} x 2000 square-cut | 25 x 50 | single eaves-to-ridge layer`,12,146,9,true);
  c.text(`65 mm cleat offset along slope | 40 H tile projection past fascia`,12,153,8);
  c.text(`PIR upper run ${fmt(m.pirTopRun)} | eaves setback ${fmt(m.eavesSetback)} | ridge setback ${fmt(m.ridgeSetback)}`,12,160,8);
@@ -149,7 +172,7 @@ export function drawRoofBattens(s:Settings,page:number,total:number,c=canvas()){
  c.text('One support per slope, along ridge; screw through tiles into slope battens; splice over them.',12,173,7);
  c.text('Fit support positions to actual cap; keep fixings clear of cut ends and preserve ventilated roll outlet.',12,179,7);
  c.text(`Stock: ${m.stockForSlope} x 4.8 m slope + ${m.stockForRidge} ridge = ${m.stockForSlope+m.stockForRidge} of 36; ${m.battenStockReserve} reserve for verges / defects.`,12,185,7);
- c.text('Slope screws: SPAX 220 at 67 deg: 98; gold 140: 52. Ridge/accessory fixings separate.',12,191,7);
+ c.text(`Slope screws: ${m.longScrews} SPAX 220 at 67 deg; ${m.totalShortScrews} gold 140 (${m.shortScrews} intermediate + ${m.supplementaryShortScrews} supplementary).`,12,191,7);
  c.text(`Screw stations ${fmt(start)} / ${fmt(mid)} / ${fmt(end)} from original ridge face; same rafter grid.`,12,197,6.5);
  footer(c,page,total);return c.stream();
 }

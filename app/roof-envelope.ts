@@ -37,6 +37,14 @@ export function roofEnvelope(s:Settings){
  // Cleat offset is measured parallel to the roof from engaged tile edge to
  // square batten end. Horizontal tile projection is at the batten TOP plane.
  const batten=ROOF_BATTENS;
+ // Verge battens share the nominal PIR / deck edge; the fascia is outside it.
+ // Keep long-screw axes over the fly rafters despite the 2.5 mm batten offset.
+ const slopeBattens=structural.map((fixingX,i)=>({fixingX,
+  x:i===0?left:i===structural.length-1?right-batten.width:fixingX-batten.width/2,
+  verge:i===0||i===structural.length-1}));
+ const vergeBattens=slopeBattens.filter(b=>b.verge);
+ const supplementaryShortScrews=2*structural.length;
+ const totalShortScrews=intermediate.length*4+supplementaryShortScrews;
  const pirTopEaves=pirEnd-bevel,pirTopRun=pirTopEaves+tip;
  const tileNoseRun=(roof.fasciaThickness+batten.tileProjection)/cos;
  const eavesSetback=batten.cleatOffset-tileNoseRun+batten.depth*tan;
@@ -47,6 +55,6 @@ export function roofEnvelope(s:Settings){
  const ridgeSupportMetres=2*width/1000,stockForRidge=2*Math.ceil(width/batten.stockLength);
  const battenStockReserve=batten.stockCount-stockForSlope-stockForRidge;
  const fits=width>4800&&width<=6000&&pirLower>0&&pirLower<=1200&&stripLength+kerf<=2440&&columns.every(q=>q.w<=1220);
- return {batten,pirTopEaves,pirTopRun,eavesSetback,battenEnd,battenStart,ridgeSetback,ridgeClearHorizontal,battenCount,stockForSlope,ridgeSupportMetres,stockForRidge,battenStockReserve,perimeterGap,stripLength,roof,deck,left,right,width,columns,osb,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
+ return {batten,slopeBattens,vergeBattens,supplementaryShortScrews,totalShortScrews,pirTopEaves,pirTopRun,eavesSetback,battenEnd,battenStart,ridgeSetback,ridgeClearHorizontal,battenCount,stockForSlope,ridgeSupportMetres,stockForRidge,battenStockReserve,perimeterGap,stripLength,roof,deck,left,right,width,columns,osb,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
 }
 

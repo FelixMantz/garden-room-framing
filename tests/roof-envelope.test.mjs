@@ -58,3 +58,22 @@ test('measured cleat, square cuts and gutter projection determine the 2 m batten
  assert.equal(m.batten.ridgeCapHorizontalWidth,150);
  assert.ok(m.battenStart<0);assert.ok(m.battenEnd<m.pirTopEaves);
 });
+
+
+test('verge batten faces align with roof edges while fixings remain inside fly rafters',()=>{
+ for(const roofGableOverhang of [150,250,350]){
+  const s={...defaultSettings(),roofGableOverhang},m=roofEnvelope(s),[left,right]=m.vergeBattens;
+  assert.equal(left.x,m.left);
+  assert.equal(right.x+m.batten.width,m.right);
+  assert.equal(left.fixingX,-m.roof.flyRafterProjection);
+  assert.equal(right.fixingX,m.roof.length+m.roof.flyRafterProjection);
+  for(const b of [left,right]){
+   assert.ok(b.fixingX>b.x&&b.fixingX<b.x+m.batten.width);
+   const rafterOuter=b===left?b.fixingX-s.studFace/2:b.fixingX+s.studFace/2;
+   assert.ok(Math.abs(rafterOuter-(b===left?m.left:m.right))<1e-8);
+  }
+  assert.equal(m.battenCount,60);
+  assert.equal(m.stockForSlope,30);
+  assert.equal(m.totalShortScrews,86);
+ }
+});
