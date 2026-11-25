@@ -40,7 +40,11 @@ test('PIR covers ridge-to-eaves with staggered joints, plumb bevels and a rebate
 
 });
 test('batten overlay matches the agreed fixing counts',()=>{
- const m=roofEnvelope(defaultSettings());assert.equal(m.structural.length,17);assert.equal(m.intermediate.length,13);assert.equal(m.longScrews,98);assert.equal(m.shortScrews,52);
+ const m=roofEnvelope(defaultSettings());assert.equal(m.structural.length,17);assert.equal(m.intermediate.length,13);assert.equal(m.longScrews,98);assert.equal(m.intermediateShortScrews,52);assert.equal(m.supplementaryShortScrews,34);assert.equal(m.shortScrews,86);
+ assert.equal(100-m.shortScrews,14);
+ assert.equal(m.supplementaryScrewStation,(m.longScrewStations[1]+m.longScrewStations[2])/2);
+ // The extra fixing must be reachable within the first 850 mm membrane course.
+ assert.ok(m.pirTopEaves-m.supplementaryScrewStation>0&&m.pirTopEaves-m.supplementaryScrewStation<850);
 });
 
 test('measured cleat, square cuts and gutter projection determine the 2 m batten ridge gap',()=>{
