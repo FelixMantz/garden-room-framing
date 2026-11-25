@@ -46,7 +46,10 @@ export function roofEnvelope(s:Settings){
  // Two ridge support runs, each as long as the deck, spliced over slope battens.
  const ridgeSupportMetres=2*width/1000,stockForRidge=2*Math.ceil(width/batten.stockLength);
  const battenStockReserve=batten.stockCount-stockForSlope-stockForRidge;
+ const longScrewStations=[100,(100+deck.deckSlope-100)/2,deck.deckSlope-100];
+ const supplementaryScrewStation=(longScrewStations[1]+longScrewStations[2])/2;
+ const intermediateShortScrews=intermediate.length*4,supplementaryShortScrews=structural.length*2;
  const fits=width>4800&&width<=6000&&pirLower>0&&pirLower<=1200&&stripLength+kerf<=2440&&columns.every(q=>q.w<=1220);
- return {batten,pirTopEaves,pirTopRun,eavesSetback,battenEnd,battenStart,ridgeSetback,ridgeClearHorizontal,battenCount,stockForSlope,ridgeSupportMetres,stockForRidge,battenStockReserve,perimeterGap,stripLength,roof,deck,left,right,width,columns,osb,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),shortScrews:intermediate.length*4};
+ return {batten,pirTopEaves,pirTopRun,eavesSetback,battenEnd,battenStart,ridgeSetback,ridgeClearHorizontal,battenCount,stockForSlope,ridgeSupportMetres,stockForRidge,battenStockReserve,perimeterGap,stripLength,roof,deck,left,right,width,columns,osb,bevel,halfRidge,tip,jointS,pirLower,upper,eaves,thickness,ridgeAboveDeck,ridgeAboveRafter,osbSetback,pirEnd,ridgeSideFoot,ridgeSideTop,ridgeCentreTop,pirRidgePolygon,rebateDepth,rebateWidth,structural,intermediate,blocking,osbSheets,pirSheets,fits,osbReserve:26-15-osbSheets,pirReserve:16-6-pirSheets,longScrews:2*(roof.rafters.length*3+(structural.length-roof.rafters.length)*2),longScrewStations,supplementaryScrewStation,intermediateShortScrews,supplementaryShortScrews,shortScrews:intermediateShortScrews+supplementaryShortScrews};
 }
 
