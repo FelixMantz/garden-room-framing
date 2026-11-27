@@ -1,6 +1,6 @@
 import type { Settings } from '../framing';
 import { FASCIA, fasciaPlan } from '../fascia';
-import { canvas, fmt, hTechnical } from './layout';
+import { canvas, fmt, hTechnical, vTechnical } from './layout';
 
 export function drawFascia(settings: Settings, page: number, total: number, c = canvas()) {
   const m = fasciaPlan(settings);
@@ -70,28 +70,41 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.rect(33,96,23,7); c.text('Box end',35,101,7,true);
   c.rect(69,75,17,7); c.text('Barge',71,80,7,true);
   hTechnical(c,X(0),X(m.boxFaceWidth),y,y+8,`~${fmt(m.boxFaceWidth)} box face`,7);
+  // Project both soffit underside levels from the splice to the step dimension.
+  const upperSoffit = Y(FASCIA.lipDrop + m.soffitStep);
+  const lowerSoffit = Y(FASCIA.lipDrop);
+  c.line(X(splice),upperSoffit,92,upperSoffit,[0,0,0],.18,[1,1]);
+  c.line(X(splice),lowerSoffit,92,lowerSoffit,[0,0,0],.18,[1,1]);
+  c.line(91,upperSoffit,91,lowerSoffit,[0,0,0],.28);
+  for (const level of [upperSoffit,lowerSoffit]) c.line(90,level-1,92,level+1,[0,0,0],.28);
+  c.text(`~${fmt(m.soffitStep)} step`,94,(upperSoffit+lowerSoffit)/2+1,7,true);
   c.text('Box-end lip and eaves fascia bottoms align.',12,144,7.2);
   c.text('B is one piece over the full joint and lower step.',12,150,7.2);
 
   c.text('PLAN AT THE CORNER AND SPLICE - VIEW FROM ABOVE',119,34,8.5,true);
-  c.text('Outside gable face',119,42,7);
-  c.rect(119,50,60,7,'floor');
-  c.rect(179,50,53,7,'timber');
-  c.rect(119,57,9,49);
-  c.rect(128,57,51,39,'floor');
+  c.text('Eaves fascia',119,45,7.5);
+  const planY = (originalY: number) => 156 - originalY;
+  const planBoard = (x: number, y: number, width: number, height: number, fill?: 'floor' | 'timber' | 'plate') =>
+    c.rect(x,planY(y+height),width,height,fill);
+  const planLine = (x1: number, y1: number, x2: number, y2: number, weight: number, dash: number[] | null = null) =>
+    c.line(x1,planY(y1),x2,planY(y2),[0,0,0],weight,dash);
+  planBoard(119,50,60,7,'floor');
+  planBoard(179,50,53,7,'timber');
+  planBoard(119,57,9,49);
+  planBoard(128,57,51,39,'floor');
   // Show the actual face board in the cutaway below the gable soffit.
-  c.rect(179,57,6,39,'plate',[0,0,0],.32);
-  c.line(117,48,132,48,[0,0,0],.85);
-  c.line(117,48,117,63,[0,0,0],.85);
-  c.line(168,48,190,48,[0,0,0],.85);
-  c.line(179,48,179,62,[0,0,0],.65,[1,1]);
-  c.text('A',113,49,7,true); c.text('B',177,46,7,true);
+  planBoard(179,57,6,39,'plate');
+  planLine(117,48,132,48,.85);
+  planLine(117,48,117,63,.85);
+  planLine(168,48,190,48,.85);
+  planLine(179,48,179,62,.65,[1,1]);
+  c.text('A',113,110,7,true); c.text('B',177,115,7,true);
   c.rect(130,74,37,8);
   c.text('Flat soffit return',132,80,7.5,true);
-  c.line(182,76,189,85,[0,0,0],.22);
-  c.text('18 mm fascia closure',190,87,7.1);
-  c.text('under gable soffit',190,94,7.1);
-  c.text('Eaves fascia',119,113,7.5);
+  planLine(182,76,189,85,.22);
+  c.text('18 mm fascia closure',190,68,7.1);
+  c.text('under gable soffit',190,75,7.1);
+  c.text('Outside gable face',119,119,7);
   c.text('A  External 90 degree cover wraps both faces.',119,124,7.5);
   c.text('B  Notched corner cover across the full splice.',119,132,7.5);
   c.text('Dashed leg wraps the fascia closure below the barge.',119,140,7.5);
@@ -108,11 +121,37 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.text('above barge bottom',261,73,6.7);
   c.text('Full corner at bottom',237,118,6.7);
 
-  c.text(`Measured eaves: 178 from PIR to rafter tail bottom + 9 soffit + ~5 fascia drop = ~${fmt(m.eavesFaceDepth)} vertically.`,12,163,7.5);
-  c.text(`Measured gable: 202 square to slope. At the finished cladding line, the sloping soffit is ~${fmt(m.soffitStep)} above the flat return.`,12,171,7.5);
-  c.text('Seat the 9 mm soffit on the horizontal box-end lip. Scribe the closure and lip relief with both boards in place.',12,179,7.5);
-  c.text('Check SupaLite cover seating, timber fixing depth and membrane drainage before trimming. Allow board movement.',12,187,7.5);
-  c.text('Trims: 4 corner covers A and 4 notched corner covers B. Use straight covers at eaves joints and gable apexes.',12,195,7.5);
+  c.text('EAVES CUTAWAY - VERTICAL DATUMS',12,158,7.5,true);
+  const eavesTop = 164, eavesScale = .13;
+  const tailBottom = eavesTop + FASCIA.eavesPIRDepth * eavesScale;
+  const soffitBottom = eavesTop + m.levelSoffitDepth * eavesScale;
+  const fasciaBottom = eavesTop + m.eavesFaceDepth * eavesScale;
+  c.line(47,eavesTop,68,eavesTop,[0,0,0],.4);
+  c.line(54,eavesTop,54,fasciaBottom,[0,0,0],.28);
+  c.line(54,tailBottom,70,tailBottom,[0,0,0],.4);
+  c.line(54,soffitBottom,70,soffitBottom,[0,0,0],.38);
+  c.line(47,fasciaBottom,54,fasciaBottom,[0,0,0],.55);
+  vTechnical(c,eavesTop,fasciaBottom,47,22,`~${fmt(m.eavesFaceDepth)}`,6.5,'left');
+  vTechnical(c,eavesTop,tailBottom,54,37,`${FASCIA.eavesPIRDepth}`,6.5,'left');
+  c.text('PIR top',71,165,6.6);
+  c.line(68,tailBottom,76,174,[0,0,0],.25);
+  c.text('Rafter tail bottom',78,175,6.6);
+  c.line(69,(tailBottom+soffitBottom)/2,76,181,[0,0,0],.25);
+  c.text(`${FASCIA.soffitThickness} soffit thickness`,78,182,6.6);
+  c.line(54,(soffitBottom+fasciaBottom)/2,76,189,[0,0,0],.25);
+  c.text(`~${FASCIA.lipDrop} to fascia bottom`,78,190,6.6);
+
+  c.text('GABLE CUTAWAY - SQUARE TO ROOF SLOPE',150,158,7.5,true);
+  const vergeTop = 164, vergeBottom = vergeTop + FASCIA.vergePIRDepth*.122;
+  c.line(182,vergeTop,202,vergeTop,[0,0,0],.45);
+  c.line(182,vergeBottom,202,vergeBottom,[0,0,0],.45);
+  c.line(197,vergeTop,197,vergeBottom,[0,0,0],.22,[1,1]);
+  vTechnical(c,vergeTop,vergeBottom,182,163,`${FASCIA.vergePIRDepth}`,6.5,'left');
+  c.text('PIR top',205,165,6.6);
+  c.text('Fly-rafter underside',205,189,6.6);
+
+  c.text('Seat soffit on the horizontal lip. Dry-fit the closure, both trims and SupaLite cover before cutting.',12,196,7.2);
+  c.text('Allow movement and drainage. Use straight covers at eaves centre joints and gable apexes.',12,201,7.2);
   c.text(`Garden room framing set | box-end assembly | page ${page} of ${total}`,148.5,205,6.4,false,'center');
   return c.stream();
 }
