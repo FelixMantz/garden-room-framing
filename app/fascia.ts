@@ -18,11 +18,12 @@ export function fasciaPlan(settings: Settings) {
   const centreRun = ridgeFaceRun + halfRidge;
   const fasciaExtension = FASCIA.thickness / cos;
   const endAllowance = FASCIA.width * tan;
-  const edgeLength = centreRun + fasciaExtension;
+  const soffitDepth = FASCIA.wallWrapGap - FASCIA.wallBatten - FASCIA.claddingEnvelope;
+  const boxFaceWidth = soffitDepth + FASCIA.thickness;
+  const edgeLength = centreRun + fasciaExtension - boxFaceWidth / cos;
   const blankLength = edgeLength + endAllowance;
   const eavesRun = roof.width, eavesHalf = eavesRun / 2;
   const remaining = FASCIA.stockLength - eavesHalf - blankLength - 2 * FASCIA.kerf;
-  const soffitDepth = FASCIA.wallWrapGap - FASCIA.wallBatten - FASCIA.claddingEnvelope;
   const levelSoffitDepth = FASCIA.eavesPIRDepth + FASCIA.soffitThickness;
   const slopeSoffitDepth = (FASCIA.vergePIRDepth + FASCIA.soffitThickness) / cos;
   return {
@@ -31,7 +32,7 @@ export function fasciaPlan(settings: Settings) {
     trialSpare: FASCIA.trialBlank - blankLength,
     soffitDepth, levelSoffitDepth,
     eavesFaceDepth: levelSoffitDepth + FASCIA.lipDrop,
-    boxFaceWidth: soffitDepth + FASCIA.thickness,
+    boxFaceWidth,
     soffitStep: levelSoffitDepth - slopeSoffitDepth + soffitDepth * tan,
     boxOffcut: FASCIA.boxStockLength - FASCIA.stockCount * (FASCIA.boxBlankLength + FASCIA.kerf),
     soffitOffcut: FASCIA.stockLength - eavesHalf - FASCIA.soffitGableBlank - 2 * FASCIA.kerf,
