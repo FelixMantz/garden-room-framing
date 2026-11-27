@@ -60,38 +60,43 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.line(X(0),Y(5),X(m.boxFaceWidth),Y(5),[0,0,0],.55);
   c.line(X(m.boxFaceWidth),Y(5),X(m.boxFaceWidth),Y(m.soffitStep+5),[0,0,0],.9);
   c.polygon([[X(0),Y(0)],[X(29),Y(0)],[X(29),Y(top(29))],[X(0),Y(top(0))]],'corner');
-  c.polygon([[X(m.boxFaceWidth-11),Y(0)],[X(m.boxFaceWidth+11),Y(0)],[X(m.boxFaceWidth+11),Y(top(m.boxFaceWidth+11))],[X(m.boxFaceWidth-11),Y(top(m.boxFaceWidth-11))]],'corner');
-  c.text('A',X(0)+2,83,7,true); c.text('B',X(m.boxFaceWidth)-1,82,7,true);
+  // The return leg of cover B wraps the lower closure below the barge.
+  c.rect(X(m.boxFaceWidth-29),Y(m.soffitStep),29*k,m.soffitStep*k,'corner');
+  c.text('A',X(0)+2,83,7,true);
+  c.text('B',X(m.boxFaceWidth)+5,119,7,true);
+  c.line(X(m.boxFaceWidth)+3,117,X(m.boxFaceWidth)-2,Y(m.soffitStep/2),[0,0,0],.25);
   c.rect(33,96,23,7); c.text('Box end',35,101,7,true);
   c.rect(69,75,17,7); c.text('Barge',71,80,7,true);
   hTechnical(c,X(0),X(m.boxFaceWidth),y,y+8,`~${fmt(m.boxFaceWidth)} box face`,7);
   c.text('Box-end lip and eaves fascia bottoms align.',12,144,7.2);
-  c.text('Trim B to the rake and the lower step after fitting.',12,150,7.2);
+  c.text('B wraps the lower step. The flush plumb joint is above it.',12,150,7.2);
 
-  c.text('PLAN AT THE CORNER AND SPLICE',119,34,8.5,true);
-  c.text('Outside gable face',119,42,7);
-  c.rect(119,50,60,7,'floor');
-  c.rect(179,50,53,7,'timber');
-  c.rect(119,57,9,49);
-  c.rect(128,57,51,39,'floor');
-  c.line(179,57,179,96,[0,0,0],.65);
-  c.line(117,48,132,48,[0,0,0],.85);
-  c.line(117,48,117,63,[0,0,0],.85);
-  c.line(173,48,185,48,[0,0,0],.85);
-  c.text('A',113,48,7,true); c.text('B',177,46,7,true);
-  c.rect(130,75,37,8);
-  c.text('Flat soffit return',132,81,7.5,true);
-  c.text('Eaves fascia',119,113,7.5);
-  c.text('Closure across soffit',184,96,7.2);
+  c.text('PLAN AT THE CORNER AND SPLICE - TOP DOWN',119,34,8.5,true);
+  c.text('Eaves fascia',119,45,7.5);
+  c.rect(119,99,60,7,'floor');
+  c.rect(179,99,53,7,'timber');
+  c.rect(119,50,9,49);
+  c.rect(128,60,51,39,'floor');
+  c.line(179,60,179,99,[0,0,0],.65);
+  c.line(117,108,132,108,[0,0,0],.85);
+  c.line(117,108,117,93,[0,0,0],.85);
+  // Dashed leg sits under the bargeboard in this top-down view.
+  c.line(168,108,179,108,[0,0,0],.85);
+  c.line(179,108,179,94,[0,0,0],.65,[1,1]);
+  c.text('A',113,110,7,true); c.text('B',177,115,7,true);
+  c.rect(130,74,37,8);
+  c.text('Flat soffit return',132,80,7.5,true);
+  c.text('Closure across soffit',184,64,7.2);
+  c.text('Outside gable face',119,119,7);
   c.text('A  External 90 degree cover wraps both faces.',119,126,7.5);
-  c.text('B  Straight cover spans the flush plumb joint.',119,134,7.5);
-  c.text('Set both gable faces flush and fit timber backing.',119,142,7.5);
+  c.text('B  Corner cover returns around the lower closure.',119,134,7.5);
+  c.text('Dashed leg sits below the barge. Back the closure.',119,142,7.5);
 
   c.text(`Measured eaves: 178 from PIR to rafter tail bottom + 9 soffit + ~5 fascia drop = ~${fmt(m.eavesFaceDepth)} vertically.`,12,163,7.5);
   c.text(`Measured gable: 202 square to slope. At the finished cladding line, the sloping soffit is ~${fmt(m.soffitStep)} above the flat return.`,12,171,7.5);
   c.text('Seat the 9 mm soffit on the horizontal box-end lip. Scribe the closure and lip relief with both boards in place.',12,179,7.5);
   c.text('Check SupaLite cover seating, timber fixing depth and membrane drainage before trimming. Allow board movement.',12,187,7.5);
-  c.text('Trims: 4 external corners, 4 full straight box-end covers and 2 straight trims split for eaves and apex covers.',12,195,7.5);
+  c.text('Trims: 4 covers A and 4 short returns B. Use straight covers at the eaves centre joints and gable apexes.',12,195,7.5);
   c.text(`Garden room framing set | box-end assembly | page ${page} of ${total}`,148.5,205,6.4,false,'center');
   return c.stream();
 }
