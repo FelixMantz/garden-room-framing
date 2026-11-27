@@ -1,6 +1,6 @@
 import type { Settings } from '../framing';
 import { FASCIA, fasciaPlan } from '../fascia';
-import { canvas, fmt, hTechnical, vTechnical } from './layout';
+import { canvas, fmt, hTechnical } from './layout';
 
 export function drawFascia(settings: Settings, page: number, total: number, c = canvas()) {
   const m = fasciaPlan(settings);
@@ -12,11 +12,10 @@ export function drawFascia(settings: Settings, page: number, total: number, c = 
   const drawStock = (y: number, cuts: [number,number], labels: [string,string]) => {
     const x = 14, length = 263, height = 12, scale = length / FASCIA.stockLength;
     c.rect(x,y,length,height);
-    c.rect(x,y,cuts[0]*scale,height,'floor');
+    c.rect(x,y,cuts[0]*scale,height);
     const next = x + (cuts[0] + FASCIA.kerf)*scale;
-    c.rect(next,y,cuts[1]*scale,height,'timber');
+    c.rect(next,y,cuts[1]*scale,height);
     c.text(labels[0],x+cuts[0]*scale/2,y+7.5,7.2,true,'center');
-    c.rect(next+2,y+3,cuts[1]*scale-4,6);
     c.text(labels[1],next+cuts[1]*scale/2,y+7.5,7.2,true,'center');
   };
   drawStock(49,[m.eavesHalf,m.blankLength],[`Eaves half ${fmt(m.eavesHalf)}`,`Main barge blank ${fmt(m.blankLength)}`]);
@@ -24,7 +23,7 @@ export function drawFascia(settings: Settings, page: number, total: number, c = 
   c.text(`Gable blank = ${fmt(m.ridgeFaceRun)} to ridge face + ${fmt(m.halfRidge)} to centre + ${fmt(m.fasciaExtension)} eaves extension - ${fmt(m.boxFaceWidth / Math.cos(settings.roofPitch * Math.PI / 180))} box end + ${fmt(m.endAllowance)} end skew.`,12,77,7.5);
   const x = 15, y = 91, scale = 167 / Math.max(m.blankLength,FASCIA.trialBlank), h = 15;
   c.rect(x,y,FASCIA.trialBlank*scale,h);
-  c.polygon([[x,y+h],[x+m.edgeLength*scale,y+h],[x+m.blankLength*scale,y],[x+m.endAllowance*scale,y]],'floor');
+  c.polygon([[x,y+h],[x+m.edgeLength*scale,y+h],[x+m.blankLength*scale,y],[x+m.endAllowance*scale,y]]);
   hTechnical(c,x,x+FASCIA.trialBlank*scale,y,y-5,`${FASCIA.trialBlank} check blank`,7);
   hTechnical(c,x,x+m.blankLength*scale,y+h,y+h+5,`${fmt(m.blankLength)} overall blank`,7);
   c.text(`Plumb cuts, ${fmt(m.edgeLength)} along either edge.`,192,94,7.3);
@@ -39,7 +38,7 @@ export function drawFascia(settings: Settings, page: number, total: number, c = 
 
   c.text('BOX-END STOCK',12,181,9,true);
   c.text(`One 1250 x 450 x 18 lipped blank yields 4 x 250 crosscuts. Keep the bottom lip horizontal; ${fmt(m.boxOffcut)} stock reserve.`,12,189,7.4);
-  c.text('Trim closures from offcuts. Dry-fit one complete corner before batch cutting. See box-end assembly sheet.',12,197,7.4);
+  c.text('Cut rear fascia closures from offcuts. Dry-fit one complete corner before batch cutting. See box-end assembly sheet.',12,197,7.4);
   c.text(`Garden room framing set | roofline cutting | page ${page} of ${total}`,148.5,205,6.4,false,'center');
   return c.stream();
 }
@@ -74,26 +73,30 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.text('Box-end lip and eaves fascia bottoms align.',12,144,7.2);
   c.text('B is one piece over the full joint and lower step.',12,150,7.2);
 
-  c.text('PLAN AT THE CORNER AND SPLICE - TOP DOWN',119,34,8.5,true);
-  c.text('Eaves fascia',119,45,7.5);
-  c.rect(119,99,60,7,'floor');
-  c.rect(179,99,53,7,'timber');
-  c.rect(119,50,9,49);
-  c.rect(128,60,51,39,'floor');
-  c.line(179,60,179,99,[0,0,0],.65);
-  c.line(117,108,132,108,[0,0,0],.85);
-  c.line(117,108,117,93,[0,0,0],.85);
-  // The face leg is visible in plan; the intact lower return is hidden by the barge.
-  c.line(168,108,190,108,[0,0,0],.85);
-  c.line(179,108,179,94,[0,0,0],.65,[1,1]);
-  c.text('A',113,110,7,true); c.text('B',177,115,7,true);
+  c.text('PLAN AT THE CORNER AND SPLICE - VIEW FROM ABOVE',119,34,8.5,true);
+  c.text('Outside gable face',119,42,7);
+  c.rect(119,50,60,7,'floor');
+  c.rect(179,50,53,7,'timber');
+  c.rect(119,57,9,49);
+  c.rect(128,57,51,39,'floor');
+  // Show the actual face board in the cutaway below the gable soffit.
+  c.rect(179,57,6,39,'plate',[0,0,0],.32);
+  c.line(117,48,132,48,[0,0,0],.85);
+  c.line(117,48,117,63,[0,0,0],.85);
+  c.line(168,48,190,48,[0,0,0],.85);
+  c.line(179,48,179,62,[0,0,0],.65,[1,1]);
+  c.text('A',113,49,7,true); c.text('B',177,46,7,true);
   c.rect(130,74,37,8);
   c.text('Flat soffit return',132,80,7.5,true);
-  c.text('Closure across soffit',184,64,7.2);
-  c.text('Outside gable face',119,119,7);
-  c.text('A  External 90 degree cover wraps both faces.',119,126,7.5);
-  c.text('B  Notched corner cover across the full splice.',119,134,7.5);
-  c.text('Dashed leg wraps the closure below the barge.',119,142,7.5);
+  c.line(182,76,189,85,[0,0,0],.22);
+  c.text('18 mm fascia closure',190,87,7.1);
+  c.text('under gable soffit',190,94,7.1);
+  c.text('Eaves fascia',119,113,7.5);
+  c.text('A  External 90 degree cover wraps both faces.',119,124,7.5);
+  c.text('B  Notched corner cover across the full splice.',119,132,7.5);
+  c.text('Dashed leg wraps the fascia closure below the barge.',119,140,7.5);
+  c.text('Alternative B: rebate one leg only where the barge enters.',119,148,7.5);
+  c.text('Keep the full corner below the bargeboard.',119,155,7.5);
 
   c.text('B - CORNER TRIM CUTAWAY',237,34,7.1,true);
   c.rect(242,47,10,63,'corner');
