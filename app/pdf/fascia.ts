@@ -60,16 +60,19 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.line(X(0),Y(5),X(m.boxFaceWidth),Y(5),[0,0,0],.55);
   c.line(X(m.boxFaceWidth),Y(5),X(m.boxFaceWidth),Y(m.soffitStep+5),[0,0,0],.9);
   c.polygon([[X(0),Y(0)],[X(29),Y(0)],[X(29),Y(top(29))],[X(0),Y(top(0))]],'corner');
-  // The return leg of cover B wraps the lower closure below the barge.
-  c.rect(X(m.boxFaceWidth-29),Y(m.soffitStep),29*k,m.soffitStep*k,'corner');
+  // A single face leg covers the full joint; the return survives below the barge.
+  const splice = m.boxFaceWidth;
+  c.polygon([[X(splice-11),Y(0)],[X(splice+11),Y(0)],
+    [X(splice+11),Y(top(splice+11))],[X(splice-11),Y(top(splice-11))]],'corner');
+  c.line(X(splice-11),Y(m.soffitStep),X(splice+11),Y(m.soffitStep),[0,0,0],.25,[1,1]);
   c.text('A',X(0)+2,83,7,true);
-  c.text('B',X(m.boxFaceWidth)+5,119,7,true);
-  c.line(X(m.boxFaceWidth)+3,117,X(m.boxFaceWidth)-2,Y(m.soffitStep/2),[0,0,0],.25);
+  c.text('B',X(splice)+6,91,7,true);
+  c.line(X(splice)+5,89,X(splice)+1,89,[0,0,0],.25);
   c.rect(33,96,23,7); c.text('Box end',35,101,7,true);
   c.rect(69,75,17,7); c.text('Barge',71,80,7,true);
   hTechnical(c,X(0),X(m.boxFaceWidth),y,y+8,`~${fmt(m.boxFaceWidth)} box face`,7);
   c.text('Box-end lip and eaves fascia bottoms align.',12,144,7.2);
-  c.text('B wraps the lower step. The flush plumb joint is above it.',12,150,7.2);
+  c.text('B is one piece over the full joint and lower step.',12,150,7.2);
 
   c.text('PLAN AT THE CORNER AND SPLICE - TOP DOWN',119,34,8.5,true);
   c.text('Eaves fascia',119,45,7.5);
@@ -80,8 +83,8 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.line(179,60,179,99,[0,0,0],.65);
   c.line(117,108,132,108,[0,0,0],.85);
   c.line(117,108,117,93,[0,0,0],.85);
-  // Dashed leg sits under the bargeboard in this top-down view.
-  c.line(168,108,179,108,[0,0,0],.85);
+  // The face leg is visible in plan; the intact lower return is hidden by the barge.
+  c.line(168,108,190,108,[0,0,0],.85);
   c.line(179,108,179,94,[0,0,0],.65,[1,1]);
   c.text('A',113,110,7,true); c.text('B',177,115,7,true);
   c.rect(130,74,37,8);
@@ -89,14 +92,24 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.text('Closure across soffit',184,64,7.2);
   c.text('Outside gable face',119,119,7);
   c.text('A  External 90 degree cover wraps both faces.',119,126,7.5);
-  c.text('B  Corner cover returns around the lower closure.',119,134,7.5);
-  c.text('Dashed leg sits below the barge. Back the closure.',119,142,7.5);
+  c.text('B  Notched corner cover across the full splice.',119,134,7.5);
+  c.text('Dashed leg wraps the closure below the barge.',119,142,7.5);
+
+  c.text('B - CORNER TRIM CUTAWAY',237,34,7.1,true);
+  c.rect(242,47,10,63,'corner');
+  c.polygon([[252,101],[268,94],[268,103],[252,110]],'corner');
+  c.line(252,101,268,94,[0,0,0],.32);
+  c.line(252,47,268,40,[0,0,0],.25,[1,1]);
+  c.line(268,40,268,94,[0,0,0],.25,[1,1]);
+  c.text('Return removed',261,68,6.7);
+  c.text('above barge bottom',261,73,6.7);
+  c.text('Full corner at bottom',237,118,6.7);
 
   c.text(`Measured eaves: 178 from PIR to rafter tail bottom + 9 soffit + ~5 fascia drop = ~${fmt(m.eavesFaceDepth)} vertically.`,12,163,7.5);
   c.text(`Measured gable: 202 square to slope. At the finished cladding line, the sloping soffit is ~${fmt(m.soffitStep)} above the flat return.`,12,171,7.5);
   c.text('Seat the 9 mm soffit on the horizontal box-end lip. Scribe the closure and lip relief with both boards in place.',12,179,7.5);
   c.text('Check SupaLite cover seating, timber fixing depth and membrane drainage before trimming. Allow board movement.',12,187,7.5);
-  c.text('Trims: 4 covers A and 4 short returns B. Use straight covers at the eaves centre joints and gable apexes.',12,195,7.5);
+  c.text('Trims: 4 corner covers A and 4 notched corner covers B. Use straight covers at eaves joints and gable apexes.',12,195,7.5);
   c.text(`Garden room framing set | box-end assembly | page ${page} of ${total}`,148.5,205,6.4,false,'center');
   return c.stream();
 }
