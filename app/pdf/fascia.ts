@@ -45,7 +45,8 @@ export function drawFascia(settings: Settings, page: number, total: number, c = 
 
 export function drawBoxEnd(settings: Settings, page: number, total: number, c = canvas()) {
   const m = fasciaPlan(settings);
-  const rise = Math.tan(settings.roofPitch * Math.PI / 180);
+  const pitch = settings.roofPitch * Math.PI / 180;
+  const rise = Math.tan(pitch);
   c.text('Box end - bargeboard finishing flush at the uphill edge',12,12,14,true);
   c.text('One corner shown; mirror at opposite slopes. Trim sections and lip seat are schematic.',12,20,8);
   c.text('GABLE ELEVATION',12,34,8.5,true);
@@ -68,11 +69,44 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.text('B',X(splice)+6,91,7,true);
   c.line(X(splice)+5,89,X(splice)+1,89,[0,0,0],.25);
   c.rect(33,96,23,7); c.text('Box end',35,101,7,true);
-  c.rect(69,75,17,7); c.text('Barge',71,80,7,true);
+  c.line(X(end),Y(top(end)-35),92,63,[0,0,0],.2);
+  c.text('Barge',93,64,7,true);
+
+  // Project the measured roof and rafter datums into the gable elevation.
+  const tailX = X(FASCIA.thickness);
+  const pirHeight = (u: number) => m.eavesFaceDepth + (u-FASCIA.thickness)*rise;
+  const tailLevel = Y(FASCIA.soffitThickness + FASCIA.lipDrop);
+  const pirAtTail = Y(pirHeight(FASCIA.thickness));
+  const lowerSoffit = Y(FASCIA.lipDrop);
+  c.line(tailX,pirAtTail,X(end),Y(pirHeight(end)),[0,0,0],.28,[1.6,1]);
+  c.text('PIR top datum',X(end)-7,Y(pirHeight(end))-3,6.7);
+  c.line(tailX,pirAtTail,tailX,tailLevel,[0,0,0],.18,[1,1]);
+  c.line(tailX,tailLevel,39,tailLevel,[0,0,0],.28,[1,1]);
+  c.line(23,y,tailX,y,[0,0,0],.28);
+  vTechnical(c,pirAtTail,y,tailX,7,`~${fmt(m.eavesFaceDepth)} to fascia bottom`,6.3,'left');
+  vTechnical(c,pirAtTail,tailLevel,tailX,16,`${FASCIA.eavesPIRDepth} to rafter tail bottom`,6.3,'left');
+  c.rect(44,105,17,11);
+  c.line(36,(tailLevel+lowerSoffit)/2,43,108,[0,0,0],.22);
+  c.text(`${FASCIA.soffitThickness} soffit`,45,109,6.6);
+  c.line(36,(lowerSoffit+y)/2,43,114,[0,0,0],.22);
+  c.text(`~${FASCIA.lipDrop} drop`,45,115,6.6);
+
+  const flyingRafterDatum = (u: number) => pirHeight(u) - FASCIA.vergePIRDepth/Math.cos(pitch);
+  const dimensionStart = splice+15;
+  const dimensionEnd = dimensionStart + FASCIA.vergePIRDepth*Math.sin(pitch);
+  const xn1 = X(dimensionStart), yn1 = Y(pirHeight(dimensionStart));
+  const xn2 = X(dimensionEnd), yn2 = Y(flyingRafterDatum(dimensionEnd));
+  c.line(X(splice+13),Y(flyingRafterDatum(splice+13)),X(end),Y(flyingRafterDatum(end)),[0,0,0],.24,[1.6,1]);
+  c.line(xn1,yn1,xn2,yn2,[0,0,0],.33);
+  for (const [px,py] of [[xn1,yn1],[xn2,yn2]]) c.line(px-1.5,py-.5,px+1.5,py+.5,[0,0,0],.35);
+  c.rect(91,78,24,17);
+  c.line((xn1+xn2)/2,(yn1+yn2)/2,91,85,[0,0,0],.22);
+  c.text(`${FASCIA.vergePIRDepth} normal`,92,83.5,6.6,true);
+  c.text('PIR to fly-rafter',92,88.5,6.3);
+  c.text('underside',92,93,6.3);
   hTechnical(c,X(0),X(m.boxFaceWidth),y,y+8,`~${fmt(m.boxFaceWidth)} box face`,7);
   // Project both soffit underside levels from the splice to the step dimension.
   const upperSoffit = Y(FASCIA.lipDrop + m.soffitStep);
-  const lowerSoffit = Y(FASCIA.lipDrop);
   c.line(X(splice),upperSoffit,92,upperSoffit,[0,0,0],.18,[1,1]);
   c.line(X(splice),lowerSoffit,92,lowerSoffit,[0,0,0],.18,[1,1]);
   c.line(91,upperSoffit,91,lowerSoffit,[0,0,0],.28);
@@ -121,37 +155,8 @@ export function drawBoxEnd(settings: Settings, page: number, total: number, c = 
   c.text('above barge bottom',261,73,6.7);
   c.text('Full corner at bottom',237,118,6.7);
 
-  c.text('EAVES CUTAWAY - VERTICAL DATUMS',12,158,7.5,true);
-  const eavesTop = 164, eavesScale = .13;
-  const tailBottom = eavesTop + FASCIA.eavesPIRDepth * eavesScale;
-  const soffitBottom = eavesTop + m.levelSoffitDepth * eavesScale;
-  const fasciaBottom = eavesTop + m.eavesFaceDepth * eavesScale;
-  c.line(47,eavesTop,68,eavesTop,[0,0,0],.4);
-  c.line(54,eavesTop,54,fasciaBottom,[0,0,0],.28);
-  c.line(54,tailBottom,70,tailBottom,[0,0,0],.4);
-  c.line(54,soffitBottom,70,soffitBottom,[0,0,0],.38);
-  c.line(47,fasciaBottom,54,fasciaBottom,[0,0,0],.55);
-  vTechnical(c,eavesTop,fasciaBottom,47,22,`~${fmt(m.eavesFaceDepth)}`,6.5,'left');
-  vTechnical(c,eavesTop,tailBottom,54,37,`${FASCIA.eavesPIRDepth}`,6.5,'left');
-  c.text('PIR top',71,165,6.6);
-  c.line(68,tailBottom,76,174,[0,0,0],.25);
-  c.text('Rafter tail bottom',78,175,6.6);
-  c.line(69,(tailBottom+soffitBottom)/2,76,181,[0,0,0],.25);
-  c.text(`${FASCIA.soffitThickness} soffit thickness`,78,182,6.6);
-  c.line(54,(soffitBottom+fasciaBottom)/2,76,189,[0,0,0],.25);
-  c.text(`~${FASCIA.lipDrop} to fascia bottom`,78,190,6.6);
-
-  c.text('GABLE CUTAWAY - SQUARE TO ROOF SLOPE',150,158,7.5,true);
-  const vergeTop = 164, vergeBottom = vergeTop + FASCIA.vergePIRDepth*.122;
-  c.line(182,vergeTop,202,vergeTop,[0,0,0],.45);
-  c.line(182,vergeBottom,202,vergeBottom,[0,0,0],.45);
-  c.line(197,vergeTop,197,vergeBottom,[0,0,0],.22,[1,1]);
-  vTechnical(c,vergeTop,vergeBottom,182,163,`${FASCIA.vergePIRDepth}`,6.5,'left');
-  c.text('PIR top',205,165,6.6);
-  c.text('Fly-rafter underside',205,189,6.6);
-
-  c.text('Seat soffit on the horizontal lip. Dry-fit the closure, both trims and SupaLite cover before cutting.',12,196,7.2);
-  c.text('Allow movement and drainage. Use straight covers at eaves centre joints and gable apexes.',12,201,7.2);
+  c.text('Seat soffit on the horizontal lip. Dry-fit the closure, both trims and SupaLite cover before cutting.',12,177,7.2);
+  c.text('Allow movement and drainage. Use straight covers at eaves centre joints and gable apexes.',12,184,7.2);
   c.text(`Garden room framing set | box-end assembly | page ${page} of ${total}`,148.5,205,6.4,false,'center');
   return c.stream();
 }
