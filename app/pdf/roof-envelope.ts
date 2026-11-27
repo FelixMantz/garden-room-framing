@@ -1,3 +1,4 @@
+import { FASCIA } from '../fascia';
 import {type Settings} from '../framing';
 import {roofEnvelope} from '../roof-envelope';
 import {canvas,fmt,hTechnical,vTechnical} from './layout';
@@ -153,7 +154,7 @@ export function drawRoofBattens(s:Settings,page:number,total:number,c=canvas()){
  block(0,-s.studDepth,s.studFace,s.studDepth,'timber');
  block(3,0,177,11,'timber');block(0,11,180,100,'floor');block(0,111,50,25,'timber');
  // Outer board is separate from, and outside, the nominal roof edge.
- block(-16,-s.studDepth,16,225,'timber');
+ block(-FASCIA.thickness,-s.studDepth-13,FASCIA.thickness,FASCIA.width,'timber');
  c.line(VX(0),VY(111),VX(180),VY(111),black,.55);
  // Soaker base on the batten; 30 mm tall outer leg, 10 mm inner upstand.
  c.line(VX(0),VY(166),VX(0),VY(136),black,.65);

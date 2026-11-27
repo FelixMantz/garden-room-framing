@@ -1,26 +1,42 @@
 import type { Settings } from './framing';
 import { roofEnvelope } from './roof-envelope';
 
-export const FASCIA = { width:225, thickness:16, stockLength:5000, stockCount:4, kerf:3, trialBlank:2170, roofOsb:11, pir:100, batten:25 } as const;
+export const FASCIA = {
+  width: 200, thickness: 18, stockLength: 5000, stockCount: 4, kerf: 3,
+  trialBlank: 2170, boxStockLength: 1250, boxStockWidth: 450, boxBlankLength: 250,
+  soffitWidth: 200, soffitThickness: 9, soffitGableBlank: 2100,
+  eavesPIRDepth: 178, vergePIRDepth: 202, wallWrapGap: 215,
+  wallBatten: 25, claddingEnvelope: 32, lipDrop: 5,
+} as const;
 
-/** Finishing boards fit the existing timber; do not move the 22 mm framing set-out. */
-export function fasciaPlan(s:Settings){
- const roof=roofEnvelope(s),p=s.roofPitch*Math.PI/180,cos=Math.cos(p),tan=Math.tan(p);
- const ridgeFaceRun=roof.deck.deckSlope,halfRidge=s.ridgeWidth/(2*cos);
- const centreRun=ridgeFaceRun+halfRidge;
- const fasciaExtension=FASCIA.thickness/cos,endAllowance=FASCIA.width*tan;
- const edgeLength=centreRun+fasciaExtension,blankLength=edgeLength+endAllowance;
- // Eaves boards terminate between the bargeboard inner faces; barge ends lap them.
- const eavesRun=roof.width,eavesHalf=eavesRun/2;
- const gableReserve=FASCIA.stockLength-eavesHalf-FASCIA.kerf;
- const remaining=FASCIA.stockLength-eavesHalf-blankLength-2*FASCIA.kerf;
- const totalDepth=s.studDepth+FASCIA.roofOsb+FASCIA.pir+FASCIA.batten;
- return {roof,ridgeFaceRun,halfRidge,centreRun,fasciaExtension,endAllowance,edgeLength,blankLength,
-  eavesRun,eavesHalf,gableReserve,remaining,totalDepth,uncovered:Math.max(0,totalDepth-FASCIA.width),
-  trialSpare:FASCIA.trialBlank-blankLength,fits:remaining>=0,
-  finishedEavesOverhang:roof.roof.eavesTailRun+FASCIA.thickness,
-  finishedGableOverhang:roof.roof.gableOverhang-roof.roof.fasciaThickness+FASCIA.thickness,
-  retainedTileProjection:roof.batten.tileProjection+roof.roof.fasciaThickness-FASCIA.thickness,
-  quote:{boards:86.76,corners:6.92,joints:5.96,delivery:32.98,vat:26.52,total:159.14},
- };
+export function fasciaPlan(settings: Settings) {
+  const roof = roofEnvelope(settings);
+  const pitch = settings.roofPitch * Math.PI / 180;
+  const cos = Math.cos(pitch), tan = Math.tan(pitch);
+  const ridgeFaceRun = roof.deck.deckSlope;
+  const halfRidge = settings.ridgeWidth / (2 * cos);
+  const centreRun = ridgeFaceRun + halfRidge;
+  const fasciaExtension = FASCIA.thickness / cos;
+  const endAllowance = FASCIA.width * tan;
+  const edgeLength = centreRun + fasciaExtension;
+  const blankLength = edgeLength + endAllowance;
+  const eavesRun = roof.width, eavesHalf = eavesRun / 2;
+  const remaining = FASCIA.stockLength - eavesHalf - blankLength - 2 * FASCIA.kerf;
+  const soffitDepth = FASCIA.wallWrapGap - FASCIA.wallBatten - FASCIA.claddingEnvelope;
+  const levelSoffitDepth = FASCIA.eavesPIRDepth + FASCIA.soffitThickness;
+  const slopeSoffitDepth = (FASCIA.vergePIRDepth + FASCIA.soffitThickness) / cos;
+  return {
+    eavesRun, eavesHalf, ridgeFaceRun, halfRidge, centreRun, fasciaExtension,
+    endAllowance, edgeLength, blankLength, remaining, fits: remaining >= 0,
+    trialSpare: FASCIA.trialBlank - blankLength,
+    soffitDepth, levelSoffitDepth,
+    eavesFaceDepth: levelSoffitDepth + FASCIA.lipDrop,
+    boxFaceWidth: soffitDepth + FASCIA.thickness,
+    soffitStep: levelSoffitDepth - slopeSoffitDepth + soffitDepth * tan,
+    boxOffcut: FASCIA.boxStockLength - FASCIA.stockCount * (FASCIA.boxBlankLength + FASCIA.kerf),
+    soffitOffcut: FASCIA.stockLength - eavesHalf - FASCIA.soffitGableBlank - 2 * FASCIA.kerf,
+    finishedEavesOverhang: roof.roof.eavesTailRun + FASCIA.thickness,
+    finishedGableOverhang: roof.roof.gableOverhang - roof.roof.fasciaThickness + FASCIA.thickness,
+    retainedTileProjection: roof.batten.tileProjection + roof.roof.fasciaThickness - FASCIA.thickness,
+  };
 }

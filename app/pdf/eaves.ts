@@ -195,8 +195,8 @@ export function drawEaves(s:Settings,page:number,total:number,c=canvas()){
   c.rect(fx,fy,fw,fh,'timber',[0,0,0],.25);
   hTechnical(c,fx,fx+fw,fy,39,fmt(fasciaThickness),6);
   vTechnical(c,fy,fy+fh,fx+fw,55,`${fmt(fasciaHeight)} overall height`,6);
-  c.text('22 mm frame set-out; finish 225 x 16 uPVC.',15,69,6.2);
-  c.text('Bottom flush with 9 mm soffit underside.',65,71,6.2);
+  c.text('22 mm frame set-out; finish 200 x 18 uPVC.',15,69,6.2);
+  c.text('Finish lip sets board below 9 mm soffit.',65,71,6.2);
   c.text('Finish board / cuts: see fascia cutting sheet.',65,76,6.2);
 
 
