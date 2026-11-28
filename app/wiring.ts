@@ -4,7 +4,7 @@ import { roofModel } from './roof';
 import { configForWall, type Settings, type WallId } from './framing';
 /** Proposed accessory layout. Coordinates in each INTERNAL elevation, from its left end; z above FFL. */
 export const WIRING = {socket:WALL_SERVICES.centre,switch:1200,high:2100,network:1700,bathCeiling:2100} as const;
-const FRONT_SOCKET_SETBACK = 550;
+const FRONT_SOCKET_SETBACK = 220;
 export const NETWORK_SOCKET = {id:'S-NET',height:1560} as const;
 export const BATHROOM_FAN = {id:'BF',model:'Xpelair Contour C4TSR',height:1950,width:180,overrun:30,flow:21} as const;
 /** CU fits the 298mm clear bay between the front-right king and California corner framing. */
@@ -39,12 +39,13 @@ function baseWiringWall(s:Settings,id:WallId){
   const s1=dl+jambGap-FRONT_SOCKET_SETBACK,s2=dr-jambGap+FRONT_SOCKET_SETBACK;
   const s9=corner+FRONT_SOCKET_SETBACK,s10=w-s9;
   p('S9',s9,WIRING.socket);p('S10',s10,WIRING.socket);
-  p('N2',s9+275,WIRING.socket,'data');p('N3',s10-275,WIRING.socket,'data');
+  const dataSetback=corner+825;
+  p('N2',dataSetback,WIRING.socket,'data');p('N3',w-dataSetback,WIRING.socket,'data');
   p('S1',s1,WIRING.socket);p('S2',s2,WIRING.socket);p('SW-M',dl-160,1200,'switch3');
   p('EXT-L1',dl-240,1800,'light');p('EXT-L2',dr+240,1800,'light');
   p('CU',cu.x,cu.z,'cu');p('NET',cu.x,WIRING.network,'network');
   p(NETWORK_SOCKET.id,cu.x,NETWORK_SOCKET.height);
-  r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,WIRING.socket],[s9,WIRING.socket],[s1,WIRING.socket]]);
+  r('R: CU / S1',[[cu.x+30,cu.bottom],[cu.x+30,WIRING.socket],[s9,WIRING.socket],[s1,WIRING.socket]]);
   r('R: CU / right wall',[[cu.x-105,cu.bottom],[cu.x-105,WIRING.socket],[0,WIRING.socket]]);
   r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[s2,WIRING.socket],[s10,WIRING.socket],[w,WIRING.socket]]);
   r('S-NET: S1 / internal single socket',[[s1,WIRING.socket],[s1,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
@@ -57,7 +58,7 @@ function baseWiringWall(s:Settings,id:WallId){
   p('WH-ISO',w-570,850,'isolator');p('WH',w-650,450,'heater');r('H: lead',[[w-570,850],[w-570,450],[w-650,450]],'heater');
  }else if(id==='left'){
   const g=leftGableFeature(s);p(g.id,g.x,g.z,'feature');
-  const edge=BATHROOM.lining+850;
+  const edge=BATHROOM.lining+170;
   const fl=w-BATHROOM.lining-1170;
   p('S3',edge,WIRING.socket);p('S4',w-edge,WIRING.socket);p('F-L',fl,WIRING.socket,'fcu');
   r('R: front / S3 / F-L / S4 / rear',[[0,WIRING.socket],[edge,WIRING.socket],[fl,WIRING.socket],[w-edge,WIRING.socket],[w,WIRING.socket]]);
