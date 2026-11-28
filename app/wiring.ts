@@ -4,7 +4,7 @@ import { roofModel } from './roof';
 import { configForWall, type Settings, type WallId } from './framing';
 /** Proposed accessory layout. Coordinates in each INTERNAL elevation, from its left end; z above FFL. */
 export const WIRING = {socket:WALL_SERVICES.centre,switch:1200,high:2100,network:1700,bathCeiling:2100} as const;
-const SOCKET_SETBACK = 400;
+const FRONT_SOCKET_SETBACK = 550;
 export const NETWORK_SOCKET = {id:'S-NET',height:1560} as const;
 export const BATHROOM_FAN = {id:'BF',model:'Xpelair Contour C4TSR',height:1950,width:180,overrun:30,flow:21} as const;
 /** CU fits the 298mm clear bay between the front-right king and California corner framing. */
@@ -36,10 +36,10 @@ function baseWiringWall(s:Settings,id:WallId){
   const dl=w-door.x-door.width,dr=w-door.x;
   const jambGap=8; // Centred DFC46 frame within the 1264 mm structural opening.
   const corner=s.studDepth+BATHROOM.lining;
-  const s1=dl+jambGap-SOCKET_SETBACK,s2=dr-jambGap+SOCKET_SETBACK;
-  const s9=corner+SOCKET_SETBACK,s10=w-s9;
+  const s1=dl+jambGap-FRONT_SOCKET_SETBACK,s2=dr-jambGap+FRONT_SOCKET_SETBACK;
+  const s9=corner+FRONT_SOCKET_SETBACK,s10=w-s9;
   p('S9',s9,WIRING.socket);p('S10',s10,WIRING.socket);
-  p('N2',s9+200,WIRING.socket,'data');p('N3',s10-200,WIRING.socket,'data');
+  p('N2',s9+275,WIRING.socket,'data');p('N3',s10-275,WIRING.socket,'data');
   p('S1',s1,WIRING.socket);p('S2',s2,WIRING.socket);p('SW-M',dl-160,1200,'switch3');
   p('EXT-L1',dl-240,1800,'light');p('EXT-L2',dr+240,1800,'light');
   p('CU',cu.x,cu.z,'cu');p('NET',cu.x,WIRING.network,'network');
@@ -49,22 +49,24 @@ function baseWiringWall(s:Settings,id:WallId){
   r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[s2,WIRING.socket],[s10,WIRING.socket],[w,WIRING.socket]]);
   r('S-NET: S1 / internal single socket',[[s1,WIRING.socket],[s1,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
  }else if(id==='rear'){
-  const s5=s.studDepth+BATHROOM.lining+SOCKET_SETBACK;
+  const s5=s.studDepth+BATHROOM.lining+400;
   const bath=bathroomModel(s);
-  const s6=s.studDepth+bath.leftOuter-bath.dx-bath.lining-SOCKET_SETBACK;
+  const s6=s.studDepth+bath.leftOuter-bath.dx-bath.lining-475;
   p('S5',s5,WIRING.socket);p('S6',s6,WIRING.socket);
   r('R: left / S5 / S6',[[0,WIRING.socket],[s5,WIRING.socket],[s6,WIRING.socket],[w,WIRING.socket]]);
   p('WH-ISO',w-570,850,'isolator');p('WH',w-650,450,'heater');r('H: lead',[[w-570,850],[w-570,450],[w-650,450]],'heater');
  }else if(id==='left'){
   const g=leftGableFeature(s);p(g.id,g.x,g.z,'feature');
-  const edge=BATHROOM.lining+SOCKET_SETBACK;
-  p('S3',edge,WIRING.socket);p('S4',w-edge,WIRING.socket);p('F-L',w-650,WIRING.socket,'fcu');
-  r('R: front / S3 / F-L / S4 / rear',[[0,WIRING.socket],[edge,WIRING.socket],[w-650,WIRING.socket],[w-edge,WIRING.socket],[w,WIRING.socket]]);
-  for(const [i,z] of [[1,650],[2,800]]){p(`OUT-L${i}`,w-650,z,'external');r(`F-L ch${i}`,[[w-650,WIRING.socket],[w-650+(i-1)*50,WIRING.socket],[w-650+(i-1)*50,z],[w-650,z]],'spur');}
+  const edge=BATHROOM.lining+850;
+  const fl=w-BATHROOM.lining-1170;
+  p('S3',edge,WIRING.socket);p('S4',w-edge,WIRING.socket);p('F-L',fl,WIRING.socket,'fcu');
+  r('R: front / S3 / F-L / S4 / rear',[[0,WIRING.socket],[edge,WIRING.socket],[fl,WIRING.socket],[w-edge,WIRING.socket],[w,WIRING.socket]]);
+  for(const [i,z] of [[1,650],[2,800]]){p(`OUT-L${i}`,fl,z,'external');r(`F-L ch${i}`,[[fl,WIRING.socket],[fl+(i-1)*50,WIRING.socket],[fl+(i-1)*50,z],[fl,z]],'spur');}
+
  }else{
   const gr=leftGableFeature(s);p('G2',gr.x,gr.z,'feature');
-  const bath=bathroomModel(s),s7=bath.frontOuter-bath.dy+bath.lining+SOCKET_SETBACK;
-  const s8=w-bath.lining-SOCKET_SETBACK;
+  const bath=bathroomModel(s),s7=bath.frontOuter-bath.dy+bath.lining+400;
+  const s8=w-bath.lining-425;
   p('S7',s7,WIRING.socket);p('S8',s8,WIRING.socket);p('F-R',w-905,WIRING.socket,'fcu');p('AP',w*.44,2450,'ap');p('AC',(w+bath.frontOuter-bath.dy)/2,cfg.wallHeight+cfg.frameBase-cfg.ffl,'aircon');
   r('R: front CU / S8 / F-R / S7 / rear',[[w,WIRING.socket],[s8,WIRING.socket],[w-905,WIRING.socket],[s7,WIRING.socket],[0,WIRING.socket]]);
   const incoming=serviceEntry(s);p('SWA-IN',incoming.x,incoming.swaHeight,'supply');p('DATA-IN',incoming.x,incoming.dataHeight,'data');

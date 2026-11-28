@@ -76,7 +76,6 @@ export function drawWiringWall(s:Settings,id:WallId,p:number,t:number,c=canvas()
  c.text(m.runs.some(r=>r.type==='data')?'SOLID: electricity    DASHED: network cables / house data':'SOLID: electricity',12,27,7,true);
  const positions=m.points.filter(a=>(!['external','data','heater','junction','network'].includes(a.kind)||/^N[23]$/.test(a.id))).map(a=>`${a.id}: ${a.x} / +${a.z}`).join('   |   ');
  text(c,positions,12,166,273,6.1);
- c.text('400 mm socket set-out can overlap studs. Use surface boxes at conflicts and preserve framing.',12,55,6.5);
  c.text('Set-out above: horizontal distance from LEFT end of this view / height above FFL. OUT symbols project exterior fittings.',12,171,6.2);
  const keys:Record<WallId,string[]>={
  front:['CU = consumer unit','SW-M = 3-gang: main / feature / outside','S1/S2 = door; S9/S10 = corner doubles','N2/N3 = RJ45 beside S9/S10','RD / RE = ring door-bypass risers','LC / AC = lighting / aircon roof feeds','SW0 = feed; SW1-SW3 = switched groups','X1A/B = lantern 1 in/out; X2 = lantern 2','N1A / N3A = AP / left socket feeds','N4A = future front-right camera','N3B = drop beside RE, then low to N3','Incoming SWA/data turn from RIGHT wall','R/L/H/A = ring / lights / heater / aircon','FFL = finished floor; heights in mm','Solid = mains; dashed = data','SP = CU smoke feed; BL = bathroom feed','S-NET = internal single 13A socket','S1 > S-NET: unfused spur; 2.5mm2 T&E'],
