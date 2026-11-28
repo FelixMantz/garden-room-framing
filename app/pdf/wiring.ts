@@ -14,7 +14,7 @@ function box(c:C,id:string,x:number,y:number,kind='socket'){
   c.rect(x-2.8,y-2.8,5.6,5.6,[255,255,255],[0,0,0],.2);
   c.text(id,x,y+.7,5.3,true,'center');return;
  }
- const w=kind==='cu'?10:kind==='network'?8:kind==='socket'?8:kind==='feature'?4:Math.max(6,id.length*.95),h=kind==='cu'?11:5;
+ const w=kind==='cu'?10:kind==='network'?8:kind==='socket'?6:kind==='data'?4:kind==='feature'?4:Math.max(6,id.length*.95),h=kind==='cu'?11:5;
  c.rect(x-w/2,y-h/2,w,h,[255,255,255],[0,0,0],.3);c.text(id,x,y+.7,kind==='network'?5:5.3,true,'center');
  if(kind==='switch3')for(const dx of [-2,0,2])c.line(x+dx,y-1.8,x+dx,y-1);
  if(kind==='socket'){c.line(x-1,y-1.7,x-1,y-.7);c.line(x+1,y-1.7,x+1,y-.7);}
@@ -62,7 +62,6 @@ export function drawWiringWall(s:Settings,id:WallId,p:number,t:number,c=canvas()
   if(a.kind==='cu'){c.rect(X(a.x-m.cu.width/2),Z(m.cu.top),m.cu.width*sc,m.cu.height*sc,undefined,undefined,.4);c.text('CU',X(a.x),Z(a.z)+.7,6,true,'center');}
   // Retain the data-route convergence point in the model without drawing network equipment.
   else if(a.kind==='network')continue;
-  else if(/^N[23]$/.test(a.id)){c.line(X(a.x),Z(a.z),X(a.x),Z(a.z)-5,undefined,.2);box(c,a.id,X(a.x),Z(a.z)-7,a.kind);}
   else box(c,a.id,X(a.x),Z(a.z),a.kind);
  }
  const groups=new Map<string,typeof m.ports>();
