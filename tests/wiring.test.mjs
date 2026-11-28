@@ -55,17 +55,23 @@ test('all network runs start at front-wall NET, with only physical roof cables o
  assert.match(page,/N1A-N1B/);assert.doesNotMatch(page,/N2 =|HOUSE DATA|external soffits|REAR SOFFIT/);
 });
 
-test('single front-corner outlets retain single cables and switch/network equipment positions',()=>{
- const s=defaultSettings(),front=wiringWall(s,'front'),right=wiringWall(s,'right');
+test('side-wall RJ45 outlets continue around the corners beside S8 and S3',()=>{
+ const s=defaultSettings(),front=wiringWall(s,'front'),right=wiringWall(s,'right'),left=wiringWall(s,'left');
  const cu=front.points.find(p=>p.id==='CU'),sw=front.points.find(p=>p.id==='SW-M');
  assert.notEqual(sw.x,cu.x);assert.equal(sw.z,1200);assert.equal(sw.kind,'switch3');
  const door=front.cfg.computedOpenings.find(o=>o.type==='door');assert.equal(sw.x,front.w-door.x-door.width-160);
  const net=front.points.find(p=>p.id==='NET');assert.equal(net.x,cu.x);assert.equal(net.z,1700);assert.ok(!right.points.some(p=>p.id==='NET'));
- assert.deepEqual(front.points.filter(p=>/^N[23]$/.test(p.id)).map(p=>p.id),['N2','N3']);
+ assert.ok(!front.points.some(p=>/^N[23]$/.test(p.id)));
+ assert.equal(right.points.find(p=>p.id==='N2').x,right.points.find(p=>p.id==='S8').x-200);
+ assert.equal(left.points.find(p=>p.id==='N3').x,left.points.find(p=>p.id==='S3').x+200);
+ assert.deepEqual(right.runs.find(r=>r.id.startsWith('N2:')).points[0],[right.w,435]);
+ assert.deepEqual(left.runs.find(r=>r.id.startsWith('N3:')).points[0],[0,435]);
+ assert.equal(front.points.find(p=>p.id==='S1').x,front.w-door.x-door.width-160);
+ assert.equal(front.points.find(p=>p.id==='S2').x,front.w-door.x+160);
  assert.equal(front.runs.filter(r=>r.id.startsWith('N2:')).length,1);
  assert.equal(front.ports.filter(p=>p.id==='N3B').length,1);
  const near=front.runs.find(r=>r.id.startsWith('N2:'));assert.ok(near.points.some(p=>p[1]===435));
- const far=front.ports.find(p=>p.id==='N3B'),outlet=front.points.find(p=>p.id==='N3');assert.deepEqual(far.path[0],[outlet.x,outlet.z]);assert.ok(far.x>front.w-door.x);assert.ok(far.path.some(p=>p[1]===435));
+ const far=front.ports.find(p=>p.id==='N3B'),outlet=left.points.find(p=>p.id==='N3');assert.equal(outlet.z,400);assert.deepEqual(far.path[0],[front.w,435]);assert.ok(far.x>front.w-door.x);assert.ok(far.path.some(p=>p[1]===435));
  assert.deepEqual(right.runs.find(r=>r.type==='ring').points[0],[right.w,400]);
 });
 
@@ -214,7 +220,9 @@ test('bathroom permanent lighting feed follows socket zones and enters the suppo
  assert.deepEqual(r.points.at(-1),[b.partitionY,425]);assert.equal(b.riseX,s.internalLength-100);
  assert.ok(b.low>=337.5&&b.low<=462.5);
  // The continuous lighting cable passes through the socket/FCU backbox envelopes, without joining the ring.
- const s1=front.points.find(p=>p.id==='S1'),verticalX=f.points[0][0];assert.ok(Math.abs(verticalX-s1.x)<73);assert.ok(Math.abs(425-s1.z)<41.5);
+ const s1=front.points.find(p=>p.id==='S1'),verticalX=f.points.find((p,i)=>i&&p[0]===f.points[i-1][0]&&p[1]===425)[0];assert.ok(Math.abs(verticalX-s1.x)<73);assert.ok(Math.abs(425-s1.z)<41.5);
+ const {bathroomModel}=await v.ssrLoadModule('/app/bathroom.ts'),bath=bathroomModel(s);
+ assert.equal(right.points.find(p=>p.id==='S7').x-(bath.frontOuter-bath.dy),right.w-right.points.find(p=>p.id==='S8').x);
  for(const id of ['S8','F-R','S7']){const p=right.points.find(p=>p.id===id);assert.ok(p.x>b.partitionY&&p.x<right.w);assert.ok(Math.abs(425-p.z)<41.5);}
  assert.deepEqual(b.feed.points[0],[s.internalLength,b.partitionY]);assert.deepEqual(b.feed.points.at(-1),b.pull.point);
 });

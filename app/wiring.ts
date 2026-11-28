@@ -33,35 +33,39 @@ function baseWiringWall(s:Settings,id:WallId){
  if(id==='front'){
   const door=cfg.computedOpenings.find(o=>o.type==='door')!;
   const dl=w-door.x-door.width,dr=w-door.x;
-  p('S1',300,WIRING.socket);p('S2',w-300,WIRING.socket);p('SW-M',dl-160,1200,'switch3');
+  const s1=dl-160,s2=dr+160;
+  p('S1',s1,WIRING.socket);p('S2',s2,WIRING.socket);p('SW-M',dl-160,1200,'switch3');
   p('EXT-L1',dl-240,1800,'light');p('EXT-L2',dr+240,1800,'light');
   p('CU',cu.x,cu.z,'cu');p('NET',cu.x,WIRING.network,'network');
   p(NETWORK_SOCKET.id,cu.x,NETWORK_SOCKET.height);
-  r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,WIRING.socket],[300,WIRING.socket]]);
+  r('R: CU / S1',[[cu.x+100,cu.bottom],[cu.x+100,WIRING.socket],[s1,WIRING.socket]]);
   r('R: CU / right wall',[[cu.x-105,cu.bottom],[cu.x-105,WIRING.socket],[0,WIRING.socket]]);
-  r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[w-300,WIRING.socket],[w,WIRING.socket]]);
-  r('S-NET: S1 / internal single socket',[[300,WIRING.socket],[300,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
-  p('N2',440,WIRING.socket,'data');p('N3',w-440,WIRING.socket,'data');
+  r('SWA: right corner / CU',[[0,250],[cu.x-70,250],[cu.x-70,cu.bottom],[cu.x,cu.bottom]],'supply');r('R: S2 / left',[[s2,WIRING.socket],[w,WIRING.socket]]);
+  r('S-NET: S1 / internal single socket',[[s1,WIRING.socket],[s1,NETWORK_SOCKET.height],[cu.x,NETWORK_SOCKET.height]],'spur');
  }else if(id==='rear'){
   p('S5',500,WIRING.socket);p('S6',w-2100,WIRING.socket);
   r('R: left / S5 / S6',[[0,WIRING.socket],[500,WIRING.socket],[w-2100,WIRING.socket],[w,WIRING.socket]]);
   p('WH-ISO',w-570,850,'isolator');p('WH',w-650,450,'heater');r('H: lead',[[w-570,850],[w-570,450],[w-650,450]],'heater');
  }else if(id==='left'){
   const g=leftGableFeature(s);p(g.id,g.x,g.z,'feature');
-  p('S3',450,WIRING.socket);p('S4',w-450,WIRING.socket);p('F-L',w-650,WIRING.socket,'fcu');
+  p('S3',450,WIRING.socket);p('N3',650,WIRING.socket,'data');
+  r('N3: front corner / RJ45 beside S3',[[0,WIRING.socket+35],[650,WIRING.socket+35],[650,WIRING.socket]],'data');p('S4',w-450,WIRING.socket);p('F-L',w-650,WIRING.socket,'fcu');
   r('R: front / S3 / F-L / S4 / rear',[[0,WIRING.socket],[450,WIRING.socket],[w-650,WIRING.socket],[w-450,WIRING.socket],[w,WIRING.socket]]);
   for(const [i,z] of [[1,650],[2,800]]){p(`OUT-L${i}`,w-650,z,'external');r(`F-L ch${i}`,[[w-650,WIRING.socket],[w-650+(i-1)*50,WIRING.socket],[w-650+(i-1)*50,z],[w-650,z]],'spur');}
  }else{
   const gr=leftGableFeature(s);p('G2',gr.x,gr.z,'feature');
-  p('S7',w-1305,WIRING.socket);p('S8',w-505,WIRING.socket);p('F-R',w-905,WIRING.socket,'fcu');p('AP',w*.44,2450,'ap');const bath=bathroomModel(s);p('AC',(w+bath.frontOuter-bath.dy)/2,cfg.wallHeight+cfg.frameBase-cfg.ffl,'aircon');
-  r('R: front CU / S8 / F-R / S7 / rear',[[w,WIRING.socket],[w-505,WIRING.socket],[w-905,WIRING.socket],[w-1305,WIRING.socket],[0,WIRING.socket]]);
+  const bath=bathroomModel(s),s7=bath.frontOuter-bath.dy+505;
+  p('N2',w-705,WIRING.socket,'data');
+  r('N2: front corner / RJ45 beside S8',[[w,WIRING.socket+35],[w-705,WIRING.socket+35],[w-705,WIRING.socket]],'data');
+  p('S7',s7,WIRING.socket);p('S8',w-505,WIRING.socket);p('F-R',w-905,WIRING.socket,'fcu');p('AP',w*.44,2450,'ap');p('AC',(w+bath.frontOuter-bath.dy)/2,cfg.wallHeight+cfg.frameBase-cfg.ffl,'aircon');
+  r('R: front CU / S8 / F-R / S7 / rear',[[w,WIRING.socket],[w-505,WIRING.socket],[w-905,WIRING.socket],[s7,WIRING.socket],[0,WIRING.socket]]);
   const incoming=serviceEntry(s);p('SWA-IN',incoming.x,incoming.swaHeight,'supply');p('DATA-IN',incoming.x,incoming.dataHeight,'data');
   r('SWA: right entry / front corner',[[incoming.x,250],[w,250]],'supply');
   for(let i=0;i<2;i++)r(`HOUSE DATA right ${i+1}`,[[incoming.x,350],[incoming.x,350+i*30],[w,350+i*30]],'data');
   for(const [i,z] of [[1,650],[2,800]]){p(`OUT-R${i}`,w-905,z,'external');r(`F-R ch${i}`,[[w-905,WIRING.socket],[w-905+(i-1)*50,WIRING.socket],[w-905+(i-1)*50,z],[w-905,z]],'spur');}
  }
  if(id==='front'){
-  r('N2: single front-right RJ45',[[cu.x,WIRING.network],[cu.x+35,WIRING.network],[cu.x+35,WIRING.socket+35],[440,WIRING.socket+35],[440,WIRING.socket]],'data');
+  r('N2: NET / right-wall corner',[[cu.x,WIRING.network],[cu.x+35,WIRING.network],[cu.x+35,WIRING.socket+35],[0,WIRING.socket+35]],'data');
   for(let i=0;i<2;i++)r(`HOUSE DATA ${i+1}`,[[0,350+i*30],[cu.x+80+i*30,350+i*30],[cu.x+80+i*30,WIRING.network],[cu.x,WIRING.network]],'data');
  }
  return {cfg,w,points,runs,cu};
@@ -99,8 +103,8 @@ export function framingConnections(s:Settings){
   const p={id,wall,x,z,type,group,path,plan};ports.push(p);return p;
  };
  const sw=point(f,'SW-M'),door=f.cfg.computedOpenings.find(o=>o.type==='door')!,dl=f.w-door.x-door.width,dr=f.w-door.x;
- add('RD','front',dl-85,[[300,WIRING.socket],[dl-85,WIRING.socket]],'ring','DOOR');
- add('RE','front',dr+85,[[f.w-300,WIRING.socket],[dr+85,WIRING.socket]],'ring','DOOR');
+ add('RD','front',dl-85,[[point(f,'S1').x,WIRING.socket],[dl-85,WIRING.socket]],'ring','DOOR');
+ add('RE','front',dr+85,[[point(f,'S2').x,WIRING.socket],[dr+85,WIRING.socket]],'ring','DOOR');
  // Separate projected risers in the front-right bay; outlets remain at the previously agreed positions.
  add('LC','front',cu.x-85,[[cu.x-85,cu.top]],'light','CU/NET');
  add('AC','front',cu.x-15,[[cu.x-15,cu.top]],'aircon','CU/NET');
@@ -109,8 +113,8 @@ export function framingConnections(s:Settings){
  for(const [id,offset] of [['X1A',-20],['X1B',20],['X2',0]] as const){const a=point(f,id==='X2'?'EXT-L2':'EXT-L1');add(id,'front',a.x+offset,[[a.x,a.z]],'light',id==='X2'?'LANTERN 2':'LANTERN 1');}
  const net=point(f,'NET');
  for(const [id,dx] of [['N1A',20],['N3A',55],['N4A',90]] as const)add(id,'front',cu.x+dx,[[net.x,net.z]],'data','CU/NET');
- const nl=point(f,'N3'),drop=dr+110;
- add('N3B','front',drop,[[nl.x,nl.z],[nl.x,WIRING.socket+35],[drop,WIRING.socket+35]],'data','DOOR DATA');
+ const drop=dr+110;
+ add('N3B','front',drop,[[f.w,WIRING.socket+35],[drop,WIRING.socket+35]],'data','DOOR DATA');
  const ac=point(rr,'AC');add('AD','right',ac.x+80,[[ac.x,ac.z]],'aircon','AIRCON');
  const ap=point(rr,'AP');add('N1B','right',g.x-145,[[ap.x,ap.z]],'data','AP');
  const rg=point(rr,'G2');add('FG2','right',rg.x+125,[[rg.x,rg.z]],'light','G2');
@@ -147,7 +151,7 @@ export function wiringWall(s:Settings,id:WallId){
  const runs=[...m.runs];
  for(const p of connections.ports.filter(p=>p.wall===id))runs.push({id:p.id,points:p.path,type:p.type});
  const bath=bathroomWiring(s);
- if(id==='front')runs.push({id:'BL: CU / right wall',type:'light',points:[[m.cu.x-35,m.cu.bottom],[m.cu.x-35,bath.low],[0,bath.low]]});
+ if(id==='front'){const s1=m.points.find(p=>p.id==='S1')!;runs.push({id:'BL: CU / right wall',type:'light',points:[[m.cu.x-35,m.cu.bottom],[s1.x,m.cu.bottom],[s1.x,bath.low],[0,bath.low]]});}
  if(id==='right'){
   runs.push({id:'BL: right wall / partition',type:'light',points:[[m.w,bath.low],[bath.partitionY,bath.low]]});
   m.points.push({id:bath.fan.id,x:bath.fan.point[1],z:bath.fan.z,kind:'fan'});
